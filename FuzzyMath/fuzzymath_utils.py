@@ -1,7 +1,7 @@
 import warnings
 
 
-def set_up_precision(precision: (float, int) = None, default_precision: int = 10) -> int:
+def set_up_precision(precision: (float, int) = None, default_precision: int = 15) -> int:
     if precision is None:
         precision = default_precision
     if not isinstance(precision, (int, float)):
