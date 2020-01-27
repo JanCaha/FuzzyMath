@@ -115,14 +115,14 @@ class FuzzyNumber:
         return Interval.infimum_supremum(a, b)
 
     def __repr__(self):
-        left_part = ""
-        right_part = ""
+        string = ""
 
         for alpha in self._alphas:
-            left_part = left_part + "({0};{1})".format(alpha, self.get_alpha_cut(alpha).min)
-            right_part = "({0};{1})".format(alpha, self.get_alpha_cut(alpha).max) + right_part
+            string = string + "({0};{1},{2})".format(alpha,
+                                                     self.get_alpha_cut(alpha).min,
+                                                     self.get_alpha_cut(alpha).max)
 
-        return left_part + right_part
+        return string
 
     def __contains__(self, item):
         interval = self.get_alpha_cut(0)
@@ -136,19 +136,23 @@ class FuzzyNumber:
             raise TypeError("Cannot test if object of type `{0}` is in FuzzyNumber. Only implemented for `float`, "
                             "`int`, `Interval` and `FuzzyNumber`.".format(type(item).__name__))
 
-    def get_alpha_cut_values(self, number_of_parts: int) -> List[float]:
+    @staticmethod
+    def get_alpha_cut_values(number_of_parts: int, precision: int) -> List[float]:
+
+        precision = set_up_precision(precision)
+
+        if not isinstance(number_of_parts, int) or number_of_parts <= 1:
+            raise ValueError("`number_of_cuts` has to be integer and higher than 1. "
+                             "It is of type `{0}` and value `{1}`.".format(type(number_of_parts).__name__,
+                                                                           number_of_parts))
 
         number_of_parts = int(number_of_parts)
 
-        if number_of_parts < 1:
-            number_of_parts = 1
-
-        values = [None] * (number_of_parts + 1)
+        values = [None] * number_of_parts
 
         i = 0
-
-        while i <= number_of_parts:
-            values[i] = round(i/number_of_parts, self._precision)
+        while i <= number_of_parts-1:
+            values[i] = round(i/(number_of_parts-1), precision)
             i += 1
 
         return values
@@ -275,14 +279,96 @@ class FuzzyNumber:
         return alphas, intervals
 
     @classmethod
-    def triangular(cls, minimum: float, kernel: float, maximum: float, number_of_cuts: int = None, precision: int = None):
+    def triangular(cls,
+                   minimum: float, kernel: float, maximum: float,
+                   number_of_cuts: int = None,
+                   precision: int = None):
 
         if not minimum <= kernel <= maximum:
             raise ValueError("The fuzzy number is invalid. The structure needs to be `minimum` <= `kernel` "
                              "<= `maximum`. Currently it is `{0}` <= `{1}` <= `{2}`, which does not hold."
                              .format(minimum, kernel, maximum))
 
+        precision = set_up_precision(precision)
+
+        if number_of_cuts is None or number_of_cuts <= 2:
+
+            return cls(alphas=[0, 1],
+                       alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
+                                   Interval.infimum_supremum(kernel, kernel, precision=precision)],
+                       precision=precision)
+
+        else:
+            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+
+            intervals = [None] * len(alphas)
+
+            i = 0
+            for alpha in alphas:
+                if alpha == 0:
+                    intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
+                elif alpha == 1:
+                    intervals[i] = Interval.infimum_supremum(kernel, kernel, precision=precision)
+                else:
+                    int_min = ((kernel - minimum) / number_of_cuts) * i + minimum
+                    int_max = maximum - ((maximum - kernel) / number_of_cuts) * i
+                    intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
+                i += 1
+
+            return cls(alphas=alphas,
+                       alpha_cuts=intervals,
+                       precision=precision)
+
+    @classmethod
+    def trapezoidal(cls,
+                    minimum: float, kernel_minimum: float, kernel_maximum: float, maximum: float,
+                    number_of_cuts: int = None,
+                    precision: int = None):
+
+        if not minimum <= kernel_minimum <= kernel_maximum <= maximum:
+            raise ValueError("The fuzzy number is invalid. The structure needs to be "
+                             "`minimum` <= `kernel_minimum` <= `kernel_maximum` <= `maximum`. "
+                             "Currently it is `{0}` <= `{1}` <= `{2}` <= `{3}`, which does not hold."
+                             .format(minimum, kernel_minimum, kernel_maximum, maximum))
+
+        precision = set_up_precision(precision)
+
+        if number_of_cuts is None or number_of_cuts <= 2:
+
+            return cls(alphas=[0, 1],
+                       alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
+                                   Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)],
+                       precision=precision)
+
+        else:
+            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+
+            intervals = [None] * len(alphas)
+
+            i = 0
+            for alpha in alphas:
+                if alpha == 0:
+                    intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
+                elif alpha == 1:
+                    intervals[i] = Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)
+                else:
+                    int_min = ((kernel_minimum - minimum) / number_of_cuts) * i + minimum
+                    int_max = maximum - ((maximum - kernel_maximum) / number_of_cuts) * i
+                    intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
+                i += 1
+
+            return cls(alphas=alphas,
+                       alpha_cuts=intervals,
+                       precision=precision)
+
+    @classmethod
+    def crisp_number(cls,
+                     value: float,
+                     precision: int = None):
+
+        precision = set_up_precision(precision)
+
         return cls(alphas=[0, 1],
-                   alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
-                               Interval.infimum_supremum(kernel, kernel, precision=precision)],
+                   alpha_cuts=[Interval.infimum_supremum(value, value, precision=precision),
+                               Interval.infimum_supremum(value, value, precision=precision)],
                    precision=precision)
