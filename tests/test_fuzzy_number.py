@@ -23,10 +23,10 @@ class FuzzyNumberTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Lists `alphas` and `alpha_cuts` must be of same length."):
             FuzzyNumber([1, 2, 3], [1, 2])
 
-        with self.assertRaisesRegex(ValueError, "All elements of `alphas` must be int or float from range"):
+        with self.assertRaisesRegex(ValueError, "All elements of `alphas` must be from range"):
             FuzzyNumber([0, 0.5, 1, 1.1], [None]*4)
 
-        with self.assertRaisesRegex(ValueError, "All elements of `alphas` must be int or float from range"):
+        with self.assertRaisesRegex(ValueError, "All elements of `alphas` must be int or float"):
             FuzzyNumber([0, 0.5, 1, "1.1"], [None]*4)
 
         with self.assertRaisesRegex(ValueError, "Values in `alphas` are not unique"):

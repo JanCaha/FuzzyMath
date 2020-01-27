@@ -28,8 +28,10 @@ class FuzzyNumber:
                              "lengths are {0} and {1}.".format(len(alphas), len(alpha_cuts)))
 
         for alpha in alphas:
-            if not (0 <= alpha <= 1) or not isinstance(alpha, (int, float)):
-                raise ValueError("All elements of `alphas` must be int or float from range [0,1].")
+            if not isinstance(alpha, (int, float)):
+                raise ValueError("All elements of `alphas` must be int or float.")
+            if not (0 <= alpha <= 1):
+                raise ValueError("All elements of `alphas` must be from range [0,1].")
 
         if len(alphas) != len(set(alphas)):
             raise ValueError("Values in `alphas` are not unique.")
