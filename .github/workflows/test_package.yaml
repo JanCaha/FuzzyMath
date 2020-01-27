@@ -1,0 +1,50 @@
+name: Test package
+
+#Just tests for now, but the code for documentation generation and deployment is still left here for later
+
+on:
+  push
+
+jobs:
+  test:
+    name: test package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+
+      - name: Cache Python packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+#          pip install pdoc3
+
+      - name: Run tests
+        run: nosetests -verbosity=3
+
+#      - name: Generate documentation
+#        run: |
+#          pdoc --html FuzzyMath
+#          mkdir ./docs
+#          mv -v ./html/FuzzyMath/* ./docs
+#          rsync -r docs_images/ docs
+
+#      - name: Set GIT
+#        run: |
+#          git config --global user.email "action@github.com"
+#          git config --global user.name "Github Action"
+
+#      - name: Deploy to gh-pages branch
+#        uses: peaceiris/actions-gh-pages@v2.5.0
+#        env:
+#          ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+#          PUBLISH_BRANCH: gh-pages
+#          PUBLISH_DIR: ./docs
