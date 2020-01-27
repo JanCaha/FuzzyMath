@@ -28,11 +28,14 @@ class FuzzyNumber:
                              "lengths are {0} and {1}.".format(len(alphas), len(alpha_cuts)))
 
         for alpha in alphas:
-            if not (0 <= alpha <= 1) and not isinstance(alpha, (int, float)):
+            if not (0 <= alpha <= 1) or not isinstance(alpha, (int, float)):
                 raise ValueError("All elements of `alphas` must be int or float from range [0,1].")
 
         if len(alphas) != len(set(alphas)):
             raise ValueError("Values in `alphas` are not unique.")
+
+        if 0 not in alphas or 1 not in alphas:
+            raise ValueError("`alphas` must contain both 0 and 1 alpha value.")
 
         for alpha_cut in alpha_cuts:
             if not isinstance(alpha_cut, Interval):
@@ -214,8 +217,6 @@ class FuzzyNumber:
             list_values[i+1] = interval.max
             i += 2
         return hash(tuple(list_values))
-
-
 
     @staticmethod
     def _iterate_alphas_one_value(x, operation: FunctionType, *args):
