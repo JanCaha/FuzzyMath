@@ -9,6 +9,7 @@ class IntervalTests(unittest.TestCase):
         self.b = Interval.infimum_supremum(2, 5)
         self.c = Interval.infimum_supremum(4, 7)
         self.d = Interval.infimum_supremum(-2, 3)
+        self.e = Interval.infimum_supremum(-1, 1)
 
     def test_interval_creation(self):
         self.assertIsInstance(Interval.two_values(1, 3), Interval)
@@ -94,6 +95,8 @@ class IntervalTests(unittest.TestCase):
                          1 + self.a)
         self.assertEqual(Interval.two_values(self.a.min + self.b.min, self.a.max + self.b.max),
                          self.a + self.b)
+        self.assertEqual(Interval.two_values(self.a.min + self.e.min, self.a.max + self.e.max),
+                         self.a + self.e)
 
         with self.assertRaisesRegex(TypeError, "unsupported operand"):
             self.a + "str"

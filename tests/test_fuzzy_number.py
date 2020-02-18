@@ -88,3 +88,42 @@ class FuzzyNumberTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "`number_of_cuts` has to be integer and higher than 1"):
             FuzzyNumber.get_alpha_cut_values(1, precision=2)
 
+    def test_add(self):
+        self.assertEqual(FuzzyNumber.triangular(2, 3, 4),
+                         self.a + 1)
+        self.assertEqual(FuzzyNumber.triangular(2, 3, 4),
+                         1 + self.a)
+        self.assertEqual(FuzzyNumber.triangular(3, 5, 7),
+                         self.a + self.b)
+        self.assertEqual(FuzzyNumber.triangular(3, 5, 7),
+                         self.b + self.a)
+        self.assertEqual(FuzzyNumber.triangular(0, 2, 4),
+                         self.a + self.c)
+
+    def test_sub(self):
+        self.assertEqual(FuzzyNumber.triangular(0, 1, 2),
+                         self.a - 1)
+        self.assertEqual(FuzzyNumber.triangular(-2, -1, 0),
+                         1 - self.a)
+        self.assertEqual(FuzzyNumber.triangular(-3, -1, 1),
+                         self.a - self.b)
+        self.assertEqual(FuzzyNumber.triangular(-1, 1, 3),
+                         self.b - self.a)
+        self.assertEqual(FuzzyNumber.triangular(0, 2, 4),
+                         self.a - self.c)
+
+    def test_truediv(self):
+        self.assertEqual(FuzzyNumber.triangular(0.5, 1, 1.5),
+                         self.a / 2)
+
+        with self.assertRaisesRegex(ArithmeticError, "Cannot divide by 0"):
+            self.assertEqual(FuzzyNumber.triangular(0.5, 1, 1.5),
+                             self.a / 0)
+
+        self.assertEqual(FuzzyNumber.triangular(self.a.get_min / self.b.get_max,
+                                                self.a.get_kernel.min / self.b.get_kernel.min,
+                                                self.a.get_max / self.b.get_min),
+                         self.a / self.b)
+
+        self.assertEqual(FuzzyNumber.triangular(5 / self.a.get_max, 5 / self.a.get_kernel.min, 5 / self.a.get_min),
+                         5 / self.a)
