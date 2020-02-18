@@ -72,6 +72,18 @@ class FuzzyNumber:
     def alpha_cuts(self):
         return self._alpha_cuts.values()
 
+    @property
+    def get_min(self):
+        return self.get_alpha_cut(0).min
+
+    @property
+    def get_max(self):
+        return self.get_alpha_cut(0).max
+
+    @property
+    def get_kernel(self):
+        return self.get_alpha_cut(1)
+
     def get_alpha_cut(self, alpha: float):
         self._validate_alpha(alpha)
 
@@ -196,6 +208,9 @@ class FuzzyNumber:
             if 0 in other:
                 raise ArithmeticError("Cannot divide by FuzzyNumber that contains 0.")
 
+        if isinstance(other, (int, float)) and other == 0:
+            raise ArithmeticError("Cannot divide by 0.")
+
         return self._iterate_alphas_two_values(self, other, Interval.__truediv__)
 
     def __rtruediv__(self, other):
@@ -219,6 +234,12 @@ class FuzzyNumber:
             list_values[i+1] = interval.max
             i += 2
         return hash(tuple(list_values))
+
+    def __eq__(self, other):
+        alpha_levels = self.alpha_levels == other.alpha_levels
+        alpha_cuts = list(self.alpha_cuts) == list(other.alpha_cuts)
+        precision = self._precision == other._precision
+        return alpha_levels and alpha_cuts and precision
 
     @staticmethod
     def _iterate_alphas_one_value(x, operation: FunctionType, *args):
