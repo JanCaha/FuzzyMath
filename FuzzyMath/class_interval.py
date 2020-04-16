@@ -1,5 +1,7 @@
-import math
-import warnings
+import numpy as np
+from types import FunctionType, BuiltinFunctionType
+from inspect import signature, BoundArguments
+
 from FuzzyMath.fuzzymath_utils import set_up_precision
 
 
@@ -149,6 +151,41 @@ class Interval:
 
     def is_more_positive(self) -> bool:
         return 0 <= self.mid_point
+
+    def apply_function(self,
+                       function: (FunctionType, BuiltinFunctionType),
+                       *args,
+                       monotone: bool = False,
+                       number_elements: float = 1000,
+                       **kwargs):
+
+        if not isinstance(function, (FunctionType, BuiltinFunctionType)):
+            raise TypeError("`function` needs to be a function. It is `{0}`."
+                            .format(type(function).__name__))
+
+        if self.degenerate:
+            elements = [self.min]
+        elif monotone:
+            elements = [self.min, self.max]
+        else:
+            step = (self.max-self.min)/number_elements
+            elements = np.arange(self.min,
+                                 self.max + 0.1*step,
+                                 step=step).tolist()
+
+            elements = [round(x, self.precision) for x in elements]
+
+        function_signature = signature(function)
+
+        results = [0]*len(elements)
+
+        for i in range(0, len(elements)):
+            bound_params: BoundArguments = function_signature.bind(elements[i], *args, **kwargs)
+            bound_params.apply_defaults()
+
+            results[i] = function(*bound_params.args, **bound_params.kwargs)
+
+        return Interval.infimum_supremum(min(results), max(results), precision=self.precision)
 
     def __add__(self, other):
         if isinstance(other, (float, int)):
