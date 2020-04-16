@@ -1,4 +1,6 @@
 import unittest
+import math
+
 from FuzzyMath.class_interval import Interval
 
 
@@ -170,3 +172,21 @@ class IntervalTests(unittest.TestCase):
     def test_lt_gt(self):
         self.assertEqual(self.a < self.c, self.c > self.a)
         self.assertEqual(self.d < self.c, self.c > self.d)
+
+    def test_apply_function(self):
+
+        # position argument not supported by the function
+        with self.assertRaisesRegex(TypeError, "too many positional arguments"):
+            self.a.apply_function(math.log2, 5)
+
+        # keyword argument that does not exist
+        with self.assertRaisesRegex(TypeError, "got an unexpected keyword argument 'c'"):
+            self.a.apply_function(math.log2, c=5)
+
+        min = 0
+        max = 1.584962500721156
+        self.assertAlmostEqual(min, self.a.apply_function(math.log2).min)
+        self.assertAlmostEqual(max, self.a.apply_function(math.log2).max)
+
+        self.assertEqual(Interval.two_values(1, 9),
+                         self.a.apply_function(math.pow, 2, number_elements=10))
