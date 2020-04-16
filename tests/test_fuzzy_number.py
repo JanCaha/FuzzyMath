@@ -127,3 +127,8 @@ class FuzzyNumberTests(unittest.TestCase):
 
         self.assertEqual(FuzzyNumber.triangular(5 / self.a.get_max, 5 / self.a.get_kernel.min, 5 / self.a.get_min),
                          5 / self.a)
+
+    def test_pow(self):
+        power = 2
+        self.assertEqual(FuzzyNumber.triangular(1**power, 2**power, 3**power),
+                         pow(self.a, power))
