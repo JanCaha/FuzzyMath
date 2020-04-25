@@ -1,4 +1,6 @@
 import unittest
+import math
+
 from FuzzyMath.class_fuzzy_number import FuzzyNumber
 from FuzzyMath.class_interval import Interval
 
@@ -132,3 +134,18 @@ class FuzzyNumberTests(unittest.TestCase):
         power = 2
         self.assertEqual(FuzzyNumber.triangular(1**power, 2**power, 3**power),
                          pow(self.a, power))
+
+    def test_function(self):
+        fn = FuzzyNumber.triangular(-math.pi/2, 0, math.pi/2, 11, 8)
+
+        fn_cos = fn.apply_function(math.cos)
+
+        self.assertAlmostEqual(-0, fn_cos.get_min, places=8)
+        self.assertAlmostEqual(1.0, fn_cos.get_max, places=8)
+        self.assertAlmostEqual(1.0, fn_cos.get_kernel.min, places=8)
+
+        fn_sin = fn.apply_function(math.sin)
+
+        self.assertAlmostEqual(-1.0, fn_sin.get_min, places=8)
+        self.assertAlmostEqual(1.0, fn_sin.get_max, places=8)
+        self.assertAlmostEqual(0, fn_sin.get_kernel.min, places=8)

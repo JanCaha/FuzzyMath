@@ -183,10 +183,11 @@ class IntervalTests(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "got an unexpected keyword argument 'c'"):
             self.a.apply_function(math.log2, c=5)
 
-        min = 0
-        max = 1.584962500721156
-        self.assertAlmostEqual(min, self.a.apply_function(math.log2).min)
-        self.assertAlmostEqual(max, self.a.apply_function(math.log2).max)
+        self.assertAlmostEqual(math.log2(self.a.min), self.a.apply_function(math.log2).min)
+        self.assertAlmostEqual(math.log2(self.a.max), self.a.apply_function(math.log2).max)
+
+        self.assertAlmostEqual(-1, self.b.apply_function(math.cos).min, places=5)
+        self.assertAlmostEqual(0.28366, self.b.apply_function(math.cos).max, places=5)
 
         self.assertEqual(Interval.two_values(1, 9),
                          self.a.apply_function(math.pow, 2, number_elements=10))
