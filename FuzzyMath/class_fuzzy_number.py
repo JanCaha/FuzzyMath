@@ -1,7 +1,10 @@
-from FuzzyMath.class_interval import Interval
+from types import FunctionType, BuiltinFunctionType
+from inspect import signature, BoundArguments
 from typing import List
 from types import FunctionType
 from bisect import bisect_left
+
+from FuzzyMath.class_interval import Interval
 from FuzzyMath.fuzzymath_utils import set_up_precision
 
 
@@ -240,6 +243,43 @@ class FuzzyNumber:
         alpha_cuts = list(self.alpha_cuts) == list(other.alpha_cuts)
         precision = self._precision == other._precision
         return alpha_levels and alpha_cuts and precision
+
+    def apply_function(self,
+                       function: (FunctionType, BuiltinFunctionType),
+                       *args,
+                       monotone: bool = False,
+                       number_elements: float = 1000,
+                       **kwargs):
+
+        intervals = []
+
+        alpha_levels = list(self.alpha_levels)
+        alpha_levels.reverse()
+
+        width = self.get_max - self.get_min
+
+        i = 0
+        for alpha in alpha_levels:
+
+            alpha_width = self.get_alpha_cut(alpha).max - self.get_alpha_cut(alpha).min
+
+            number_elements_cut = (alpha_width/width)*number_elements
+
+            interval = self.get_alpha_cut(alpha).apply_function(function,
+                                                                *args,
+                                                                monotone=monotone,
+                                                                number_elements=number_elements_cut,
+                                                                **kwargs)
+
+            if i != 0:
+                interval = interval.union_hull(intervals[i-1])
+
+            intervals.append(interval)
+            i += 1
+
+        intervals.reverse()
+
+        return FuzzyNumber(self.alpha_levels, intervals, precision=self._precision)
 
     @staticmethod
     def _iterate_alphas_one_value(x, operation: FunctionType, *args):
