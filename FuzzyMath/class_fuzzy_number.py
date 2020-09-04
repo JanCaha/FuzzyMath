@@ -157,7 +157,7 @@ class FuzzyNumber:
         string = "Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.".\
             format(self.min, self.max,
                    self.kernel.min, self.kernel.max,
-                   len(self.alpha_levels)-1)
+                   len(self.alpha_levels)-2)
 
         return string
 
