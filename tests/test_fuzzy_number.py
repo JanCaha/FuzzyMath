@@ -175,3 +175,19 @@ class FuzzyNumberTests(unittest.TestCase):
         self.assertAlmostEqual(-1.0, fn_sin.min, places=8)
         self.assertAlmostEqual(1.0, fn_sin.max, places=8)
         self.assertAlmostEqual(0, fn_sin.kernel.min, places=8)
+
+    def test_comparisons(self):
+
+        self.assertFalse(self.a == self.b)
+        self.assertTrue(self.a == FuzzyNumber.triangular(1, 2, 3))
+
+        self.assertTrue(self.c < self.b)
+        self.assertFalse(self.c > self.b)
+
+        self.assertTrue(self.c < 2)
+        self.assertFalse(self.c < -2)
+        self.assertTrue(self.c > -5)
+        self.assertFalse(self.c > 5)
+
+        with self.assertRaises(TypeError):
+            var = self.a > "test"

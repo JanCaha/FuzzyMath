@@ -174,6 +174,22 @@ class FuzzyNumber:
             raise TypeError("Cannot test if object of type `{0}` is in FuzzyNumber. Only implemented for `float`, "
                             "`int`, `Interval` and `FuzzyNumber`.".format(type(item).__name__))
 
+    def __lt__(self, other):
+        if isinstance(other, FuzzyNumber):
+            return self.max < other.min
+        elif isinstance(other, (int, float)):
+            return self.max < other
+        else:
+            return NotImplemented
+
+    def __gt__(self, other):
+        if isinstance(other, FuzzyNumber):
+            return self.min > other.max
+        elif isinstance(other, (int, float)):
+            return self.min > other
+        else:
+            return NotImplemented
+
     @staticmethod
     def get_alpha_cut_values(number_of_parts: int, precision: int) -> List[float]:
 
@@ -257,10 +273,17 @@ class FuzzyNumber:
         return hash(tuple(list_values))
 
     def __eq__(self, other) -> bool:
-        alpha_levels = self.alpha_levels == other.alpha_levels
-        alpha_cuts = list(self.alpha_cuts) == list(other.alpha_cuts)
-        precision = self._precision == other._precision
-        return alpha_levels and alpha_cuts and precision
+        if isinstance(other, FuzzyNumber):
+            alpha_levels = self.alpha_levels == other.alpha_levels
+            alpha_cuts = list(self.alpha_cuts) == list(other.alpha_cuts)
+            precision = self._precision == other._precision
+
+            return alpha_levels and alpha_cuts and precision
+        else:
+            return NotImplemented
+
+    def __len__(self) -> int:
+        return len(self.alpha_cuts)
 
     def apply_function(self,
                        function: (FunctionType, BuiltinFunctionType),
