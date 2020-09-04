@@ -50,6 +50,32 @@ class FuzzyNumberTests(unittest.TestCase):
                         [Interval.two_values(0, 1),
                          Interval.two_values(2, 2)])
 
+        string_fn = '(0.0;1.0,3.0)(0.111111111111111;1.1,2.9)(0.222222222222222;1.2,2.8)(0.333333333333333;1.3,2.7)' \
+                    '(0.444444444444444;1.4,2.6)(0.555555555555556;1.5,2.5)(0.666666666666667;1.6,2.4)' \
+                    '(0.777777777777778;1.7,2.3)(0.888888888888889;1.8,2.2)(1.0;2.0,2.0)'
+
+        self.assertIsInstance(FuzzyNumber.parse_string(string_fn), FuzzyNumber)
+
+        string_fn = '(0.0;1,3)(0.5;1.9999,2.0001)(1.0;2,2)'
+
+        self.assertIsInstance(FuzzyNumber.parse_string(string_fn), FuzzyNumber)
+
+        with self.assertRaisesRegex(ValueError, "Cannot parse FuzzyNumber from this definition"):
+            string_fn = '(0.0;1.0,3.0)(0.5;1.9999)(1.0;2.0,2.0)'
+            FuzzyNumber.parse_string(string_fn)
+
+        with self.assertRaisesRegex(ValueError, "element of Fuzzy Number"):
+            string_fn = '(0.0;1.0,3.0)(0.5;2.0001,1.9999)(1.0;2.0,2.0)'
+            FuzzyNumber.parse_string(string_fn)
+
+        with self.assertRaisesRegex(ValueError, "element of Fuzzy Number"):
+            string_fn = '(0.0;1.0,3.0)(1.1;1.9999,2.0001)(1.0;2.0,2.0)'
+            FuzzyNumber.parse_string(string_fn)
+
+        with self.assertRaisesRegex(ValueError, "Interval on lower alpha level has to contain the higher"):
+            string_fn = '(0.0;1.0,3.0)(0.5;2.5,2.75)(1.0;2.0,2.0)'
+            FuzzyNumber.parse_string(string_fn)
+
     def test_alphas(self):
         self.assertListEqual(self.a.alpha_levels, [0, 1])
         self.assertListEqual(self.e.alpha_levels, [0, 0.2, 0.4, 0.6, 0.8, 1])

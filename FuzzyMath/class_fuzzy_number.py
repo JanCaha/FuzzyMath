@@ -4,6 +4,7 @@ from inspect import signature, BoundArguments
 from typing import List, NoReturn
 from types import FunctionType
 from bisect import bisect_left
+import re
 
 from FuzzyMath.class_interval import Interval
 from FuzzyMath.fuzzymath_utils import set_up_precision
@@ -453,3 +454,46 @@ class FuzzyNumber:
                    alpha_cuts=[Interval.infimum_supremum(value, value, precision=precision),
                                Interval.infimum_supremum(value, value, precision=precision)],
                    precision=precision)
+
+    @classmethod
+    def parse_string(cls,
+                     string: str,
+                     precision: int = None) -> FuzzyNumber:
+
+        precision = set_up_precision(precision)
+
+        re_a_cuts = re.compile("([0-9\.;,]+)")
+        re_numbers = re.compile("[0-9\.]+")
+
+        elements = re_a_cuts.findall(string)
+
+        alphas: List[float] = [0] * len(elements)
+        alpha_cuts: List[Interval] = [None] * len(elements)
+
+        i: int = 0
+
+        for a_cut_def in elements:
+
+            numbers = re_numbers.findall(a_cut_def)
+
+            if len(numbers) != 3:
+                raise ValueError("Cannot parse FuzzyNumber from this definition. "
+                                 "Not all elements provide 3 values (alpha cut value and interval).")
+
+            numbers = [float(x) for x in numbers]
+
+            try:
+                cls._validate_alpha(numbers[0])
+            except ValueError as err:
+                raise ValueError("`{}` element of Fuzzy Number is incorrectly defiend. {}".format(a_cut_def, err))
+
+            alphas[i] = numbers[0]
+
+            try:
+                alpha_cuts[i] = Interval.infimum_supremum(numbers[1], numbers[2])
+            except ValueError as err:
+                raise ValueError("`{}` element of Fuzzy Number is incorrectly defiend. {}".format(a_cut_def, err))
+
+            i += 1
+
+        return FuzzyNumber(alphas, alpha_cuts, precision)
