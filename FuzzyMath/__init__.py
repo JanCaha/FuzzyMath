@@ -1,0 +1,2 @@
+from FuzzyMath.class_interval import Interval
+from FuzzyMath.class_fuzzy_number import FuzzyNumber
