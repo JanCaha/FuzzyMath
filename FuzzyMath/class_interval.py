@@ -1,6 +1,9 @@
-import numpy as np
+from __future__ import annotations
+from typing import List
 from types import FunctionType, BuiltinFunctionType
 from inspect import signature, BoundArguments
+
+import numpy as np
 
 from FuzzyMath.fuzzymath_utils import set_up_precision
 
@@ -23,15 +26,15 @@ class Interval:
         minimum = min(a, b)
         maximum = max(a, b)
 
-        self._min = round(minimum, precision)
-        self._max = round(maximum, precision)
-        self._precision = precision
+        self._precision = int(precision)
+        self._min = round(minimum, self._precision)
+        self._max = round(maximum, self._precision)
 
         if self._min == self._max:
             self._degenerate = True
 
     @classmethod
-    def infimum_supremum(cls, minimum: float, maximum: float, precision: int = None):
+    def infimum_supremum(cls, minimum: float, maximum: float, precision: int = None) -> Interval:
 
         if minimum > maximum:
             raise ValueError("The interval is invalid. `minimum` must be lower or equal to"
@@ -41,11 +44,11 @@ class Interval:
         return cls(minimum, maximum, precision=precision)
 
     @classmethod
-    def two_values(cls, a: float, b: float, precision: int = None):
+    def two_values(cls, a: float, b: float, precision: int = None) -> Interval:
         return cls(a, b, precision=precision)
 
     @classmethod
-    def midpoint_width(cls, midpoint: float, width: float, precision: int = None):
+    def midpoint_width(cls, midpoint: float, width: float, precision: int = None) -> Interval:
 
         if width < 0:
             raise ArithmeticError("`width` of interval must number higher or at least equal to 0. "
@@ -71,7 +74,7 @@ class Interval:
         return self._max
 
     @property
-    def precision(self) -> float:
+    def precision(self) -> int:
         return self._precision
 
     @property
@@ -89,7 +92,7 @@ class Interval:
         else:
             return (self._min + self.max)/2
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         if isinstance(item, (int, float)):
             return self.min <= item <= self.max
         elif isinstance(item, Interval):
@@ -106,35 +109,25 @@ class Interval:
         if self.max < other.min:
             return False
 
-        # if self.min <= other.min <= self.max:
-        #     return True
-        #
-        # if self.min <= other.max <= self.max:
-        #     return True
-        #
-        # if other.min <= self.min <= other.max:
-        #     return True
-        #
-        # if other.min <= self.max <= other.max:
-        #     return True
-
         return True
 
-    def intersection(self, other):
+    def intersection(self, other) -> Interval:
+
         if self.intersects(other):
             return Interval(max(self.min, other.min), min(self.max, other.max))
         else:
             raise ArithmeticError("Intervals `{0}` and `{1}` do not intersect, "
                                   "cannot construct intersection.".format(self, other))
 
-    def union(self, other):
+    def union(self, other) -> Interval:
+
         if self.intersects(other):
             return Interval(min(self.min, other.min), max(self.max, other.max))
         else:
             raise ArithmeticError("Intervals `{0}` and `{1}` do not intersect, "
                                   "cannot construct valid union.".format(self, other))
 
-    def union_hull(self, other):
+    def union_hull(self, other) -> Interval:
         return Interval(min(self.min, other.min), max(self.max, other.max))
 
     def is_negative(self) -> bool:
@@ -157,7 +150,7 @@ class Interval:
                        *args,
                        monotone: bool = False,
                        number_elements: float = 1000,
-                       **kwargs):
+                       **kwargs) -> Interval:
 
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
             raise TypeError("`function` needs to be a function. It is `{0}`."
@@ -187,7 +180,7 @@ class Interval:
 
         return Interval.infimum_supremum(min(results), max(results), precision=self.precision)
 
-    def __add__(self, other):
+    def __add__(self, other) -> Interval:
         if isinstance(other, (float, int)):
             return Interval(self.min + other, self.max + other, precision=self.precision)
         elif isinstance(other, Interval):
@@ -195,10 +188,10 @@ class Interval:
         else:
             return NotImplemented
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> Interval:
         return self + other
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> Interval:
         if isinstance(other, (float, int)):
             return Interval(self.min - other, self.max - other, precision=self.precision)
         elif isinstance(other, Interval):
@@ -206,13 +199,13 @@ class Interval:
         else:
             return NotImplemented
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> Interval:
         if isinstance(other, (float, int)):
             return Interval(other - self.min, other - self.max, precision=self.precision)
         else:
             return NotImplemented
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> Interval:
         if isinstance(other, (float, int)):
             values = [self.min * other,
                       self.min * other,
@@ -228,10 +221,10 @@ class Interval:
         else:
             return NotImplemented
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> Interval:
         return self * other
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> Interval:
         if isinstance(other, (float, int)):
             values = [self.min / other,
                       self.min / other,
@@ -253,7 +246,7 @@ class Interval:
         else:
             return NotImplemented
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> Interval:
         if isinstance(other, (float, int)):
             values = [other / self.min,
                       other / self.min,
@@ -263,7 +256,7 @@ class Interval:
         else:
             return NotImplemented
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> Interval:
         if isinstance(power, int):
             min_power = self.min ** power
             max_power = self.max ** power
@@ -287,10 +280,10 @@ class Interval:
     #     return Interval.two_values(math.fabs(self.min),
     #                                math.fabs(self.max), precision=self.precision)
 
-    def __neg__(self):
+    def __neg__(self) -> Interval:
         return Interval.two_values(self.min * (-1), self.max * (-1), precision=self.precision)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if isinstance(other, Interval):
             return self.min == other.min and \
                    self.max == other.max and \
@@ -298,11 +291,11 @@ class Interval:
         else:
             return NotImplemented
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.max < other.min
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return self.min > other.max
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.min, self.max, self.precision))
