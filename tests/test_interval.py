@@ -139,6 +139,9 @@ class IntervalTests(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "unsupported operand"):
             self.a / "str"
 
+        with self.assertRaisesRegex(ArithmeticError, "Cannot divide by 0"):
+            self.a / 0
+
         with self.assertRaisesRegex(ArithmeticError, "Cannot divide by interval that contains `0`"):
             self.a / self.d
 
