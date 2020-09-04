@@ -122,12 +122,12 @@ class FuzzyNumberTests(unittest.TestCase):
             self.assertEqual(FuzzyNumber.triangular(0.5, 1, 1.5),
                              self.a / 0)
 
-        self.assertEqual(FuzzyNumber.triangular(self.a.get_min / self.b.get_max,
-                                                self.a.get_kernel.min / self.b.get_kernel.min,
-                                                self.a.get_max / self.b.get_min),
+        self.assertEqual(FuzzyNumber.triangular(self.a.min / self.b.max,
+                                                self.a.kernel.min / self.b.kernel.min,
+                                                self.a.max / self.b.min),
                          self.a / self.b)
 
-        self.assertEqual(FuzzyNumber.triangular(5 / self.a.get_max, 5 / self.a.get_kernel.min, 5 / self.a.get_min),
+        self.assertEqual(FuzzyNumber.triangular(5 / self.a.max, 5 / self.a.kernel.min, 5 / self.a.min),
                          5 / self.a)
 
     def test_pow(self):
@@ -140,12 +140,12 @@ class FuzzyNumberTests(unittest.TestCase):
 
         fn_cos = fn.apply_function(math.cos)
 
-        self.assertAlmostEqual(-0, fn_cos.get_min, places=8)
-        self.assertAlmostEqual(1.0, fn_cos.get_max, places=8)
-        self.assertAlmostEqual(1.0, fn_cos.get_kernel.min, places=8)
+        self.assertAlmostEqual(-0, fn_cos.min, places=8)
+        self.assertAlmostEqual(1.0, fn_cos.max, places=8)
+        self.assertAlmostEqual(1.0, fn_cos.kernel.min, places=8)
 
         fn_sin = fn.apply_function(math.sin)
 
-        self.assertAlmostEqual(-1.0, fn_sin.get_min, places=8)
-        self.assertAlmostEqual(1.0, fn_sin.get_max, places=8)
-        self.assertAlmostEqual(0, fn_sin.get_kernel.min, places=8)
+        self.assertAlmostEqual(-1.0, fn_sin.min, places=8)
+        self.assertAlmostEqual(1.0, fn_sin.max, places=8)
+        self.assertAlmostEqual(0, fn_sin.kernel.min, places=8)
