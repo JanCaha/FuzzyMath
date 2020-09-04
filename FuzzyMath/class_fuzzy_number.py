@@ -1,6 +1,7 @@
+from __future__ import annotations
 from types import FunctionType, BuiltinFunctionType
 from inspect import signature, BoundArguments
-from typing import List
+from typing import List, NoReturn
 from types import FunctionType
 from bisect import bisect_left
 
@@ -68,26 +69,34 @@ class FuzzyNumber:
                                                                           self._alphas[-1]))
 
     @property
-    def alpha_levels(self):
+    def alpha_levels(self) -> List[float]:
         return self._alphas
 
     @property
-    def alpha_cuts(self):
+    def alpha_cuts(self) -> List[Interval]:
         return self._alpha_cuts.values()
 
     @property
-    def get_min(self):
+    def min(self) -> float:
         return self.get_alpha_cut(0).min
 
     @property
-    def get_max(self):
+    def max(self) -> float:
         return self.get_alpha_cut(0).max
 
     @property
-    def get_kernel(self):
+    def kernel(self) -> Interval:
         return self.get_alpha_cut(1)
 
-    def get_alpha_cut(self, alpha: float):
+    @property
+    def kernel_min(self) -> float:
+        return self.kernel.min
+
+    @property
+    def kernel_max(self) -> float:
+        return self.kernel.max
+
+    def get_alpha_cut(self, alpha: float) -> Interval:
         self._validate_alpha(alpha)
 
         alpha = round(alpha, self._precision)
@@ -98,7 +107,7 @@ class FuzzyNumber:
             return self._calculate_alpha_cut(alpha)
 
     @staticmethod
-    def _validate_alpha(alpha: float):
+    def _validate_alpha(alpha: float) -> NoReturn:
         if not isinstance(alpha, (int, float)):
             raise TypeError("`alpha` must be float or int.")
 
@@ -134,7 +143,7 @@ class FuzzyNumber:
 
         return Interval.infimum_supremum(a, b)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         string = ""
 
         for alpha in self._alphas:
@@ -144,7 +153,13 @@ class FuzzyNumber:
 
         return string
 
-    def __contains__(self, item):
+    def __str__(self) -> str:
+        "Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.".\
+            format(self.min, self.max,
+                   self.kernel.min, self.kernel.max,
+                   len(self.alpha_levels)-1)
+
+    def __contains__(self, item) -> bool:
         interval = self.get_alpha_cut(0)
         if isinstance(item, (int, float)):
             return interval.min <= item <= interval.max
@@ -177,33 +192,33 @@ class FuzzyNumber:
 
         return values
 
-    def __add__(self, other):
+    def __add__(self, other) -> FuzzyNumber:
         if not isinstance(other, (int, float, FuzzyNumber)):
             return NotImplemented
         return self._iterate_alphas_two_values(self, other, Interval.__add__)
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> FuzzyNumber:
         return self + other
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> FuzzyNumber:
         if not isinstance(other, (int, float, FuzzyNumber)):
             return NotImplemented
         return self._iterate_alphas_two_values(self, other, Interval.__mul__)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> FuzzyNumber:
         return self * other
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> FuzzyNumber:
         if not isinstance(other, (int, float, FuzzyNumber)):
             return NotImplemented
         return self._iterate_alphas_two_values(self, other, Interval.__sub__)
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> FuzzyNumber:
         if not isinstance(other, (int, float, FuzzyNumber)):
             return NotImplemented
         return self._iterate_alphas_two_values(self, other, Interval.__rsub__)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> FuzzyNumber:
         if not isinstance(other, (int, float, FuzzyNumber)):
             return NotImplemented
 
@@ -216,7 +231,7 @@ class FuzzyNumber:
 
         return self._iterate_alphas_two_values(self, other, Interval.__truediv__)
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> FuzzyNumber:
         if not isinstance(other, (int, float, FuzzyNumber)):
             return NotImplemented
 
@@ -225,10 +240,10 @@ class FuzzyNumber:
 
         return self._iterate_alphas_two_values(self, other, Interval.__rtruediv__)
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> FuzzyNumber:
         return self._iterate_alphas_one_value(self, Interval.__pow__, power)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         list_values = [None] * (len(self.alpha_levels) * 2)
         i = 0
         for alpha in self.alpha_levels:
@@ -238,7 +253,7 @@ class FuzzyNumber:
             i += 2
         return hash(tuple(list_values))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         alpha_levels = self.alpha_levels == other.alpha_levels
         alpha_cuts = list(self.alpha_cuts) == list(other.alpha_cuts)
         precision = self._precision == other._precision
@@ -249,14 +264,14 @@ class FuzzyNumber:
                        *args,
                        monotone: bool = False,
                        number_elements: float = 1000,
-                       **kwargs):
+                       **kwargs) -> FuzzyNumber:
 
         intervals = []
 
         alpha_levels = list(self.alpha_levels)
         alpha_levels.reverse()
 
-        width = self.get_max - self.get_min
+        width = self.max - self.min
 
         i = 0
         for alpha in alpha_levels:
@@ -282,7 +297,7 @@ class FuzzyNumber:
         return FuzzyNumber(self.alpha_levels, intervals, precision=self._precision)
 
     @staticmethod
-    def _iterate_alphas_one_value(x, operation: FunctionType, *args):
+    def _iterate_alphas_one_value(x, operation: FunctionType, *args) -> FuzzyNumber:
         if not isinstance(operation, FunctionType):
             raise TypeError("`operation` needs to be a function. It is `{0}`."
                             .format(type(operation).__name__))
@@ -296,7 +311,7 @@ class FuzzyNumber:
         return FuzzyNumber(alphas, intervals, precision=x._precision)
 
     @staticmethod
-    def _iterate_alphas_two_values(x, y, operation: FunctionType):
+    def _iterate_alphas_two_values(x, y, operation: FunctionType) -> FuzzyNumber:
 
         if not isinstance(operation, FunctionType):
             raise TypeError("`operation` needs to be a function. It is `{0}`."
@@ -346,7 +361,7 @@ class FuzzyNumber:
     def triangular(cls,
                    minimum: float, kernel: float, maximum: float,
                    number_of_cuts: int = None,
-                   precision: int = None):
+                   precision: int = None) -> FuzzyNumber:
 
         if not minimum <= kernel <= maximum:
             raise ValueError("The fuzzy number is invalid. The structure needs to be `minimum` <= `kernel` "
@@ -387,7 +402,7 @@ class FuzzyNumber:
     def trapezoidal(cls,
                     minimum: float, kernel_minimum: float, kernel_maximum: float, maximum: float,
                     number_of_cuts: int = None,
-                    precision: int = None):
+                    precision: int = None) -> FuzzyNumber:
 
         if not minimum <= kernel_minimum <= kernel_maximum <= maximum:
             raise ValueError("The fuzzy number is invalid. The structure needs to be "
@@ -428,7 +443,7 @@ class FuzzyNumber:
     @classmethod
     def crisp_number(cls,
                      value: float,
-                     precision: int = None):
+                     precision: int = None) -> FuzzyNumber:
 
         precision = set_up_precision(precision)
 
