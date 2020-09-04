@@ -226,6 +226,10 @@ class Interval:
 
     def __truediv__(self, other) -> Interval:
         if isinstance(other, (float, int)):
+
+            if other == 0:
+                raise ArithmeticError("Cannot divide by 0.")
+
             values = [self.min / other,
                       self.min / other,
                       self.max / other,
