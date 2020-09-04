@@ -154,10 +154,12 @@ class FuzzyNumber:
         return string
 
     def __str__(self) -> str:
-        "Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.".\
+        string = "Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.".\
             format(self.min, self.max,
                    self.kernel.min, self.kernel.max,
                    len(self.alpha_levels)-1)
+
+        return string
 
     def __contains__(self, item) -> bool:
         interval = self.get_alpha_cut(0)
