@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(name='FuzzyMath',
-      version='0.1.0',
+      version='0.2.0',
       description='Small lightweight library for Python (version >= 3.6) '
                   'that performs basic Interval and Fuzzy Arithmetic.',
       url='https://github.com/JanCaha/FuzzyMath',
@@ -10,7 +10,7 @@ setup(name='FuzzyMath',
       author_email='jan.caha@outlook.com',
       license='MIT',
       packages=find_packages(),
-      install_requires=[],
+      install_requires=['numpy'],
       zip_safe=False,
       test_suite='nose.collector',
       tests_require=['nose']

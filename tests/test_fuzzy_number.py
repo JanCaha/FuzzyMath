@@ -191,3 +191,50 @@ class FuzzyNumberTests(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             var = self.a > "test"
+
+    def test_complex_comparisons(self):
+        fn_a = FuzzyNumber.triangular(2, 3, 5)
+        fn_b = FuzzyNumber.triangular(1.5, 4, 4.8)
+
+        with self.subTest("{} \n {}".format(fn_a, fn_b)):
+
+            self.assertAlmostEqual(fn_a.possibility_exceedance(fn_b),
+                                   0.7777777777777777)
+            self.assertAlmostEqual(fn_a.necessity_exceedance(fn_b),
+                                   0.4285714285714289)
+            self.assertAlmostEqual(fn_a.possibility_strict_exceedance(fn_b),
+                                   0.357142857142857)
+            self.assertAlmostEqual(fn_a.necessity_strict_exceedance(fn_b),
+                                   0.0)
+
+            self.assertAlmostEqual(fn_a.possibility_undervaluation(fn_b),
+                                   1.0)
+            self.assertAlmostEqual(fn_a.necessity_undervaluation(fn_b),
+                                   0.6428571428571429)
+            self.assertAlmostEqual(fn_a.possibility_strict_undervaluation(fn_b),
+                                   0.5714285714285711)
+            self.assertAlmostEqual(fn_a.necessity_strict_undervaluation(fn_b),
+                                   0.22222222222222235)
+
+        fn_a = FuzzyNumber.triangular(1.7, 2.7, 2.8)
+        fn_b = FuzzyNumber.triangular(0, 1.8, 2.2)
+
+        with self.subTest("{} \n {}".format(fn_a, fn_b)):
+
+            self.assertAlmostEqual(fn_a.possibility_exceedance(fn_b),
+                                   1.0)
+            self.assertAlmostEqual(fn_a.necessity_exceedance(fn_b),
+                                   0.9642857142857143)
+            self.assertAlmostEqual(fn_a.possibility_strict_exceedance(fn_b),
+                                   1.0)
+            self.assertAlmostEqual(fn_a.necessity_strict_exceedance(fn_b),
+                                   0.642857142857143)
+
+            self.assertAlmostEqual(fn_a.possibility_undervaluation(fn_b),
+                                   0.35714285714285726)
+            self.assertAlmostEqual(fn_a.necessity_undervaluation(fn_b),
+                                   0.0)
+            self.assertAlmostEqual(fn_a.possibility_strict_undervaluation(fn_b),
+                                   0.03571428571428574)
+            self.assertAlmostEqual(fn_a.necessity_strict_undervaluation(fn_b),
+                                   0.0)
