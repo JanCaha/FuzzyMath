@@ -370,6 +370,53 @@ class FuzzyNumber:
 
         return FuzzyNumber(alphas, intervals, precision=precision)
 
+    def __get_cuts_values(self,
+                          alphas: List[float] = None,
+                          order_by_alphas_from_one: bool = False,
+                          value_type: str = "min") -> List[float]:
+        if alphas is None:
+            alphas = self.alpha_levels
+        else:
+            alphas.sort()
+
+        values = [0] * len(alphas)
+
+        for i in range(len(alphas)):
+
+            if value_type == "min":
+                values[i] = self.get_alpha_cut(alphas[i]).min
+
+            elif value_type == "max":
+                values[i] = self.get_alpha_cut(alphas[i]).max
+
+        if order_by_alphas_from_one:
+            values.reverse()
+
+        return values
+
+    def get_alpha_cuts_mins(self,
+                            alphas: List[float] = None,
+                            order_by_alphas_from_one: bool = False) -> List[float]:
+
+        return self.__get_cuts_values(alphas=alphas,
+                                      order_by_alphas_from_one=order_by_alphas_from_one,
+                                      value_type="min")
+
+    def get_alpha_cuts_maxs(self,
+                            alphas: List[float] = None,
+                            order_by_alphas_from_one: bool = False) -> List[float]:
+
+        return self.__get_cuts_values(alphas=alphas,
+                                      order_by_alphas_from_one=order_by_alphas_from_one,
+                                      value_type="max")
+
+    @staticmethod
+    def _prepare_alphas(alpha_levels1: List[float],
+                        alpha_levels2: List[float]):
+
+        alphas = sorted(list(set.union(set(alpha_levels1), set(alpha_levels2))))
+        return alphas
+
     @staticmethod
     def __prepare_alphas_intervals(alpha_levels1: List[float],
                                    alpha_levels2: List[float] = None) -> (List[float], List[Interval]):
@@ -415,8 +462,8 @@ class FuzzyNumber:
                 elif alpha == 1:
                     intervals[i] = Interval.infimum_supremum(kernel, kernel, precision=precision)
                 else:
-                    int_min = ((kernel - minimum) / number_of_cuts) * i + minimum
-                    int_max = maximum - ((maximum - kernel) / number_of_cuts) * i
+                    int_min = ((kernel - minimum) / (number_of_cuts - 1)) * i + minimum
+                    int_max = maximum - ((maximum - kernel) / (number_of_cuts - 1)) * i
                     intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
                 i += 1
 
@@ -457,8 +504,8 @@ class FuzzyNumber:
                 elif alpha == 1:
                     intervals[i] = Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)
                 else:
-                    int_min = ((kernel_minimum - minimum) / number_of_cuts) * i + minimum
-                    int_max = maximum - ((maximum - kernel_maximum) / number_of_cuts) * i
+                    int_min = ((kernel_minimum - minimum) / (number_of_cuts - 1)) * i + minimum
+                    int_max = maximum - ((maximum - kernel_maximum) / (number_of_cuts - 1)) * i
                     intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
                 i += 1
 
