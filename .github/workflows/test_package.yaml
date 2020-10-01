@@ -28,7 +28,7 @@ jobs:
 #          pip install pdoc3
 
       - name: Run tests
-        run: nosetests -verbosity=3
+        run: python -m unittest discover tests -v
 
 #      - name: Generate documentation
 #        run: |
