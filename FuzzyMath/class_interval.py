@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List
 from types import FunctionType, BuiltinFunctionType
 from inspect import signature, BoundArguments
+import math
 
 import numpy as np
 
@@ -32,6 +33,10 @@ class Interval:
 
         if self._min == self._max:
             self._degenerate = True
+
+    @classmethod
+    def empty(cls) -> Interval:
+        return cls(float("nan"), float("nan"))
 
     @classmethod
     def infimum_supremum(cls, minimum: float, maximum: float, precision: int = None) -> Interval:
@@ -91,6 +96,10 @@ class Interval:
             return self._min
         else:
             return (self._min + self.max)/2
+
+    @property
+    def is_empty(self) -> bool:
+        return math.isnan(self.min) and math.isnan(self.max)
 
     def __contains__(self, item) -> bool:
         if isinstance(item, (int, float)):

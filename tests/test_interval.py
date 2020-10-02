@@ -12,6 +12,7 @@ class IntervalTests(unittest.TestCase):
         self.c = Interval.infimum_supremum(4, 7)
         self.d = Interval.infimum_supremum(-2, 3)
         self.e = Interval.infimum_supremum(-1, 1)
+        self.f = Interval.empty()
 
     def test_interval_creation(self):
         self.assertIsInstance(Interval.two_values(1, 3), Interval)
@@ -194,3 +195,7 @@ class IntervalTests(unittest.TestCase):
 
         self.assertEqual(Interval.two_values(1, 9),
                          self.a.apply_function(math.pow, 2, number_elements=10))
+
+    def test_is_empty(self):
+        self.assertTrue(self.f.is_empty)
+        self.assertFalse(self.a.is_empty)
