@@ -83,7 +83,7 @@ class FuzzyNumberTests(unittest.TestCase):
     def test_alpha_cuts(self):
         intervals = [Interval.infimum_supremum(1, 3),
                      Interval.infimum_supremum(2, 2)]
-        self.assertListEqual(intervals, list(self.a.alpha_cuts))
+        self.assertListEqual(intervals, self.a.alpha_cuts)
 
     def test_alpha_cut(self):
         self.assertEqual(Interval.two_values(1, 3), self.a.get_alpha_cut(0))

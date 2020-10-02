@@ -53,7 +53,7 @@ class FuzzyNumber:
         self._alpha_cuts = dict(zip(alphas, alpha_cuts))
         self._alphas = sorted(self._alpha_cuts.keys())
 
-        previous_interval: Interval = None
+        previous_interval: Interval = Interval.empty()
 
         for alpha in self.alpha_levels:
             if previous_interval is not None:
@@ -75,7 +75,7 @@ class FuzzyNumber:
 
     @property
     def alpha_cuts(self) -> List[Interval]:
-        return self._alpha_cuts.values()
+        return list(self._alpha_cuts.values())
 
     @property
     def min(self) -> float:
@@ -138,9 +138,9 @@ class FuzzyNumber:
         if x1 == x2:
             b = x1
         else:
-            k = (y2-y1) / (x2-x1);
-            q = y1 - k * x1;
-            b = (alpha - q) / k;
+            k = (y2-y1) / (x2-x1)
+            q = y1 - k * x1
+            b = (alpha - q) / k
 
         return Interval.infimum_supremum(a, b)
 
@@ -202,7 +202,7 @@ class FuzzyNumber:
 
         number_of_parts = int(number_of_parts)
 
-        values = [None] * number_of_parts
+        values = [0.0] * number_of_parts
 
         i = 0
         while i <= number_of_parts-1:
@@ -458,7 +458,7 @@ class FuzzyNumber:
             alphas = list(set.union(set(alpha_levels1), set(alpha_levels2)))
 
         alphas = sorted(alphas)
-        intervals = [None] * len(alphas)
+        intervals = [Interval.empty()] * len(alphas)
 
         return alphas, intervals
 
@@ -485,7 +485,7 @@ class FuzzyNumber:
         else:
             alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
 
-            intervals = [None] * len(alphas)
+            intervals = [Interval.empty()] * len(alphas)
 
             i = 0
             for alpha in alphas:
@@ -527,7 +527,7 @@ class FuzzyNumber:
         else:
             alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
 
-            intervals = [None] * len(alphas)
+            intervals = [Interval.empty()] * len(alphas)
 
             i = 0
             for alpha in alphas:
@@ -570,7 +570,7 @@ class FuzzyNumber:
         elements = re_a_cuts.findall(string)
 
         alphas: List[float] = [0] * len(elements)
-        alpha_cuts: List[Interval] = [None] * len(elements)
+        alpha_cuts: List[Interval] = [Interval.empty()] * len(elements)
 
         i: int = 0
 
