@@ -10,7 +10,7 @@ def my_test_suite():
 
 
 setup(name='FuzzyMath',
-      version='0.3.0',
+      version='0.3.2',
       description='Small lightweight library for Python (version >= 3.6) '
                   'that performs basic Interval and Fuzzy Arithmetic.',
       url='https://github.com/JanCaha/FuzzyMath',
