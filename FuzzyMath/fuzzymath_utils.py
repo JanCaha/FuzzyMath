@@ -1,4 +1,7 @@
 import warnings
+from typing import NoReturn
+
+from . import config
 
 
 def set_up_precision(precision: (float, int) = None, default_precision: int = 15) -> int:
@@ -16,3 +19,13 @@ def set_up_precision(precision: (float, int) = None, default_precision: int = 15
         warnings.warn("`precision` should be number without decimal part. Retyping to Integer.")
 
     return int(precision)
+
+
+def set_precision(precision: (float, int)) -> NoReturn:
+    precision = set_up_precision(precision)
+
+    config.precision = int(precision)
+
+
+def get_precision() -> int:
+    return config.precision
