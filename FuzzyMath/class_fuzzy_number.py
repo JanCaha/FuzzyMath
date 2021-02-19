@@ -1,26 +1,26 @@
 from __future__ import annotations
 from types import FunctionType, BuiltinFunctionType
 from inspect import signature, BoundArguments
-from typing import List, NoReturn
+from typing import List, NoReturn, Union
 from types import FunctionType
 from bisect import bisect_left
 import re
 
-from FuzzyMath.class_interval import Interval
-from FuzzyMath.fuzzymath_utils import set_up_precision
+from .class_interval import Interval
+from .fuzzymath_utils import (set_up_precision, get_precision)
+from . import config
 
 
 class FuzzyNumber:
-
-    __DEFAULT_PRECISION = 15
 
     __slots__ = ("_alpha_cuts", "_alphas", "_precision")
 
     def __init__(self, alphas: List[float], alpha_cuts: List[Interval], precision: int = None):
 
-        precision = set_up_precision(precision, self.__DEFAULT_PRECISION)
-
-        self._precision = precision
+        if not precision:
+            self._precision = get_precision()
+        else:
+            self._precision = set_up_precision(precision)
 
         if not isinstance(alphas, List):
             raise TypeError("`alphas` must be a list. It is `{0}`.".format(type(alphas).__name__))
@@ -56,7 +56,7 @@ class FuzzyNumber:
         previous_interval: Interval = Interval.empty()
 
         for alpha in self.alpha_levels:
-            if previous_interval is not None:
+            if not previous_interval.is_empty:
                 if not (self.get_alpha_cut(alpha) in previous_interval):
                     raise ValueError("Interval on lower alpha level has to contain the higher level alpha cuts."
                                      "This does not hold for {0} and {1}.".format(previous_interval,
@@ -192,7 +192,6 @@ class FuzzyNumber:
 
     @staticmethod
     def get_alpha_cut_values(number_of_parts: int, precision: int) -> List[float]:
-
         precision = set_up_precision(precision)
 
         if not isinstance(number_of_parts, int) or number_of_parts <= 1:
@@ -564,8 +563,8 @@ class FuzzyNumber:
 
         precision = set_up_precision(precision)
 
-        re_a_cuts = re.compile("([0-9\.;,]+)")
-        re_numbers = re.compile("[0-9\.]+")
+        re_a_cuts = re.compile(r"([0-9\.;,]+)")
+        re_numbers = re.compile(r"[0-9\.]+")
 
         elements = re_a_cuts.findall(string)
 

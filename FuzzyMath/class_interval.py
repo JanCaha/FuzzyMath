@@ -6,21 +6,23 @@ import math
 
 import numpy as np
 
-from FuzzyMath.fuzzymath_utils import set_up_precision
+from .fuzzymath_utils import (get_precision,
+                              set_up_precision)
 
 
 class Interval:
-
-    __DEFAULT_PRECISION = 15
 
     __slots__ = ("_min", "_max", "_precision", "_degenerate")
 
     def __init__(self, a: float, b: float, precision: int = None):
 
-        precision = set_up_precision(precision, self.__DEFAULT_PRECISION)
-
         a = float(a)
         b = float(b)
+
+        if not precision:
+            precision = get_precision()
+        else:
+            precision = set_up_precision(precision)
 
         self._degenerate = False
 
@@ -193,7 +195,7 @@ class Interval:
         if isinstance(other, (float, int)):
             return Interval(self.min + other, self.max + other, precision=self.precision)
         elif isinstance(other, Interval):
-            return Interval(self.min + other.min, self.max + other.max, precision=self.precision)
+            return Interval(self.min + other.min, self.max + other.max, precision=min(self.precision, other.precision))
         else:
             return NotImplemented
 
@@ -204,7 +206,7 @@ class Interval:
         if isinstance(other, (float, int)):
             return Interval(self.min - other, self.max - other, precision=self.precision)
         elif isinstance(other, Interval):
-            return Interval(self.min - other.max, self.max - other.min, precision=self.precision)
+            return Interval(self.min - other.max, self.max - other.min, precision=min(self.precision, other.precision))
         else:
             return NotImplemented
 
@@ -226,7 +228,7 @@ class Interval:
                       self.min * other.max,
                       self.max * other.min,
                       self.max * other.max]
-            return Interval(min(values), max(values), precision=self.precision)
+            return Interval(min(values), max(values), precision=min(self.precision, other.precision))
         else:
             return NotImplemented
 
@@ -254,7 +256,7 @@ class Interval:
                       self.min / other.max,
                       self.max / other.min,
                       self.max / other.max]
-            return Interval(min(values), max(values), precision=self.precision)
+            return Interval(min(values), max(values), precision=min(self.precision, other.precision))
 
         else:
             return NotImplemented
