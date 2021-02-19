@@ -1,3 +1,9 @@
+"""
+Python package `FuzzyMath` is a small lightweight library for Python (version >= 3.6) that performs basic
+Interval and Fuzzy Arithmetic.
+.. include:: ./documentation.md
+"""
+
 from .class_interval import Interval
 from .class_fuzzy_number import FuzzyNumber
 
