@@ -8,7 +8,6 @@ import re
 
 from .class_interval import Interval
 from .fuzzymath_utils import (set_up_precision, get_precision)
-from . import config
 
 
 class FuzzyNumber:
@@ -71,33 +70,95 @@ class FuzzyNumber:
 
     @property
     def alpha_levels(self) -> List[float]:
+        """
+        Alpha levels for this fuzzy number.
+
+        Returns
+        -------
+        List[float]
+        """
         return self._alphas
 
     @property
     def alpha_cuts(self) -> List[Interval]:
+        """
+        Alpha cuts (intervals) for this fuzzy number.
+
+        Returns
+        -------
+        List[Interval]
+        """
         return list(self._alpha_cuts.values())
 
     @property
     def min(self) -> float:
+        """
+        Minimal value of this fuzzy number.
+
+        Returns
+        -------
+        float
+        """
         return self.get_alpha_cut(0).min
 
     @property
     def max(self) -> float:
+        """
+        Maximal value of this fuzzy number.
+
+        Returns
+        -------
+        float
+        """
         return self.get_alpha_cut(0).max
 
     @property
     def kernel(self) -> Interval:
+        """
+        Kernel (alpha cut with membership value 1) for this fuzzy number.
+
+        Returns
+        -------
+        Interval
+        """
         return self.get_alpha_cut(1)
 
     @property
     def kernel_min(self) -> float:
+        """
+        Minimal kernel value of this fuzzy number.
+
+        Returns
+        -------
+        float
+        """
         return self.kernel.min
 
     @property
     def kernel_max(self) -> float:
+        """
+        Maximal kernel value of this fuzzy number.
+
+        Returns
+        -------
+        float
+        """
         return self.kernel.max
 
     def get_alpha_cut(self, alpha: float) -> Interval:
+        """
+        Extracts alpha cut specified by `alpha` variable.
+
+        Parameters
+        ----------
+        alpha: float
+            Value of alpha to extract alpha cut for. Must be from range [0, 1].
+
+        Returns
+        -------
+        Interval
+        """
+
         self._validate_alpha(alpha)
 
         alpha = round(alpha, self._precision)
@@ -109,6 +170,22 @@ class FuzzyNumber:
 
     @staticmethod
     def _validate_alpha(alpha: float) -> NoReturn:
+        """
+        Validates value of of alpha. Must be from range [0, 1].
+
+        Parameters
+        ----------
+        alpha: float
+            Alpha to validate.
+
+        Raises
+        -------
+        ValueError
+            If `alpha` is not from range [0, 1].
+        TypeError
+            If `alpha` is not int or float.
+        """
+
         if not isinstance(alpha, (int, float)):
             raise TypeError("`alpha` must be float or int.")
 
@@ -116,6 +193,19 @@ class FuzzyNumber:
             raise ValueError("`alpha` must be from range [0,1].")
 
     def _calculate_alpha_cut(self, alpha: float) -> Interval:
+        """
+        Calculates alpha cut for given alpha.
+
+        Parameters
+        ----------
+        alpha: float
+            Alpha to calculate the alpha cut for.
+
+        Returns
+        -------
+        Interval
+        """
+
         position = bisect_left(self._alphas, alpha)
 
         x1 = self._alpha_cuts.get(self.alpha_levels[position-1]).min
@@ -145,6 +235,14 @@ class FuzzyNumber:
         return Interval.infimum_supremum(a, b)
 
     def __repr__(self) -> str:
+        """
+        Complete representation of fuzzy number.
+
+        Returns
+        -------
+        str
+        """
+
         string = ""
 
         for alpha in self._alphas:
@@ -155,6 +253,14 @@ class FuzzyNumber:
         return string
 
     def __str__(self) -> str:
+        """
+        Simplified representation of fuzzy number.
+
+        Returns
+        -------
+        str
+        """
+
         string = "Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.".\
             format(self.min, self.max,
                    self.kernel.min, self.kernel.max,
