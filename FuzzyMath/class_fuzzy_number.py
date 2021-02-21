@@ -25,7 +25,7 @@ class FuzzyNumber:
         List of alpha values.
 
     _precision: int
-        Number of decimals used for this fuzzy number.
+        Number of decimals used as precision for this fuzzy number.
     """
 
     __slots__ = ("_alpha_cuts", "_alphas", "_precision")
@@ -171,6 +171,17 @@ class FuzzyNumber:
         float
         """
         return self.kernel.max
+
+    @property
+    def precision(self) -> int:
+        """
+        Returns precision used in this `FuzzyNumber`.
+
+        Returns
+        -------
+        int
+        """
+        return int(self._precision)
 
     def get_alpha_cut(self, alpha: float) -> Interval:
         """
