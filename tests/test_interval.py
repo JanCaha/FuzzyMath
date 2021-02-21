@@ -39,6 +39,18 @@ class IntervalTests(unittest.TestCase):
         self.assertEqual(interval.min, 1)
         self.assertEqual(interval.max, 3)
 
+        interval = Interval.parse_string("[1, 2.5]")
+        self.assertEqual(interval, Interval(1, 2.5))
+
+        with self.assertRaisesRegex(ValueError, "Cannot parse Interval from this definition"):
+            Interval.parse_string("[1, 2.5, 5]")
+
+        with self.assertRaisesRegex(ValueError, "Cannot parse Interval from this definition"):
+            Interval.parse_string("[]")
+
+        with self.assertRaisesRegex(ValueError, "Cannot parse Interval from this definition"):
+            Interval.parse_string("[\"aa\", \"b\"]")
+
     def test_degenerate_interval(self):
         self.assertTrue(Interval.infimum_supremum(2, 2).degenerate)
         self.assertFalse(Interval.infimum_supremum(2, 3).degenerate)
