@@ -1,213 +1,277 @@
-import unittest
 import math
+import pytest
 
 from FuzzyMath.class_interval import Interval
 
 
-class IntervalTests(unittest.TestCase):
+def test_creation_errors():
 
-    def setUp(self) -> None:
-        self.a = Interval.infimum_supremum(1, 3)
-        self.b = Interval.infimum_supremum(2, 5)
-        self.c = Interval.infimum_supremum(4, 7)
-        self.d = Interval.infimum_supremum(-2, 3)
-        self.e = Interval.infimum_supremum(-1, 1)
-        self.f = Interval.empty()
+    with pytest.raises(ArithmeticError,
+                       match="`width` of interval must number higher or at least equal to 0."):
+        Interval.midpoint_width(0, -1)
 
-    def test_interval_creation(self):
-        self.assertIsInstance(Interval.two_values(1, 3), Interval)
-        self.assertIsInstance(Interval.two_values(3, 1), Interval)
-        self.assertIsInstance(Interval.infimum_supremum(1, 3), Interval)
-        self.assertIsInstance(Interval.midpoint_width(2, 1), Interval)
+    with pytest.raises(ValueError,
+                       match="The interval is invalid. `minimum` must be lower or equal to `maximum`"):
+        Interval.infimum_supremum(3, 1)
 
-        with self.assertRaisesRegex(ArithmeticError,
-                                    "`width` of interval must number higher or at least equal to 0."):
-            Interval.midpoint_width(0, -1)
+    with pytest.raises(ValueError,
+                       match="`precision` should be value from range `0` to `15`"):
+        Interval(1, 3, precision=-1)
+        Interval(1, 3, precision=16)
 
-        with self.assertRaisesRegex(ValueError, "The interval is invalid. `minimum` "
-                                                "must be lower or equal to `maximum`"):
-            Interval.infimum_supremum(3, 1)
+    with pytest.warns(UserWarning,
+                      match="Using default value of precision"):
+        Interval(1, 3, precision="pre")
 
-        with self.assertRaisesRegex(ValueError, "`precision` should be value from range `0` to `15`"):
-            Interval(1, 3, precision=-1)
-            Interval(1, 3, precision=16)
+    with pytest.raises(ValueError,
+                       match="Cannot parse Interval from this definition"):
+        Interval.parse_string("[1, 2.5, 5]")
 
-        with self.assertWarnsRegex(UserWarning, "Using default value of precision"):
-            Interval(1, 3, precision="pre")
+    with pytest.raises(ValueError,
+                       match="Cannot parse Interval from this definition"):
+        Interval.parse_string("[]")
 
-        interval = Interval.two_values(1.0000000000001, 3.000000009, precision=2)
-        self.assertEqual(interval.min, 1)
-        self.assertEqual(interval.max, 3)
+    with pytest.raises(ValueError,
+                       match="Cannot parse Interval from this definition"):
+        Interval.parse_string("[\"aa\", \"b\"]")
 
-        interval = Interval.parse_string("[1, 2.5]")
-        self.assertEqual(interval, Interval(1, 2.5))
 
-        with self.assertRaisesRegex(ValueError, "Cannot parse Interval from this definition"):
-            Interval.parse_string("[1, 2.5, 5]")
+def test_creation():
 
-        with self.assertRaisesRegex(ValueError, "Cannot parse Interval from this definition"):
-            Interval.parse_string("[]")
+    assert isinstance(Interval.infimum_supremum(1, 3), Interval)
 
-        with self.assertRaisesRegex(ValueError, "Cannot parse Interval from this definition"):
-            Interval.parse_string("[\"aa\", \"b\"]")
+    assert isinstance(Interval.infimum_supremum(2, 5), Interval)
 
-    def test_degenerate_interval(self):
-        self.assertTrue(Interval.infimum_supremum(2, 2).degenerate)
-        self.assertFalse(Interval.infimum_supremum(2, 3).degenerate)
+    assert isinstance(Interval.infimum_supremum(4, 7), Interval)
 
-    def test_mid_point(self):
-        a = Interval.two_values(1, 2)
-        self.assertEqual(1.5, a.mid_point)
-        b = Interval.midpoint_width(2, 2)
-        self.assertEqual(2, b.mid_point)
+    assert isinstance(Interval.infimum_supremum(-2, 3), Interval)
 
-    def test_contains(self):
-        interval = Interval.infimum_supremum(1, 5)
-        self.assertTrue(2 in interval)
-        self.assertTrue(1 in interval)
-        self.assertTrue(3.59 in interval)
-        self.assertFalse(0.999999 in interval)
-        self.assertFalse(5.0001 in interval)
+    assert isinstance(Interval.infimum_supremum(-1, 1), Interval)
 
-        self.assertFalse(Interval.two_values(6, 7) in interval)
-        self.assertFalse(Interval.two_values(0, 3) in interval)
-        self.assertTrue(Interval.two_values(2, 4) in interval)
+    assert isinstance(Interval.empty(), Interval)
 
-        with self.assertRaisesRegex(TypeError, "Cannot test if object of type "):
-           "str" in interval
-           True in interval
+    interval = Interval.two_values(1.0000000000001, 3.000000009, precision=2)
 
-    def test_intersects(self):
-        self.assertTrue(self.a.intersects(self.b))
-        self.assertTrue(self.b.intersects(self.a))
-        self.assertTrue(self.b.intersects(self.c))
-        self.assertTrue(self.c.intersects(self.b))
+    assert interval == Interval.two_values(1, 3, precision=2)
 
-        self.assertFalse(self.a.intersects(self.c))
-        self.assertFalse(self.c.intersects(self.a))
+    interval = Interval.parse_string("[1, 2.5]")
 
-    def test_intersection(self):
-        self.assertEqual(Interval.two_values(2, 3), self.a.intersection(self.b))
-        self.assertEqual(Interval.two_values(4, 5), self.b.intersection(self.c))
+    assert interval.min == 1
+    assert interval.max == 2.5
 
-        with self.assertRaisesRegex(ArithmeticError, "do not intersect"):
-            self.a.intersection(self.c)
 
-    def test_union(self):
-        self.assertEqual(Interval.two_values(1, 5), self.a.union(self.b))
-        self.assertEqual(Interval.two_values(2, 7), self.b.union(self.c))
+def test_degenerate_interval():
+    
+    assert Interval.infimum_supremum(2, 2).degenerate
+    assert Interval.infimum_supremum(2, 3).degenerate is False
 
-        with self.assertRaisesRegex(ArithmeticError, "do not intersect"):
-            self.a.union(self.c)
 
-    def test_union_hull(self):
-        self.assertEqual(Interval.two_values(1, 7), self.a.union_hull(self.c))
+def test_mid_point():
+    
+    a = Interval.two_values(1, 2)
+    assert a.mid_point == 1.5
 
-    def test_add(self):
-        self.assertEqual(Interval.two_values(self.a.min + 1, self.a.max + 1),
-                         self.a + 1)
-        self.assertEqual(Interval.two_values(1 + self.a.min, 1 + self.a.max),
-                         1 + self.a)
-        self.assertEqual(Interval.two_values(self.a.min + self.b.min, self.a.max + self.b.max),
-                         self.a + self.b)
-        self.assertEqual(Interval.two_values(self.a.min + self.e.min, self.a.max + self.e.max),
-                         self.a + self.e)
+    b = Interval.midpoint_width(2, 2)
+    assert b.mid_point == 2
 
-        with self.assertRaisesRegex(TypeError, "unsupported operand"):
-            self.a + "str"
-            "str" + self.a
 
-    def test_sub(self):
-        self.assertEqual(Interval.two_values(self.a.min - 1, self.a.max - 1),
-                         self.a - 1)
-        self.assertEqual(Interval.two_values(1 - self.a.min, 1 - self.a.max),
-                         1 - self.a)
-        self.assertEqual(Interval.two_values(self.a.min - self.b.max, self.a.max - self.b.min),
-                         self.a - self.b)
+def test_contains():
 
-        with self.assertRaisesRegex(TypeError, "unsupported operand"):
-            self.a - "str"
-            "str" - self.a
+    interval = Interval.infimum_supremum(1, 5)
 
-    def test_mul(self):
-        self.assertEqual(Interval.two_values(self.a.min * 2, self.a.max * 2),
-                         self.a * 2)
-        self.assertEqual(Interval.two_values(self.a.min * 2, self.a.max * 2),
-                         2 * self.a)
-        self.assertEqual(Interval.two_values(self.a.min * self.b.min, self.a.max * self.b.max),
-                         self.a * self.b)
+    assert 2 in interval
+    assert 1 in interval
+    assert 3.59 in interval
 
-        with self.assertRaisesRegex(TypeError, "multiply sequence"):
-            self.a * "str"
-            "str" * self.a
+    assert (0.999999 in interval) is False
+    assert (5.0001 in interval) is False
 
-    def test_truediv(self):
-        self.assertEqual(Interval.two_values(self.a.min / 2, self.a.max / 2),
-                         self.a / 2)
-        self.assertEqual(Interval.two_values(2 / self.a.min, 2 / self.a.max),
-                         2 / self.a)
-        self.assertEqual(Interval.two_values(self.a.min / self.b.max, self.a.max / self.b.min),
-                         self.a / self.b)
+    print(Interval.two_values(6, 7) in interval)
+    assert (Interval.two_values(6, 7) in interval) is False
+    assert (Interval.two_values(0, 3) in interval) is False
+    assert Interval.two_values(2, 4) in interval
 
-        with self.assertRaisesRegex(TypeError, "unsupported operand"):
-            self.a / "str"
+    with pytest.raises(TypeError,
+                       match="Cannot test if object of type "):
+        "str" in interval
+        True in interval
 
-        with self.assertRaisesRegex(ArithmeticError, "Cannot divide by 0"):
-            self.a / 0
 
-        with self.assertRaisesRegex(ArithmeticError, "Cannot divide by interval that contains `0`"):
-            self.a / self.d
+def test_intersects(i_a: Interval, i_b: Interval, i_c: Interval):
 
-    def test_pow(self):
-        self.assertEqual(Interval.two_values(1, 9), self.a ** 2)
-        self.assertEqual(Interval.two_values(1, 27), self.a ** 3)
+    assert i_a.intersects(i_b)
+    assert i_b.intersects(i_a)
+    assert i_b.intersects(i_c)
+    assert i_c.intersects(i_b)
 
-        self.assertEqual(Interval.two_values(0, 9), self.d ** 2)
-        self.assertEqual(Interval.two_values(-8, 27), self.d ** 3)
+    assert i_a.intersects(i_c) is False
+    assert i_c.intersects(i_a) is False
 
-    def test_neg(self):
-        self.assertEqual(Interval.two_values(self.a.min * (-1), self.a.max * (-1)),
-                         -self.a)
-        self.assertEqual(Interval.two_values(self.d.min * (-1), self.d.max * (-1)),
-                         -self.d)
 
-    def test_eq(self):
-        self.assertTrue(self.a == self.a)
-        self.assertFalse(self.b == self.a)
+def test_intersection(i_a: Interval, i_b: Interval, i_c: Interval):
+    
+    assert i_a.intersection(i_b) == Interval.two_values(2, 3)
+    assert i_b.intersection(i_c) == Interval.two_values(4, 5)
+    
+    with pytest.raises(ArithmeticError,
+                       match="do not intersect"):
+        i_a.intersection(i_c)
 
-    def test_lt(self):
-        self.assertTrue(self.a < self.c)
-        self.assertTrue(self.d < self.c)
-        self.assertFalse(self.a < self.b)
 
-    def test_gt(self):
-        self.assertTrue(self.c > self.a)
-        self.assertTrue(self.c > self.d)
-        self.assertFalse(self.b > self.a)
+def test_union(i_a, i_b, i_c):
+    
+    assert i_a.union(i_b) == Interval.two_values(1, 5)
+    assert i_b.union(i_c) == Interval.two_values(2, 7)
 
-    def test_lt_gt(self):
-        self.assertEqual(self.a < self.c, self.c > self.a)
-        self.assertEqual(self.d < self.c, self.c > self.d)
+    with pytest.raises(ArithmeticError,
+                       match="do not intersect"):
+        i_a.union(i_c)
 
-    def test_apply_function(self):
 
-        # position argument not supported by the function
-        with self.assertRaisesRegex(TypeError, "too many positional arguments"):
-            self.a.apply_function(math.log2, 5)
+def test_union_hull(i_a: Interval, i_c: Interval):
+    assert i_a.union_hull(i_c) == Interval.two_values(1, 7)
 
-        # keyword argument that does not exist
-        with self.assertRaisesRegex(TypeError, "got an unexpected keyword argument 'c'"):
-            self.a.apply_function(math.log2, c=5)
 
-        self.assertAlmostEqual(math.log2(self.a.min), self.a.apply_function(math.log2).min)
-        self.assertAlmostEqual(math.log2(self.a.max), self.a.apply_function(math.log2).max)
+def test_add(i_a: Interval, i_b: Interval, i_e: Interval):
+    
+    assert i_a + 1 == Interval.two_values(i_a.min + 1, i_a.max + 1)
+    
+    assert 1 + i_a == Interval.two_values(i_a.min + 1, i_a.max + 1)
+    
+    assert i_a + i_b == Interval.two_values(i_a.min + i_b.min, i_a.max + i_b.max)
+        
+    assert i_a + i_e == Interval.two_values(i_a.min + i_e.min, i_a.max + i_e.max)
 
-        self.assertAlmostEqual(-1, self.b.apply_function(math.cos).min, places=5)
-        self.assertAlmostEqual(0.28366, self.b.apply_function(math.cos).max, places=5)
+    with pytest.raises(TypeError,
+                       match="unsupported operand"):
+        i_a + "str"
+        "str" + i_a
 
-        self.assertEqual(Interval.two_values(1, 9),
-                         self.a.apply_function(math.pow, 2, number_elements=10))
 
-    def test_is_empty(self):
-        self.assertTrue(self.f.is_empty)
-        self.assertFalse(self.a.is_empty)
+def test_sub(i_a: Interval, i_b: Interval):
+    
+    assert i_a - 1 == Interval.two_values(i_a.min - 1, i_a.max - 1)
+    
+    assert 1 - i_a == Interval.two_values(1 - i_a.min, 1 - i_a.max)
+    
+    assert i_a - i_b == Interval.two_values(i_a.min - i_b.max, i_a.max - i_b.min)
+    
+    with pytest.raises(TypeError,
+                       match="unsupported operand"):
+        i_a - "str"
+        "str" - i_a
+
+
+def test_mul(i_a: Interval, i_b: Interval):
+    
+    assert i_a * 2 == Interval.two_values(i_a.min * 2, i_a.max * 2)
+    
+    assert 2 * i_a == Interval.two_values(i_a.min * 2, i_a.max * 2)
+    
+    assert i_a * i_b == Interval.two_values(i_a.min * i_b.min, i_a.max * i_b.max)
+    
+    with pytest.raises(TypeError,
+                       match="multiply sequence"):
+        i_a * "str"
+        "str" * i_a
+
+
+def test_truediv(i_a: Interval, i_b: Interval, i_d: Interval):
+    
+    assert i_a / 2 == Interval.two_values(i_a.min / 2, i_a.max / 2)
+
+    assert 2 / i_a == Interval.two_values(2 / i_a.min, 2 / i_a.max)
+     
+    assert i_a / i_b == Interval.two_values(i_a.min / i_b.max, i_a.max / i_b.min)
+      
+    with pytest.raises(TypeError,
+                       match="unsupported operand"):
+        i_a / "str"
+
+    with pytest.raises(ArithmeticError,
+                       match="Cannot divide by 0"):
+        i_a / 0
+
+    with pytest.raises(ArithmeticError,
+                       match="Cannot divide by interval that contains `0`"):
+        i_a / i_d
+
+
+def test_pow(i_a: Interval, i_d: Interval):
+
+    assert i_a ** 2 == Interval.two_values(1, 9)
+    
+    assert i_a ** 3 == Interval.two_values(1, 27)
+
+    assert i_d ** 2 == Interval.two_values(0, 9)
+    
+    assert i_d ** 3 == Interval.two_values(-8, 27)
+
+
+def test_neg(i_a: Interval, i_d: Interval):
+    
+    assert -i_a == Interval.two_values(i_a.min * (-1), i_a.max * (-1))
+    
+    assert -i_d == Interval.two_values(i_d.min * (-1), i_d.max * (-1))
+
+
+def test_eq(i_a: Interval, i_b: Interval):
+    
+    assert i_a == i_a
+    
+    assert (i_a == i_b) is False
+
+
+def test_lt(i_a: Interval, i_b: Interval, i_c: Interval, i_d: Interval):
+    
+    assert i_a < i_c
+    
+    assert i_d < i_c
+    
+    assert (i_a < i_b) is False
+    
+    
+def test_gt(i_a: Interval, i_b: Interval, i_c: Interval, i_d: Interval):
+    
+    assert i_c > i_a
+    
+    assert i_c > i_d
+    
+    assert (i_b > i_a) is False
+    
+    
+def test_lt_gt(i_a: Interval, i_b: Interval, i_c: Interval, i_d: Interval):
+    
+    assert (i_a < i_c) == (i_c > i_a)
+    
+    assert (i_d < i_c) == (i_c > i_d)
+    
+ 
+def test_is_empty(i_a: Interval, i_f: Interval):
+     
+    assert i_f.is_empty
+    
+    assert i_a.is_empty is False
+    
+
+def test_apply_function(i_a: Interval, i_b: Interval):
+
+    # position argument not supported by the function
+    with pytest.raises(TypeError,
+                       match="too many positional arguments"):
+        i_a.apply_function(math.log2, 5)
+
+    # keyword argument that does not exist
+    with pytest.raises(TypeError,
+                       match="got an unexpected keyword argument 'c'"):
+        i_a.apply_function(math.log2, c=5)
+
+    assert i_a.apply_function(math.log2).min == pytest.approx(math.log2(i_a.min), 0.00001)
+    
+    assert i_a.apply_function(math.log2).max == pytest.approx(math.log2(i_a.max), 0.00001)
+    
+    assert i_b.apply_function(math.cos).min == pytest.approx(-1, 0.00001)
+    
+    assert i_b.apply_function(math.cos).max == pytest.approx(0.28366, 0.00001)
+    
+    assert i_a.apply_function(math.pow, 2, number_elements=10) == Interval.two_values(1, 9)
