@@ -51,7 +51,28 @@ def test_creation_errors():
                     [Interval.two_values(0, 1),
                         Interval.two_values(2, 2)])
 
+    with pytest.raises(ValueError,
+                       match="The fuzzy number is invalid"):
+        FuzzyNumber.triangular(5, 4, 3)
 
+    with pytest.raises(ValueError,
+                       match="The fuzzy number is invalid"):
+        FuzzyNumber.trapezoidal(5, 1, 4, 3)
+    
+
+def test_creation():
+    
+    assert isinstance(FuzzyNumber.triangular(1, 2, 3), FuzzyNumber)
+    assert isinstance(FuzzyNumber.triangular(1, 2, 3), FuzzyNumber)
+    assert isinstance(FuzzyNumber.triangular(1, 2, 3, number_of_cuts=10, precision=2), FuzzyNumber)
+    
+    assert isinstance(FuzzyNumber.trapezoidal(1, 2, 3, 4), FuzzyNumber)
+    assert isinstance(FuzzyNumber.trapezoidal(1, 2, 3, 4, number_of_cuts=10, precision=2), FuzzyNumber)
+    
+    assert isinstance(FuzzyNumber.crisp_number(0), FuzzyNumber)
+    assert isinstance(FuzzyNumber.crisp_number(0, precision=1), FuzzyNumber)
+    
+            
 def test_fuzzynumber_creation_string():
 
     string_fn = '(0.0;1.0,3.0)(0.111111111111111;1.1,2.9)(0.222222222222222;1.2,2.8)(0.333333333333333;1.3,2.7)' \
@@ -63,6 +84,8 @@ def test_fuzzynumber_creation_string():
     string_fn = '(0.0;1,3)(0.5;1.9999,2.0001)(1.0;2,2)'
 
     assert isinstance(FuzzyNumber.parse_string(string_fn), FuzzyNumber)
+    
+    assert isinstance(FuzzyNumber.parse_string(string_fn, precision=1), FuzzyNumber)
     
 
 def test_fuzzynumber_creation_string_errors():
@@ -117,8 +140,14 @@ def test_contain(fn_a: FuzzyNumber):
     assert 1.1 in fn_a
     assert 2.9 in fn_a
     assert 3 in fn_a
+    assert Interval(2.9, 3.1) in fn_a
+    assert FuzzyNumber.crisp_number(3) in fn_a
     assert (0.999 in fn_a) is False
     assert (3.001 in fn_a) is False
+    
+    with pytest.raises(TypeError,
+                       match="Cannot test if object of type"):
+        "a" in fn_a
     
 
 def test_get_alpha_cut_values():
@@ -166,7 +195,7 @@ def test_sub(fn_a: FuzzyNumber, fn_b: FuzzyNumber, fn_c: FuzzyNumber):
     assert fn_a - fn_c == FuzzyNumber.triangular(0, 2, 4)
     
 
-def test_truediv(fn_a: FuzzyNumber, fn_b: FuzzyNumber):
+def test_truediv(fn_a: FuzzyNumber, fn_b: FuzzyNumber, fn_c: FuzzyNumber):
     
     assert fn_a / 2 == FuzzyNumber.triangular(0.5, 1, 1.5)
     
@@ -179,7 +208,7 @@ def test_truediv(fn_a: FuzzyNumber, fn_b: FuzzyNumber):
                                                  fn_a.max / fn_b.min)
 
     assert 5 / fn_a == FuzzyNumber.triangular(5 / fn_a.max, 5 / fn_a.kernel.min, 5 / fn_a.min)
-
+    
 
 def test_pow(fn_a: FuzzyNumber):
     
@@ -192,6 +221,10 @@ def test_function():
     
     fn = FuzzyNumber.triangular(-math.pi / 2, 0, math.pi / 2, 11, 8)
 
+    with pytest.raises(ValueError,
+                       match="`function` must be either"):
+        fn.apply_function(5)
+    
     fn_cos = fn.apply_function(math.cos)
 
     diff = 0.00000001
@@ -265,3 +298,20 @@ def test_complex_comparisons():
     assert fn_a.possibility_strict_undervaluation(fn_b) == pytest.approx(0.03571428571428574, diff)
     
     assert fn_a.necessity_strict_undervaluation(fn_b) == pytest.approx(0.0, diff)
+
+
+def test_hash(i_a: FuzzyNumber):
+
+    assert hash(i_a)
+
+    assert isinstance(hash(i_a), int)
+
+
+def test_repr(i_a: FuzzyNumber):
+    
+    assert isinstance(i_a.__repr__(), str)
+
+
+def test_str(i_a: FuzzyNumber):
+
+    assert isinstance(i_a.__str__(), str)
