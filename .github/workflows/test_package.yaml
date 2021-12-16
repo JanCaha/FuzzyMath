@@ -24,8 +24,7 @@ jobs:
 
       - name: Install packages
         run: |
-          pip install -r requirements.txt
-#          pip install pdoc3
+          pip install -r requirements-dev.txt
 
       - name: Install package
         run: pip install .
