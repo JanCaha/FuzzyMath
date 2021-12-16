@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import Callable
 from types import FunctionType, BuiltinFunctionType
 from inspect import signature, BoundArguments
 import math
@@ -158,8 +158,8 @@ class Interval:
         midpoint = float(midpoint)
         width = float(width)
 
-        a = midpoint - (width/2)
-        b = midpoint + (width/2)
+        a = midpoint - (width / 2)
+        b = midpoint + (width / 2)
 
         return cls(a, b, precision=precision)
 
@@ -274,7 +274,7 @@ class Interval:
         if self.degenerate:
             return self._min
         else:
-            return (self._min + self.max)/2
+            return (self._min + self.max) / 2
 
     @property
     def is_empty(self) -> bool:
@@ -427,7 +427,7 @@ class Interval:
         return 0 <= self.mid_point
 
     def apply_function(self,
-                       function: (FunctionType, BuiltinFunctionType),
+                       function: Callable,
                        *args,
                        monotone: bool = False,
                        number_elements: float = 1000,
@@ -467,16 +467,17 @@ class Interval:
         elif monotone:
             elements = [self.min, self.max]
         else:
-            step = (self.max-self.min)/number_elements
+            step = (self.max - self.min) / number_elements
+            
             elements = np.arange(self.min,
-                                 self.max + 0.1*step,
+                                 self.max + 0.1 * step,
                                  step=step).tolist()
 
             elements = [round(x, self.precision) for x in elements]
 
         function_signature = signature(function)
 
-        results = [0]*len(elements)
+        results = [0] * len(elements)
 
         for i in range(0, len(elements)):
             bound_params: BoundArguments = function_signature.bind(elements[i], *args, **kwargs)
@@ -571,7 +572,7 @@ class Interval:
             min_power = self.min ** power
             max_power = self.max ** power
 
-            if (power%2) == 0:
+            if (power % 2) == 0:
                 if self.min <= 0 <= self.max:
                     min_res = min(0, max(min_power, max_power))
                     max_res = max(0, max(min_power, max_power))
@@ -596,8 +597,8 @@ class Interval:
     def __eq__(self, other) -> bool:
         if isinstance(other, Interval):
             return self.min == other.min and \
-                   self.max == other.max and \
-                   self.precision == other.precision
+                self.max == other.max and \
+                self.precision == other.precision
         else:
             return NotImplemented
 
