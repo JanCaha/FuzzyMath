@@ -5,3 +5,4 @@ flake8
 pycodestyle
 mypy
 autopep8
+pdoc3
