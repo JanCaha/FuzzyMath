@@ -1,8 +1,6 @@
 from __future__ import annotations
 from types import FunctionType, BuiltinFunctionType
-from inspect import signature, BoundArguments
-from typing import List, NoReturn, Union
-from types import FunctionType
+from typing import Callable, List, Tuple
 from bisect import bisect_left
 import re
 
@@ -207,7 +205,7 @@ class FuzzyNumber:
             return self._calculate_alpha_cut(alpha)
 
     @staticmethod
-    def _validate_alpha(alpha: float) -> NoReturn:
+    def _validate_alpha(alpha: float) -> None:
         """
         Validates value of of alpha. Must be from range [0, 1].
 
@@ -246,27 +244,27 @@ class FuzzyNumber:
 
         position = bisect_left(self._alphas, alpha)
 
-        x1 = self._alpha_cuts.get(self.alpha_levels[position-1]).min
-        y1 = self.alpha_levels[position-1]
+        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).min
+        y1 = self.alpha_levels[position - 1]
         x2 = self._alpha_cuts.get(self.alpha_levels[position]).min
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
             a = x1
         else:
-            k = (y1-y2) / (x1-x2)
+            k = (y1 - y2) / (x1 - x2)
             q = y1 - k * x1
             a = (alpha - q) / k
 
         x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).max
-        y1 = self.alpha_levels[position-1]
+        y1 = self.alpha_levels[position - 1]
         x2 = self._alpha_cuts.get(self.alpha_levels[position]).max
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
             b = x1
         else:
-            k = (y2-y1) / (x2-x1)
+            k = (y2 - y1) / (x2 - x1)
             q = y1 - k * x1
             b = (alpha - q) / k
 
@@ -302,7 +300,7 @@ class FuzzyNumber:
         string = "Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.".\
             format(self.min, self.max,
                    self.kernel.min, self.kernel.max,
-                   len(self.alpha_levels)-2)
+                   len(self.alpha_levels) - 2)
 
         return string
 
@@ -368,8 +366,8 @@ class FuzzyNumber:
         values = [0.0] * number_of_parts
 
         i = 0
-        while i <= number_of_parts-1:
-            values[i] = round(i/(number_of_parts-1), precision)
+        while i <= number_of_parts - 1:
+            values[i] = round(i / (number_of_parts - 1), precision)
             i += 1
 
         return values
@@ -426,12 +424,12 @@ class FuzzyNumber:
         return self._iterate_alphas_one_value(self, Interval.__pow__, power)
 
     def __hash__(self) -> int:
-        list_values = [None] * (len(self.alpha_levels) * 2)
+        list_values = [0.0] * (len(self.alpha_levels) * 2)
         i = 0
         for alpha in self.alpha_levels:
             interval = self.get_alpha_cut(alpha)
             list_values[i] = interval.min
-            list_values[i+1] = interval.max
+            list_values[i + 1] = interval.max
             i += 2
         return hash(tuple(list_values))
 
@@ -481,7 +479,7 @@ class FuzzyNumber:
         return necessity_strict_undervaluation(self, fn_other)
 
     def apply_function(self,
-                       function: (FunctionType, BuiltinFunctionType),
+                       function: Callable,
                        *args,
                        monotone: bool = False,
                        number_elements: int = 1000,
@@ -523,7 +521,7 @@ class FuzzyNumber:
         if not isinstance(monotone, bool):
             raise ValueError("`monotone` must be `bool`. `monotone` is currently `{}`.".format(monotone))
 
-        intervals = []
+        intervals: List[Interval] = []
 
         alpha_levels = list(self.alpha_levels)
         alpha_levels.reverse()
@@ -535,7 +533,7 @@ class FuzzyNumber:
 
             alpha_width = self.get_alpha_cut(alpha).max - self.get_alpha_cut(alpha).min
 
-            number_elements_cut = (alpha_width/width)*number_elements
+            number_elements_cut = (alpha_width / width) * number_elements
 
             interval = self.get_alpha_cut(alpha).apply_function(function,
                                                                 *args,
@@ -544,7 +542,7 @@ class FuzzyNumber:
                                                                 **kwargs)
 
             if i != 0:
-                interval = interval.union_hull(intervals[i-1])
+                interval = interval.union_hull(intervals[i - 1])
 
             intervals.append(interval)
             i += 1
@@ -554,13 +552,16 @@ class FuzzyNumber:
         return FuzzyNumber(self.alpha_levels, intervals, precision=self._precision)
 
     @staticmethod
-    def _iterate_alphas_one_value(x: FuzzyNumber, operation: FunctionType, *args) -> FuzzyNumber:
-        if not isinstance(operation, FunctionType):
+    def _iterate_alphas_one_value(x: FuzzyNumber, operation: Callable, *args) -> FuzzyNumber:
+        
+        if not callable(operation):
             raise TypeError("`operation` needs to be a function. It is `{0}`."
                             .format(type(operation).__name__))
+            
         alphas, intervals = FuzzyNumber.__prepare_alphas_intervals(x.alpha_levels)
 
         i = 0
+        
         for alpha in alphas:
             intervals[i] = operation(x.get_alpha_cut(alpha), *args)
             i += 1
@@ -568,7 +569,7 @@ class FuzzyNumber:
         return FuzzyNumber(alphas, intervals, precision=x.precision)
 
     @staticmethod
-    def _iterate_alphas_two_values(x, y, operation: FunctionType) -> FuzzyNumber:
+    def _iterate_alphas_two_values(x, y, operation: Callable) -> FuzzyNumber:
 
         if not isinstance(operation, FunctionType):
             raise TypeError("`operation` needs to be a function. It is `{0}`."
@@ -610,7 +611,7 @@ class FuzzyNumber:
         else:
             alphas.sort()
 
-        values = [0] * len(alphas)
+        values = [0.0] * len(alphas)
 
         for i in range(len(alphas)):
 
@@ -691,7 +692,7 @@ class FuzzyNumber:
 
     @staticmethod
     def __prepare_alphas_intervals(alpha_levels1: List[float],
-                                   alpha_levels2: List[float] = None) -> (List[float], List[Interval]):
+                                   alpha_levels2: List[float] = None) -> Tuple[List[float], List[Interval]]:
         """
         Prepares list of alphas and list of empty `Interval`s for provided alpha levels.
 
