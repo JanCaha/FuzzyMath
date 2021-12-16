@@ -529,9 +529,11 @@ class Interval:
             return NotImplemented
 
     def __rmul__(self, other) -> Interval:
+        
         return self * other
 
     def __truediv__(self, other) -> Interval:
+        
         if isinstance(other, (float, int)):
 
             if other == 0:
@@ -541,10 +543,13 @@ class Interval:
                       self.min / other,
                       self.max / other,
                       self.max / other]
+            
             return Interval(min(values), max(values), precision=self.precision)
+        
         elif isinstance(other, Interval):
 
             if 0 in other:
+                
                 raise ArithmeticError("Cannot divide by interval that contains `0`. "
                                       "The interval is `{0}`.".format(other))
 
@@ -552,39 +557,55 @@ class Interval:
                       self.min / other.max,
                       self.max / other.min,
                       self.max / other.max]
+            
             return Interval(min(values), max(values), precision=min(self.precision, other.precision))
 
         else:
+            
             return NotImplemented
 
     def __rtruediv__(self, other) -> Interval:
+        
         if isinstance(other, (float, int)):
+            
             values = [other / self.min,
                       other / self.min,
                       other / self.max,
                       other / self.max]
+            
             return Interval(min(values), max(values), precision=self.precision)
+        
         else:
+            
             return NotImplemented
 
     def __pow__(self, power) -> Interval:
+        
         if isinstance(power, int):
+            
             min_power = self.min ** power
             max_power = self.max ** power
 
             if (power % 2) == 0:
+                
                 if self.min <= 0 <= self.max:
                     min_res = min(0, max(min_power, max_power))
                     max_res = max(0, max(min_power, max_power))
+                    
                 else:
+                    
                     min_res = min(min_power, max_power)
                     max_res = max(min_power, max_power)
+                    
             else:
+                
                 min_res = min(min_power, max_power)
                 max_res = max(min_power, max_power)
 
             return Interval(min_res, max_res, precision=self.precision)
+        
         else:
+            
             return NotImplemented
 
     # def __abs__(self):
@@ -592,21 +613,29 @@ class Interval:
     #                                math.fabs(self.max), precision=self.precision)
 
     def __neg__(self) -> Interval:
+        
         return Interval.two_values(self.min * (-1), self.max * (-1), precision=self.precision)
 
     def __eq__(self, other) -> bool:
+        
         if isinstance(other, Interval):
+            
             return self.min == other.min and \
                 self.max == other.max and \
                 self.precision == other.precision
+                
         else:
+            
             return NotImplemented
 
     def __lt__(self, other) -> bool:
+        
         return self.max < other.min
 
     def __gt__(self, other) -> bool:
+        
         return self.min > other.max
 
     def __hash__(self) -> int:
+        
         return hash((self.min, self.max, self.precision))
