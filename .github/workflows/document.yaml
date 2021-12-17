@@ -8,45 +8,11 @@ on:
 
 jobs:
 
-  test:
-
-    strategy:
-      matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
-
-    name: "Test package in Python ${{ matrix.python-version }}"
-
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - uses: actions/checkout@v1
-
-      - uses: actions/setup-python@v1
-        with:
-          python-version: "${{ matrix.python-version }}"
-          architecture: 'x64'
-
-      - name: Cache Python packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ matrix.python-version }}-${{ hashFiles('requirements-dev.txt') }}
-          restore-keys: pip-${{ matrix.python-version }}-
-
-      - name: Install packages
-        run: |
-          pip install -r requirements-dev.txt
-
-      - name: Install package
-        run: pip install .
-
-      - name: Run tests
-        run: pytest
-
   document: 
 
     runs-on: ubuntu-latest
+
+    name: "Document package"
 
     steps:
 
@@ -58,8 +24,8 @@ jobs:
           architecture: 'x64'
 
       - name: Install packages
-      run: |
-        pip install -r requirements-dev.txt
+        run: |
+          pip install -r requirements-dev.txt
 
       - name: Install package
         run: pip install .
