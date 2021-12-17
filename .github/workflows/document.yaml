@@ -42,6 +42,6 @@ jobs:
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v3
         env:
-          ACTIONS_DEPLOY_KEY: ${{ secrets.REPO_TOKEN }}
-          PUBLISH_BRANCH: gh-pages
-          PUBLISH_DIR: ./docs
+          personal_token: ${{ secrets.REPO_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./docs
