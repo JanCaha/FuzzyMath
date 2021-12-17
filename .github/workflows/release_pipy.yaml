@@ -1,0 +1,42 @@
+name: Release package to PiPy
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+
+  release: 
+
+    runs-on: ubuntu-latest
+
+    name: "Release package to PiPy"
+
+    steps:
+
+      - uses: actions/checkout@v1
+
+      - name: Install pandoc
+        run: |
+          apt install -y pandoc
+
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+
+      - name: Python install tools
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade build
+          python3 -m pip install --upgrade twine
+
+      - name: Translate Readme.md to rst
+        run: |
+          pandoc --to=rst -o Readme.rst Readme.md
+
+      - name: Release
+        run: |
+          python3 setup.py sdist bdist_wheel
+          twine upload dist/* --repository-url https://upload.pypi.org/legacy/ --username ${{ secrets.TWINE_USERNAME }} --password ${{ secrets.TWINE_PASSWORD }}
