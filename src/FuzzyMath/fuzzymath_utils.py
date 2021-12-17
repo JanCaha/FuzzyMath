@@ -5,6 +5,26 @@ from . import config
 
 
 def set_up_precision(precision: Union[float, int] = None, default_precision: int = 15) -> int:
+    """
+    This method should not be used directly. It is meant for inside package use only.
+
+    Parameters
+    ----------
+    precision : Union[float, int], optional
+        by default None
+    default_precision : int, optional
+        by default 15
+
+    Returns
+    -------
+    int
+        
+
+    Raises
+    ------
+    ValueError
+        If the provided value can not be used as precision.
+    """
     
     if precision is None:
         precision = default_precision
