@@ -1,9 +1,11 @@
 name: Test package
 
-#Just tests for now, but the code for documentation generation and deployment is still left here for later
-
 on:
-  push
+  push:
+    paths:
+      - src/**
+      - tests/**
+      - .github/workflows/test_package.yaml
 
 jobs:
 
@@ -42,22 +44,3 @@ jobs:
 
       - name: Run tests
         run: pytest
-
-#      - name: Generate documentation
-#        run: |
-#          pdoc --html FuzzyMath
-#          mkdir ./docs
-#          mv -v ./html/FuzzyMath/* ./docs
-#          rsync -r docs_images/ docs
-
-#      - name: Set GIT
-#        run: |
-#          git config --global user.email "action@github.com"
-#          git config --global user.name "Github Action"
-
-#      - name: Deploy to gh-pages branch
-#        uses: peaceiris/actions-gh-pages@v2.5.0
-#        env:
-#          ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-#          PUBLISH_BRANCH: gh-pages
-#          PUBLISH_DIR: ./docs
