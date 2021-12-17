@@ -19,7 +19,7 @@ jobs:
 
       - name: Install pandoc
         run: |
-          apt install -y pandoc
+          sudo apt install -y pandoc
 
       - uses: actions/setup-python@v1
         with:
