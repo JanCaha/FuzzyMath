@@ -44,4 +44,4 @@ jobs:
         with:
           personal_token: ${{ secrets.REPO_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./docs
+          publish_dir: ./docs/FuzzyMath
