@@ -1,0 +1,81 @@
+name: Document package
+
+on:
+  push:
+    paths:
+      - src/**
+      - .github/workflows/test_package.yaml
+
+jobs:
+
+  test:
+
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    name: "Test package in Python ${{ matrix.python-version }}"
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v1
+
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "${{ matrix.python-version }}"
+          architecture: 'x64'
+
+      - name: Cache Python packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('requirements-dev.txt') }}
+          restore-keys: pip-${{ matrix.python-version }}-
+
+      - name: Install packages
+        run: |
+          pip install -r requirements-dev.txt
+
+      - name: Install package
+        run: pip install .
+
+      - name: Run tests
+        run: pytest
+
+  document: 
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v1
+
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+
+      - name: Install packages
+      run: |
+        pip install -r requirements-dev.txt
+
+      - name: Install package
+        run: pip install .
+
+      - name: Generate documentation
+        run: |
+          pdoc --html --output-dir docs FuzzyMath
+
+      - name: Set GIT
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Action"
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        env:
+          ACTIONS_DEPLOY_KEY: ${{ secrets.REPO_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: ./docs
