@@ -33,6 +33,26 @@ from . import config
 
 
 def set_up_precision(precision: Union[float, int] = None, default_precision: int = 15) -&gt; int:
+    &#34;&#34;&#34;
+    This method should not be used directly. It is meant for inside package use only.
+
+    Parameters
+    ----------
+    precision : Union[float, int], optional
+        by default None
+    default_precision : int, optional
+        by default 15
+
+    Returns
+    -------
+    int
+        
+
+    Raises
+    ------
+    ValueError
+        If the provided value can not be used as precision.
+    &#34;&#34;&#34;
     
     if precision is None:
         precision = default_precision
@@ -161,12 +181,49 @@ def get_precision() -&gt; int:
 <span>def <span class="ident">set_up_precision</span></span>(<span>precision: Union[float, int] = None, default_precision: int = 15) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>This method should not be used directly. It is meant for inside package use only.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>precision</code></strong> :&ensp;<code>Union[float, int]</code>, optional</dt>
+<dd>by default None</dd>
+<dt><strong><code>default_precision</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>by default 15</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the provided value can not be used as precision.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_up_precision(precision: Union[float, int] = None, default_precision: int = 15) -&gt; int:
+    &#34;&#34;&#34;
+    This method should not be used directly. It is meant for inside package use only.
+
+    Parameters
+    ----------
+    precision : Union[float, int], optional
+        by default None
+    default_precision : int, optional
+        by default 15
+
+    Returns
+    -------
+    int
+        
+
+    Raises
+    ------
+    ValueError
+        If the provided value can not be used as precision.
+    &#34;&#34;&#34;
     
     if precision is None:
         precision = default_precision
