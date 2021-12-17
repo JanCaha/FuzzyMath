@@ -6,21 +6,32 @@ on:
   push
 
 jobs:
+
   test:
-    name: test package
+
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    name: "Test package in Python ${{ matrix.python-version }}"
+
     runs-on: ubuntu-latest
+
     steps:
+
       - uses: actions/checkout@v1
+
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7'
+          python-version: "${{ matrix.python-version }}"
           architecture: 'x64'
 
       - name: Cache Python packages
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: pip-${{ hashFiles('requirements.txt') }}
+          key: pip-${{ matrix.python-version }}-${{ hashFiles('requirements-dev.txt') }}
+          restore-keys: pip-${{ matrix.python-version }}-
 
       - name: Install packages
         run: |
