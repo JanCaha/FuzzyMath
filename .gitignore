@@ -2,3 +2,5 @@
 __pycache__
 /src/FuzzyMath.egg-info
 .coverage
+build/
+dist/
