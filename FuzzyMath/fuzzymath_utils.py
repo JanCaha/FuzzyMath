@@ -26,6 +26,18 @@ def set_up_precision(precision: Union[float, int] = None, default_precision: int
 
 
 def set_precision(precision: Union[float, int]) -> None:
+    """
+    Set default value for precision, used in creation of new objects.
+
+    Parameters
+    ----------
+    precision : Union[float, int]
+        Number of decimal numbers to be used.
+    
+    Returns
+    ----------
+    None
+    """
     
     precision = set_up_precision(precision)
 
@@ -33,5 +45,13 @@ def set_precision(precision: Union[float, int]) -> None:
 
 
 def get_precision() -> int:
+    """
+    Get precision number used.
+
+    Returns
+    -------
+    int
+        Number of decimal numbers that is used currently.
+    """
     
     return config.precision
