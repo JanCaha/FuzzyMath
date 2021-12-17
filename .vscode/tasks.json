@@ -16,6 +16,16 @@
                 "panel": "new"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Run examples",
+            "type": "shell",
+            "command": "python3 examples/simple_tests.py",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
         }
     ]
 }
