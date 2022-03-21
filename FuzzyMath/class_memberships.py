@@ -27,4 +27,4 @@ class PossibilisticMembership:
         return self._necessity
 
     def __repr__(self) -> str:
-        return "(possibility: {0}, necessity: {1})".format(self._possibility, self._necessity)
+        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(self._possibility, self._necessity)
