@@ -4,6 +4,7 @@ import math
 
 from FuzzyMath.class_fuzzy_number import FuzzyNumber
 from FuzzyMath.class_interval import Interval
+from FuzzyMath.class_memberships import PossibilisticMembership
 from FuzzyMath.class_factories import FuzzyNumberFactory, IntervalFactory
 
 
@@ -281,6 +282,38 @@ def test_complex_comparisons():
 
     assert fn_a.necessity_strict_undervaluation(fn_b) == pytest.approx(0.22222222222222235, diff)
 
+    comparison = fn_a.exceedance(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(0.7777777777777777, diff)
+
+    assert comparison.necessity == pytest.approx(0.4285714285714289, diff)
+
+    comparison = fn_a.strict_exceedance(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(0.357142857142857, diff)
+
+    assert comparison.necessity == pytest.approx(0.0, diff)
+
+    comparison = fn_a.undervaluation(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(1.0, diff)
+
+    assert comparison.necessity == pytest.approx(0.6428571428571429, diff)
+
+    comparison = fn_a.strict_undervaluation(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(0.5714285714285711, diff)
+
+    assert comparison.necessity == pytest.approx(0.22222222222222235, diff)
+
     fn_a = FuzzyNumberFactory.triangular(1.7, 2.7, 2.8)
     fn_b = FuzzyNumberFactory.triangular(0, 1.8, 2.2)
 
@@ -299,6 +332,38 @@ def test_complex_comparisons():
     assert fn_a.possibility_strict_undervaluation(fn_b) == pytest.approx(0.03571428571428574, diff)
 
     assert fn_a.necessity_strict_undervaluation(fn_b) == pytest.approx(0.0, diff)
+
+    comparison = fn_a.exceedance(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(1.0, diff)
+
+    assert comparison.necessity == pytest.approx(0.9642857142857143, diff)
+
+    comparison = fn_a.strict_exceedance(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(1.0, diff)
+
+    assert comparison.necessity == pytest.approx(0.642857142857143, diff)
+
+    comparison = fn_a.undervaluation(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(0.35714285714285726, diff)
+
+    assert comparison.necessity == pytest.approx(0.0, diff)
+
+    comparison = fn_a.strict_undervaluation(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert comparison.possibility == pytest.approx(0.03571428571428574, diff)
+
+    assert comparison.necessity == pytest.approx(0.0, diff)
 
 
 def test_hash(i_a: FuzzyNumber):
