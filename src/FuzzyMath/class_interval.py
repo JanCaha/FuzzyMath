@@ -3,7 +3,7 @@ from typing import Callable
 from types import FunctionType, BuiltinFunctionType
 from inspect import signature, BoundArguments
 import math
-import re
+import warnings
 
 import numpy as np
 
@@ -36,8 +36,8 @@ class Interval:
 
     def __init__(self, a: float, b: float, precision: int = None):
         """
-        Default constructor of interval. But generally it is more useful to use functions `Interval.infimum_supremum()`,
-         `Interval.empty()`, `Interval.two_values()` and `Interval.midpoint_width()` instead of this function.
+        Default constructor of interval. But generally it is more useful to use functions `IntervalFactory.infimum_supremum()`,
+         `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
 
         Parameters
         ----------
@@ -75,7 +75,12 @@ class Interval:
         -------
         Interval
         """
-        return cls(float("nan"), float("nan"))
+        warnings.warn(
+            "The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.",
+            DeprecationWarning)
+
+        from .class_factories import IntervalFactory
+        return IntervalFactory.empty()
 
     @classmethod
     def infimum_supremum(cls, minimum: float, maximum: float, precision: int = None) -> Interval:
@@ -101,12 +106,12 @@ class Interval:
             If `minimum > maximum` which is not valid interval for this definition.
         """
 
-        if minimum > maximum:
-            raise ValueError("The interval is invalid. `minimum` must be lower or equal to"
-                             " `maximum`. Currently it is `{0}` <= `{1}`, which does not hold."
-                             .format(minimum, maximum))
+        warnings.warn(
+            "The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.",
+            DeprecationWarning)
 
-        return cls(minimum, maximum, precision=precision)
+        from .class_factories import IntervalFactory
+        return IntervalFactory.infimum_supremum(minimum, maximum, precision=precision)
 
     @classmethod
     def two_values(cls, a: float, b: float, precision: int = None) -> Interval:
@@ -126,7 +131,13 @@ class Interval:
         -------
         Interval
         """
-        return cls(a, b, precision=precision)
+
+        warnings.warn(
+            "The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.",
+            DeprecationWarning)
+
+        from .class_factories import IntervalFactory
+        return IntervalFactory.two_values(a, b, precision=precision)
 
     @classmethod
     def midpoint_width(cls, midpoint: float, width: float, precision: int = None) -> Interval:
@@ -151,17 +162,13 @@ class Interval:
         ArithmeticError
             If `width < 0` which is not valid width definition.
         """
-        if width < 0:
-            raise ArithmeticError("`width` of interval must number higher or at least equal to 0. "
-                                  "The value `{0}` does not fulfill this.".format(width))
 
-        midpoint = float(midpoint)
-        width = float(width)
+        warnings.warn(
+            "The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.",
+            DeprecationWarning)
 
-        a = midpoint - (width / 2)
-        b = midpoint + (width / 2)
-
-        return cls(a, b, precision=precision)
+        from .class_factories import IntervalFactory
+        return IntervalFactory.midpoint_width(midpoint, width, precision=precision)
 
     @classmethod
     def parse_string(cls,
@@ -182,20 +189,12 @@ class Interval:
         Interval
         """
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
+        warnings.warn(
+            "The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.",
+            DeprecationWarning)
 
-        re_values = re.compile(r"\d+\.?\d*")
-
-        numbers = re_values.findall(string)
-
-        if len(numbers) != 2:
-            raise ValueError("Cannot parse Interval from this definition. "
-                             "Element does not provide 2 values (minimal and maximal).")
-
-        return cls.two_values(numbers[0], numbers[1], precision=precision)
+        from .class_factories import IntervalFactory
+        return IntervalFactory.parse_string(string, precision=precision)
 
     def __repr__(self):
         """
@@ -468,7 +467,7 @@ class Interval:
             elements = [self.min, self.max]
         else:
             step = (self.max - self.min) / number_elements
-            
+
             elements = np.arange(self.min,
                                  self.max + 0.1 * step,
                                  step=step).tolist()
@@ -485,7 +484,7 @@ class Interval:
 
             results[i] = function(*bound_params.args, **bound_params.kwargs)
 
-        return Interval.infimum_supremum(min(results), max(results), precision=self.precision)
+        return Interval(min(results), max(results), precision=self.precision)
 
     def __add__(self, other) -> Interval:
         if isinstance(other, (float, int)):
@@ -529,11 +528,11 @@ class Interval:
             return NotImplemented
 
     def __rmul__(self, other) -> Interval:
-        
+
         return self * other
 
     def __truediv__(self, other) -> Interval:
-        
+
         if isinstance(other, (float, int)):
 
             if other == 0:
@@ -543,13 +542,13 @@ class Interval:
                       self.min / other,
                       self.max / other,
                       self.max / other]
-            
+
             return Interval(min(values), max(values), precision=self.precision)
-        
+
         elif isinstance(other, Interval):
 
             if 0 in other:
-                
+
                 raise ArithmeticError("Cannot divide by interval that contains `0`. "
                                       "The interval is `{0}`.".format(other))
 
@@ -557,55 +556,55 @@ class Interval:
                       self.min / other.max,
                       self.max / other.min,
                       self.max / other.max]
-            
+
             return Interval(min(values), max(values), precision=min(self.precision, other.precision))
 
         else:
-            
+
             return NotImplemented
 
     def __rtruediv__(self, other) -> Interval:
-        
+
         if isinstance(other, (float, int)):
-            
+
             values = [other / self.min,
                       other / self.min,
                       other / self.max,
                       other / self.max]
-            
+
             return Interval(min(values), max(values), precision=self.precision)
-        
+
         else:
-            
+
             return NotImplemented
 
     def __pow__(self, power) -> Interval:
-        
+
         if isinstance(power, int):
-            
+
             min_power = self.min ** power
             max_power = self.max ** power
 
             if (power % 2) == 0:
-                
+
                 if self.min <= 0 <= self.max:
                     min_res = min(0, max(min_power, max_power))
                     max_res = max(0, max(min_power, max_power))
-                    
+
                 else:
-                    
+
                     min_res = min(min_power, max_power)
                     max_res = max(min_power, max_power)
-                    
+
             else:
-                
+
                 min_res = min(min_power, max_power)
                 max_res = max(min_power, max_power)
 
             return Interval(min_res, max_res, precision=self.precision)
-        
+
         else:
-            
+
             return NotImplemented
 
     # def __abs__(self):
@@ -613,29 +612,29 @@ class Interval:
     #                                math.fabs(self.max), precision=self.precision)
 
     def __neg__(self) -> Interval:
-        
-        return Interval.two_values(self.min * (-1), self.max * (-1), precision=self.precision)
+
+        return Interval(self.min * (-1), self.max * (-1), precision=self.precision)
 
     def __eq__(self, other) -> bool:
-        
+
         if isinstance(other, Interval):
-            
+
             return self.min == other.min and \
                 self.max == other.max and \
                 self.precision == other.precision
-                
+
         else:
-            
+
             return NotImplemented
 
     def __lt__(self, other) -> bool:
-        
+
         return self.max < other.min
 
     def __gt__(self, other) -> bool:
-        
+
         return self.min > other.max
 
     def __hash__(self) -> int:
-        
+
         return hash((self.min, self.max, self.precision))

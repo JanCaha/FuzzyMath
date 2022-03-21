@@ -6,6 +6,7 @@ Interval and Fuzzy Arithmetic.
 
 from .class_interval import Interval
 from .class_fuzzy_number import FuzzyNumber
+from .class_factories import FuzzyNumberFactory, IntervalFactory
 
 from .fuzzynumber_comparisons import (possibility_exceedance,
                                       possibility_strict_exceedance,
