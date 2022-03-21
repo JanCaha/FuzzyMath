@@ -1,6 +1,7 @@
 from typing import List
 
-from FuzzyMath.class_fuzzy_number import FuzzyNumber
+from .class_fuzzy_number import FuzzyNumber
+from .class_memberships import PossibilisticMembership
 
 
 def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
@@ -163,3 +164,27 @@ def __intersection_y(x1, y1,
     y = (a * y34 - b * y12) / c
 
     return y
+
+
+def exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_exceedance(fn_a, fn_b),
+                                   necessity_exceedance(fn_a, fn_b))
+
+
+def strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_strict_exceedance(fn_a, fn_b),
+                                   necessity_strict_exceedance(fn_a, fn_b))
+
+
+def undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_undervaluation(fn_a, fn_b),
+                                   necessity_undervaluation(fn_a, fn_b))
+
+
+def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_strict_undervaluation(fn_a, fn_b),
+                                   necessity_strict_undervaluation(fn_a, fn_b))
