@@ -30,18 +30,17 @@
 from types import FunctionType, BuiltinFunctionType
 from typing import Callable, List, Tuple
 from bisect import bisect_left
-import re
+import warnings
 
 from .class_interval import Interval
+from .class_memberships import PossibilisticMembership
 from .fuzzymath_utils import (set_up_precision, get_precision)
 
 
 class FuzzyNumber:
     &#34;&#34;&#34;
     Fuzzy number representation.
-
     ...
-
     Attributes
     ----------
     _alpha_cuts: List[Interval]
@@ -58,8 +57,8 @@ class FuzzyNumber:
 
     def __init__(self, alphas: List[float], alpha_cuts: List[Interval], precision: int = None):
         &#34;&#34;&#34;
-        Basic creator for the class. But generally it is more useful to use functions `FuzzyNumber.triangular()`,
-        `FuzzyNumber.trapezoidal()`, `FuzzyNumber.crisp_number()` or `FuzzyNumber.parse_string()` instead of this
+        Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
+        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or `FuzzyNumberFactory.parse_string()` instead of this
         function.
 
         Parameters
@@ -105,7 +104,7 @@ class FuzzyNumber:
         self._alpha_cuts = dict(zip(alphas, alpha_cuts))
         self._alphas = sorted(self._alpha_cuts.keys())
 
-        previous_interval: Interval = Interval.empty()
+        previous_interval: Interval = Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))
 
         for alpha in self.alpha_levels:
             if not previous_interval.is_empty:
@@ -296,7 +295,7 @@ class FuzzyNumber:
             q = y1 - k * x1
             b = (alpha - q) / k
 
-        return Interval.infimum_supremum(a, b)
+        return Interval(min(a, b), max(a, b))
 
     def __repr__(self) -&gt; str:
         &#34;&#34;&#34;
@@ -482,6 +481,10 @@ class FuzzyNumber:
         from FuzzyMath.fuzzynumber_comparisons import necessity_exceedance
         return necessity_exceedance(self, fn_other)
 
+    def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import exceedance
+        return exceedance(self, fn_other)
+
     def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import possibility_strict_exceedance
         return possibility_strict_exceedance(self, fn_other)
@@ -489,6 +492,10 @@ class FuzzyNumber:
     def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import necessity_strict_exceedance
         return necessity_strict_exceedance(self, fn_other)
+
+    def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import strict_exceedance
+        return strict_exceedance(self, fn_other)
 
     def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import possibility_undervaluation
@@ -498,6 +505,10 @@ class FuzzyNumber:
         from FuzzyMath.fuzzynumber_comparisons import necessity_undervaluation
         return necessity_undervaluation(self, fn_other)
 
+    def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import undervaluation
+        return undervaluation(self, fn_other)
+
     def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import possibility_strict_undervaluation
         return possibility_strict_undervaluation(self, fn_other)
@@ -505,6 +516,10 @@ class FuzzyNumber:
     def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import necessity_strict_undervaluation
         return necessity_strict_undervaluation(self, fn_other)
+
+    def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import strict_undervaluation
+        return strict_undervaluation(self, fn_other)
 
     def apply_function(self,
                        function: Callable,
@@ -581,15 +596,15 @@ class FuzzyNumber:
 
     @staticmethod
     def _iterate_alphas_one_value(x: FuzzyNumber, operation: Callable, *args) -&gt; FuzzyNumber:
-        
+
         if not callable(operation):
             raise TypeError(&#34;`operation` needs to be a function. It is `{0}`.&#34;
                             .format(type(operation).__name__))
-            
+
         alphas, intervals = FuzzyNumber.__prepare_alphas_intervals(x.alpha_levels)
 
         i = 0
-        
+
         for alpha in alphas:
             intervals[i] = operation(x.get_alpha_cut(alpha), *args)
             i += 1
@@ -740,7 +755,7 @@ class FuzzyNumber:
         else:
             alphas = FuzzyNumber._prepare_alphas(alpha_levels1, alpha_levels2)
 
-        intervals = [Interval.empty()] * len(alphas)
+        intervals = [Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))] * len(alphas)
 
         return alphas, intervals
 
@@ -773,43 +788,12 @@ class FuzzyNumber:
         FuzzyNumber
         &#34;&#34;&#34;
 
-        if not minimum &lt;= kernel &lt;= maximum:
-            raise ValueError(&#34;The fuzzy number is invalid. The structure needs to be `minimum` &lt;= `kernel` &#34;
-                             &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;
-                             .format(minimum, kernel, maximum))
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
-
-        if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return cls(alphas=[0, 1],
-                       alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
-                                   Interval.infimum_supremum(kernel, kernel, precision=precision)],
-                       precision=precision)
-
-        else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
-
-            intervals = [Interval.empty()] * len(alphas)
-
-            i = 0
-            for alpha in alphas:
-                if alpha == 0:
-                    intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
-                elif alpha == 1:
-                    intervals[i] = Interval.infimum_supremum(kernel, kernel, precision=precision)
-                else:
-                    int_min = ((kernel - minimum) / (number_of_cuts - 1)) * i + minimum
-                    int_max = maximum - ((maximum - kernel) / (number_of_cuts - 1)) * i
-                    intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
-                i += 1
-
-            return cls(alphas=alphas,
-                       alpha_cuts=intervals,
-                       precision=precision)
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.triangular(minimum, kernel, maximum, precision)
 
     @classmethod
     def trapezoidal(cls,
@@ -843,44 +827,12 @@ class FuzzyNumber:
         FuzzyNumber
         &#34;&#34;&#34;
 
-        if not minimum &lt;= kernel_minimum &lt;= kernel_maximum &lt;= maximum:
-            raise ValueError(&#34;The fuzzy number is invalid. The structure needs to be &#34;
-                             &#34;`minimum` &lt;= `kernel_minimum` &lt;= `kernel_maximum` &lt;= `maximum`. &#34;
-                             &#34;Currently it is `{0}` &lt;= `{1}` &lt;= `{2}` &lt;= `{3}`, which does not hold.&#34;
-                             .format(minimum, kernel_minimum, kernel_maximum, maximum))
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
-
-        if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return cls(alphas=[0, 1],
-                       alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
-                                   Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)],
-                       precision=precision)
-
-        else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
-
-            intervals = [Interval.empty()] * len(alphas)
-
-            i = 0
-            for alpha in alphas:
-                if alpha == 0:
-                    intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
-                elif alpha == 1:
-                    intervals[i] = Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)
-                else:
-                    int_min = ((kernel_minimum - minimum) / (number_of_cuts - 1)) * i + minimum
-                    int_max = maximum - ((maximum - kernel_maximum) / (number_of_cuts - 1)) * i
-                    intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
-                i += 1
-
-            return cls(alphas=alphas,
-                       alpha_cuts=intervals,
-                       precision=precision)
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.trapezoidal(minimum, kernel_minimum, kernel_maximum, maximum, precision)
 
     @classmethod
     def crisp_number(cls,
@@ -901,15 +853,12 @@ class FuzzyNumber:
         FuzzyNumber
         &#34;&#34;&#34;
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        return cls(alphas=[0, 1],
-                   alpha_cuts=[Interval.infimum_supremum(value, value, precision=precision),
-                               Interval.infimum_supremum(value, value, precision=precision)],
-                   precision=precision)
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.crisp_number(value, precision)
 
     @classmethod
     def parse_string(cls,
@@ -929,46 +878,13 @@ class FuzzyNumber:
         -------
         FuzzyNumber
         &#34;&#34;&#34;
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
 
-        re_a_cuts = re.compile(r&#34;([0-9\.;,]+)&#34;)
-        re_numbers = re.compile(r&#34;[0-9\.]+&#34;)
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        elements = re_a_cuts.findall(string)
-
-        alphas: List[float] = [0] * len(elements)
-        alpha_cuts: List[Interval] = [Interval.empty()] * len(elements)
-
-        i: int = 0
-
-        for a_cut_def in elements:
-
-            numbers = re_numbers.findall(a_cut_def)
-
-            if len(numbers) != 3:
-                raise ValueError(&#34;Cannot parse FuzzyNumber from this definition. &#34;
-                                 &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;)
-
-            numbers = [float(x) for x in numbers]
-
-            try:
-                cls._validate_alpha(numbers[0])
-            except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defiend. {}&#34;.format(a_cut_def, err))
-
-            alphas[i] = numbers[0]
-
-            try:
-                alpha_cuts[i] = Interval.infimum_supremum(numbers[1], numbers[2])
-            except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defiend. {}&#34;.format(a_cut_def, err))
-
-            i += 1
-
-        return FuzzyNumber(alphas, alpha_cuts, precision)</code></pre>
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.parse_string(string, precision)</code></pre>
 </details>
 </section>
 <section>
@@ -985,9 +901,10 @@ class FuzzyNumber:
 <span>(</span><span>alphas: List[float], alpha_cuts: List[Interval], precision: int = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Fuzzy number representation.</p>
-<p>&hellip;</p>
-<h2 id="attributes">Attributes</h2>
+<div class="desc"><p>Fuzzy number representation.
+&hellip;
+Attributes</p>
+<hr>
 <dl>
 <dt><strong><code>_alpha_cuts</code></strong> :&ensp;<code>List[Interval]</code></dt>
 <dd>List of Intervals representing alpha cuts.</dd>
@@ -996,8 +913,8 @@ class FuzzyNumber:
 <dt><strong><code>_precision</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of decimals used as precision for this fuzzy number.</dd>
 </dl>
-<p>Basic creator for the class. But generally it is more useful to use functions <code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.triangular" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.triangular">FuzzyNumber.triangular()</a></code>,
-<code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.trapezoidal" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.trapezoidal">FuzzyNumber.trapezoidal()</a></code>, <code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.crisp_number" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.crisp_number">FuzzyNumber.crisp_number()</a></code> or <code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.parse_string" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.parse_string">FuzzyNumber.parse_string()</a></code> instead of this
+<p>Basic creator for the class. But generally it is more useful to use functions <code>FuzzyNumberFactory.triangular()</code>,
+<code>FuzzyNumberFactory.trapezoidal()</code>, <code>FuzzyNumberFactory.crisp_number()</code> or <code>FuzzyNumberFactory.parse_string()</code> instead of this
 function.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -1015,9 +932,7 @@ function.</p>
 <pre><code class="python">class FuzzyNumber:
     &#34;&#34;&#34;
     Fuzzy number representation.
-
     ...
-
     Attributes
     ----------
     _alpha_cuts: List[Interval]
@@ -1034,8 +949,8 @@ function.</p>
 
     def __init__(self, alphas: List[float], alpha_cuts: List[Interval], precision: int = None):
         &#34;&#34;&#34;
-        Basic creator for the class. But generally it is more useful to use functions `FuzzyNumber.triangular()`,
-        `FuzzyNumber.trapezoidal()`, `FuzzyNumber.crisp_number()` or `FuzzyNumber.parse_string()` instead of this
+        Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
+        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or `FuzzyNumberFactory.parse_string()` instead of this
         function.
 
         Parameters
@@ -1081,7 +996,7 @@ function.</p>
         self._alpha_cuts = dict(zip(alphas, alpha_cuts))
         self._alphas = sorted(self._alpha_cuts.keys())
 
-        previous_interval: Interval = Interval.empty()
+        previous_interval: Interval = Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))
 
         for alpha in self.alpha_levels:
             if not previous_interval.is_empty:
@@ -1272,7 +1187,7 @@ function.</p>
             q = y1 - k * x1
             b = (alpha - q) / k
 
-        return Interval.infimum_supremum(a, b)
+        return Interval(min(a, b), max(a, b))
 
     def __repr__(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1458,6 +1373,10 @@ function.</p>
         from FuzzyMath.fuzzynumber_comparisons import necessity_exceedance
         return necessity_exceedance(self, fn_other)
 
+    def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import exceedance
+        return exceedance(self, fn_other)
+
     def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import possibility_strict_exceedance
         return possibility_strict_exceedance(self, fn_other)
@@ -1465,6 +1384,10 @@ function.</p>
     def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import necessity_strict_exceedance
         return necessity_strict_exceedance(self, fn_other)
+
+    def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import strict_exceedance
+        return strict_exceedance(self, fn_other)
 
     def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import possibility_undervaluation
@@ -1474,6 +1397,10 @@ function.</p>
         from FuzzyMath.fuzzynumber_comparisons import necessity_undervaluation
         return necessity_undervaluation(self, fn_other)
 
+    def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import undervaluation
+        return undervaluation(self, fn_other)
+
     def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import possibility_strict_undervaluation
         return possibility_strict_undervaluation(self, fn_other)
@@ -1481,6 +1408,10 @@ function.</p>
     def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; float:
         from FuzzyMath.fuzzynumber_comparisons import necessity_strict_undervaluation
         return necessity_strict_undervaluation(self, fn_other)
+
+    def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+        from FuzzyMath.fuzzynumber_comparisons import strict_undervaluation
+        return strict_undervaluation(self, fn_other)
 
     def apply_function(self,
                        function: Callable,
@@ -1557,15 +1488,15 @@ function.</p>
 
     @staticmethod
     def _iterate_alphas_one_value(x: FuzzyNumber, operation: Callable, *args) -&gt; FuzzyNumber:
-        
+
         if not callable(operation):
             raise TypeError(&#34;`operation` needs to be a function. It is `{0}`.&#34;
                             .format(type(operation).__name__))
-            
+
         alphas, intervals = FuzzyNumber.__prepare_alphas_intervals(x.alpha_levels)
 
         i = 0
-        
+
         for alpha in alphas:
             intervals[i] = operation(x.get_alpha_cut(alpha), *args)
             i += 1
@@ -1716,7 +1647,7 @@ function.</p>
         else:
             alphas = FuzzyNumber._prepare_alphas(alpha_levels1, alpha_levels2)
 
-        intervals = [Interval.empty()] * len(alphas)
+        intervals = [Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))] * len(alphas)
 
         return alphas, intervals
 
@@ -1749,43 +1680,12 @@ function.</p>
         FuzzyNumber
         &#34;&#34;&#34;
 
-        if not minimum &lt;= kernel &lt;= maximum:
-            raise ValueError(&#34;The fuzzy number is invalid. The structure needs to be `minimum` &lt;= `kernel` &#34;
-                             &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;
-                             .format(minimum, kernel, maximum))
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
-
-        if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return cls(alphas=[0, 1],
-                       alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
-                                   Interval.infimum_supremum(kernel, kernel, precision=precision)],
-                       precision=precision)
-
-        else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
-
-            intervals = [Interval.empty()] * len(alphas)
-
-            i = 0
-            for alpha in alphas:
-                if alpha == 0:
-                    intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
-                elif alpha == 1:
-                    intervals[i] = Interval.infimum_supremum(kernel, kernel, precision=precision)
-                else:
-                    int_min = ((kernel - minimum) / (number_of_cuts - 1)) * i + minimum
-                    int_max = maximum - ((maximum - kernel) / (number_of_cuts - 1)) * i
-                    intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
-                i += 1
-
-            return cls(alphas=alphas,
-                       alpha_cuts=intervals,
-                       precision=precision)
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.triangular(minimum, kernel, maximum, precision)
 
     @classmethod
     def trapezoidal(cls,
@@ -1819,44 +1719,12 @@ function.</p>
         FuzzyNumber
         &#34;&#34;&#34;
 
-        if not minimum &lt;= kernel_minimum &lt;= kernel_maximum &lt;= maximum:
-            raise ValueError(&#34;The fuzzy number is invalid. The structure needs to be &#34;
-                             &#34;`minimum` &lt;= `kernel_minimum` &lt;= `kernel_maximum` &lt;= `maximum`. &#34;
-                             &#34;Currently it is `{0}` &lt;= `{1}` &lt;= `{2}` &lt;= `{3}`, which does not hold.&#34;
-                             .format(minimum, kernel_minimum, kernel_maximum, maximum))
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
-
-        if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return cls(alphas=[0, 1],
-                       alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
-                                   Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)],
-                       precision=precision)
-
-        else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
-
-            intervals = [Interval.empty()] * len(alphas)
-
-            i = 0
-            for alpha in alphas:
-                if alpha == 0:
-                    intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
-                elif alpha == 1:
-                    intervals[i] = Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)
-                else:
-                    int_min = ((kernel_minimum - minimum) / (number_of_cuts - 1)) * i + minimum
-                    int_max = maximum - ((maximum - kernel_maximum) / (number_of_cuts - 1)) * i
-                    intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
-                i += 1
-
-            return cls(alphas=alphas,
-                       alpha_cuts=intervals,
-                       precision=precision)
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.trapezoidal(minimum, kernel_minimum, kernel_maximum, maximum, precision)
 
     @classmethod
     def crisp_number(cls,
@@ -1877,15 +1745,12 @@ function.</p>
         FuzzyNumber
         &#34;&#34;&#34;
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        return cls(alphas=[0, 1],
-                   alpha_cuts=[Interval.infimum_supremum(value, value, precision=precision),
-                               Interval.infimum_supremum(value, value, precision=precision)],
-                   precision=precision)
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.crisp_number(value, precision)
 
     @classmethod
     def parse_string(cls,
@@ -1905,46 +1770,13 @@ function.</p>
         -------
         FuzzyNumber
         &#34;&#34;&#34;
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
 
-        re_a_cuts = re.compile(r&#34;([0-9\.;,]+)&#34;)
-        re_numbers = re.compile(r&#34;[0-9\.]+&#34;)
+        warnings.warn(
+            &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+            DeprecationWarning)
 
-        elements = re_a_cuts.findall(string)
-
-        alphas: List[float] = [0] * len(elements)
-        alpha_cuts: List[Interval] = [Interval.empty()] * len(elements)
-
-        i: int = 0
-
-        for a_cut_def in elements:
-
-            numbers = re_numbers.findall(a_cut_def)
-
-            if len(numbers) != 3:
-                raise ValueError(&#34;Cannot parse FuzzyNumber from this definition. &#34;
-                                 &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;)
-
-            numbers = [float(x) for x in numbers]
-
-            try:
-                cls._validate_alpha(numbers[0])
-            except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defiend. {}&#34;.format(a_cut_def, err))
-
-            alphas[i] = numbers[0]
-
-            try:
-                alpha_cuts[i] = Interval.infimum_supremum(numbers[1], numbers[2])
-            except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defiend. {}&#34;.format(a_cut_def, err))
-
-            i += 1
-
-        return FuzzyNumber(alphas, alpha_cuts, precision)</code></pre>
+        from .class_factories import FuzzyNumberFactory
+        return FuzzyNumberFactory.parse_string(string, precision)</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -1988,15 +1820,12 @@ def crisp_number(cls,
     FuzzyNumber
     &#34;&#34;&#34;
 
-    if not precision:
-        precision = get_precision()
-    else:
-        precision = set_up_precision(precision)
+    warnings.warn(
+        &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+        DeprecationWarning)
 
-    return cls(alphas=[0, 1],
-               alpha_cuts=[Interval.infimum_supremum(value, value, precision=precision),
-                           Interval.infimum_supremum(value, value, precision=precision)],
-               precision=precision)</code></pre>
+    from .class_factories import FuzzyNumberFactory
+    return FuzzyNumberFactory.crisp_number(value, precision)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cut_values"><code class="name flex">
@@ -2101,46 +1930,13 @@ def parse_string(cls,
     -------
     FuzzyNumber
     &#34;&#34;&#34;
-    if not precision:
-        precision = get_precision()
-    else:
-        precision = set_up_precision(precision)
 
-    re_a_cuts = re.compile(r&#34;([0-9\.;,]+)&#34;)
-    re_numbers = re.compile(r&#34;[0-9\.]+&#34;)
+    warnings.warn(
+        &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+        DeprecationWarning)
 
-    elements = re_a_cuts.findall(string)
-
-    alphas: List[float] = [0] * len(elements)
-    alpha_cuts: List[Interval] = [Interval.empty()] * len(elements)
-
-    i: int = 0
-
-    for a_cut_def in elements:
-
-        numbers = re_numbers.findall(a_cut_def)
-
-        if len(numbers) != 3:
-            raise ValueError(&#34;Cannot parse FuzzyNumber from this definition. &#34;
-                             &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;)
-
-        numbers = [float(x) for x in numbers]
-
-        try:
-            cls._validate_alpha(numbers[0])
-        except ValueError as err:
-            raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defiend. {}&#34;.format(a_cut_def, err))
-
-        alphas[i] = numbers[0]
-
-        try:
-            alpha_cuts[i] = Interval.infimum_supremum(numbers[1], numbers[2])
-        except ValueError as err:
-            raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defiend. {}&#34;.format(a_cut_def, err))
-
-        i += 1
-
-    return FuzzyNumber(alphas, alpha_cuts, precision)</code></pre>
+    from .class_factories import FuzzyNumberFactory
+    return FuzzyNumberFactory.parse_string(string, precision)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.trapezoidal"><code class="name flex">
@@ -2204,44 +2000,12 @@ def trapezoidal(cls,
     FuzzyNumber
     &#34;&#34;&#34;
 
-    if not minimum &lt;= kernel_minimum &lt;= kernel_maximum &lt;= maximum:
-        raise ValueError(&#34;The fuzzy number is invalid. The structure needs to be &#34;
-                         &#34;`minimum` &lt;= `kernel_minimum` &lt;= `kernel_maximum` &lt;= `maximum`. &#34;
-                         &#34;Currently it is `{0}` &lt;= `{1}` &lt;= `{2}` &lt;= `{3}`, which does not hold.&#34;
-                         .format(minimum, kernel_minimum, kernel_maximum, maximum))
+    warnings.warn(
+        &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+        DeprecationWarning)
 
-    if not precision:
-        precision = get_precision()
-    else:
-        precision = set_up_precision(precision)
-
-    if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-        return cls(alphas=[0, 1],
-                   alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
-                               Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)],
-                   precision=precision)
-
-    else:
-        alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
-
-        intervals = [Interval.empty()] * len(alphas)
-
-        i = 0
-        for alpha in alphas:
-            if alpha == 0:
-                intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
-            elif alpha == 1:
-                intervals[i] = Interval.infimum_supremum(kernel_minimum, kernel_maximum, precision=precision)
-            else:
-                int_min = ((kernel_minimum - minimum) / (number_of_cuts - 1)) * i + minimum
-                int_max = maximum - ((maximum - kernel_maximum) / (number_of_cuts - 1)) * i
-                intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
-            i += 1
-
-        return cls(alphas=alphas,
-                   alpha_cuts=intervals,
-                   precision=precision)</code></pre>
+    from .class_factories import FuzzyNumberFactory
+    return FuzzyNumberFactory.trapezoidal(minimum, kernel_minimum, kernel_maximum, maximum, precision)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.triangular"><code class="name flex">
@@ -2300,43 +2064,12 @@ def triangular(cls,
     FuzzyNumber
     &#34;&#34;&#34;
 
-    if not minimum &lt;= kernel &lt;= maximum:
-        raise ValueError(&#34;The fuzzy number is invalid. The structure needs to be `minimum` &lt;= `kernel` &#34;
-                         &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;
-                         .format(minimum, kernel, maximum))
+    warnings.warn(
+        &#34;The function is deprecated since version 0.5, use the function from `FuzzyNumberFactory` instead. The function will be removed in future version.&#34;,
+        DeprecationWarning)
 
-    if not precision:
-        precision = get_precision()
-    else:
-        precision = set_up_precision(precision)
-
-    if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-        return cls(alphas=[0, 1],
-                   alpha_cuts=[Interval.infimum_supremum(minimum, maximum, precision=precision),
-                               Interval.infimum_supremum(kernel, kernel, precision=precision)],
-                   precision=precision)
-
-    else:
-        alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
-
-        intervals = [Interval.empty()] * len(alphas)
-
-        i = 0
-        for alpha in alphas:
-            if alpha == 0:
-                intervals[i] = Interval.infimum_supremum(minimum, maximum, precision=precision)
-            elif alpha == 1:
-                intervals[i] = Interval.infimum_supremum(kernel, kernel, precision=precision)
-            else:
-                int_min = ((kernel - minimum) / (number_of_cuts - 1)) * i + minimum
-                int_max = maximum - ((maximum - kernel) / (number_of_cuts - 1)) * i
-                intervals[i] = Interval.infimum_supremum(int_min, int_max, precision=precision)
-            i += 1
-
-        return cls(alphas=alphas,
-                   alpha_cuts=intervals,
-                   precision=precision)</code></pre>
+    from .class_factories import FuzzyNumberFactory
+    return FuzzyNumberFactory.triangular(minimum, kernel, maximum, precision)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2638,6 +2371,20 @@ def precision(self) -&gt; int:
     return FuzzyNumber(self.alpha_levels, intervals, precision=self._precision)</code></pre>
 </details>
 </dd>
+<dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.exceedance"><code class="name flex">
+<span>def <span class="ident">exceedance</span></span>(<span>self, fn_other: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+    from FuzzyMath.fuzzynumber_comparisons import exceedance
+    return exceedance(self, fn_other)</code></pre>
+</details>
+</dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cut"><code class="name flex">
 <span>def <span class="ident">get_alpha_cut</span></span>(<span>self, alpha: float) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
 </code></dt>
@@ -2885,6 +2632,48 @@ def precision(self) -&gt; int:
     return possibility_undervaluation(self, fn_other)</code></pre>
 </details>
 </dd>
+<dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.strict_exceedance"><code class="name flex">
+<span>def <span class="ident">strict_exceedance</span></span>(<span>self, fn_other: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+    from FuzzyMath.fuzzynumber_comparisons import strict_exceedance
+    return strict_exceedance(self, fn_other)</code></pre>
+</details>
+</dd>
+<dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.strict_undervaluation"><code class="name flex">
+<span>def <span class="ident">strict_undervaluation</span></span>(<span>self, fn_other: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+    from FuzzyMath.fuzzynumber_comparisons import strict_undervaluation
+    return strict_undervaluation(self, fn_other)</code></pre>
+</details>
+</dd>
+<dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.undervaluation"><code class="name flex">
+<span>def <span class="ident">undervaluation</span></span>(<span>self, fn_other: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
+    from FuzzyMath.fuzzynumber_comparisons import undervaluation
+    return undervaluation(self, fn_other)</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -2910,6 +2699,7 @@ def precision(self) -&gt; int:
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.alpha_levels" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.alpha_levels">alpha_levels</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.apply_function" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.apply_function">apply_function</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.crisp_number" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.crisp_number">crisp_number</a></code></li>
+<li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.exceedance" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.exceedance">exceedance</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cut" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cut">get_alpha_cut</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cut_values" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cut_values">get_alpha_cut_values</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cuts_maxs" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cuts_maxs">get_alpha_cuts_maxs</a></code></li>
@@ -2929,8 +2719,11 @@ def precision(self) -&gt; int:
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.possibility_strict_undervaluation" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.possibility_strict_undervaluation">possibility_strict_undervaluation</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.possibility_undervaluation" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.possibility_undervaluation">possibility_undervaluation</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.precision" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.precision">precision</a></code></li>
+<li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.strict_exceedance" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.strict_exceedance">strict_exceedance</a></code></li>
+<li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.strict_undervaluation" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.strict_undervaluation">strict_undervaluation</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.trapezoidal" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.trapezoidal">trapezoidal</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.triangular" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.triangular">triangular</a></code></li>
+<li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.undervaluation" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.undervaluation">undervaluation</a></code></li>
 </ul>
 </li>
 </ul>

@@ -28,7 +28,8 @@
 </summary>
 <pre><code class="python">from typing import List
 
-from FuzzyMath.class_fuzzy_number import FuzzyNumber
+from .class_fuzzy_number import FuzzyNumber
+from .class_memberships import PossibilisticMembership
 
 
 def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
@@ -190,7 +191,31 @@ def __intersection_y(x1, y1,
     # x = (a * x34 - b * x12) / c
     y = (a * y34 - b * y12) / c
 
-    return y</code></pre>
+    return y
+
+
+def exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_exceedance(fn_a, fn_b),
+                                   necessity_exceedance(fn_a, fn_b))
+
+
+def strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_strict_exceedance(fn_a, fn_b),
+                                   necessity_strict_exceedance(fn_a, fn_b))
+
+
+def undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_undervaluation(fn_a, fn_b),
+                                   necessity_undervaluation(fn_a, fn_b))
+
+
+def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_strict_undervaluation(fn_a, fn_b),
+                                   necessity_strict_undervaluation(fn_a, fn_b))</code></pre>
 </details>
 </section>
 <section>
@@ -200,6 +225,21 @@ def __intersection_y(x1, y1,
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="FuzzyMath.fuzzynumber_comparisons.exceedance"><code class="name flex">
+<span>def <span class="ident">exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_exceedance(fn_a, fn_b),
+                                   necessity_exceedance(fn_a, fn_b))</code></pre>
+</details>
+</dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.necessity_exceedance"><code class="name flex">
 <span>def <span class="ident">necessity_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
 </code></dt>
@@ -402,6 +442,51 @@ def __intersection_y(x1, y1,
     return 1 - necessity_strict_exceedance(fn_a, fn_b)</code></pre>
 </details>
 </dd>
+<dt id="FuzzyMath.fuzzynumber_comparisons.strict_exceedance"><code class="name flex">
+<span>def <span class="ident">strict_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_strict_exceedance(fn_a, fn_b),
+                                   necessity_strict_exceedance(fn_a, fn_b))</code></pre>
+</details>
+</dd>
+<dt id="FuzzyMath.fuzzynumber_comparisons.strict_undervaluation"><code class="name flex">
+<span>def <span class="ident">strict_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_strict_undervaluation(fn_a, fn_b),
+                                   necessity_strict_undervaluation(fn_a, fn_b))</code></pre>
+</details>
+</dd>
+<dt id="FuzzyMath.fuzzynumber_comparisons.undervaluation"><code class="name flex">
+<span>def <span class="ident">undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> <a title="FuzzyMath.class_memberships.PossibilisticMembership" href="class_memberships.html#FuzzyMath.class_memberships.PossibilisticMembership">PossibilisticMembership</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
+
+    return PossibilisticMembership(possibility_undervaluation(fn_a, fn_b),
+                                   necessity_undervaluation(fn_a, fn_b))</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -420,6 +505,7 @@ def __intersection_y(x1, y1,
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="FuzzyMath.fuzzynumber_comparisons.exceedance" href="#FuzzyMath.fuzzynumber_comparisons.exceedance">exceedance</a></code></li>
 <li><code><a title="FuzzyMath.fuzzynumber_comparisons.necessity_exceedance" href="#FuzzyMath.fuzzynumber_comparisons.necessity_exceedance">necessity_exceedance</a></code></li>
 <li><code><a title="FuzzyMath.fuzzynumber_comparisons.necessity_strict_exceedance" href="#FuzzyMath.fuzzynumber_comparisons.necessity_strict_exceedance">necessity_strict_exceedance</a></code></li>
 <li><code><a title="FuzzyMath.fuzzynumber_comparisons.necessity_strict_undervaluation" href="#FuzzyMath.fuzzynumber_comparisons.necessity_strict_undervaluation">necessity_strict_undervaluation</a></code></li>
@@ -428,6 +514,9 @@ def __intersection_y(x1, y1,
 <li><code><a title="FuzzyMath.fuzzynumber_comparisons.possibility_strict_exceedance" href="#FuzzyMath.fuzzynumber_comparisons.possibility_strict_exceedance">possibility_strict_exceedance</a></code></li>
 <li><code><a title="FuzzyMath.fuzzynumber_comparisons.possibility_strict_undervaluation" href="#FuzzyMath.fuzzynumber_comparisons.possibility_strict_undervaluation">possibility_strict_undervaluation</a></code></li>
 <li><code><a title="FuzzyMath.fuzzynumber_comparisons.possibility_undervaluation" href="#FuzzyMath.fuzzynumber_comparisons.possibility_undervaluation">possibility_undervaluation</a></code></li>
+<li><code><a title="FuzzyMath.fuzzynumber_comparisons.strict_exceedance" href="#FuzzyMath.fuzzynumber_comparisons.strict_exceedance">strict_exceedance</a></code></li>
+<li><code><a title="FuzzyMath.fuzzynumber_comparisons.strict_undervaluation" href="#FuzzyMath.fuzzynumber_comparisons.strict_undervaluation">strict_undervaluation</a></code></li>
+<li><code><a title="FuzzyMath.fuzzynumber_comparisons.undervaluation" href="#FuzzyMath.fuzzynumber_comparisons.undervaluation">undervaluation</a></code></li>
 </ul>
 </li>
 </ul>
