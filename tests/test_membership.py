@@ -50,7 +50,7 @@ def test_possibilistic_membership():
 
     possibilistic_membership = PossibilisticMembership(1, 0.5)
 
-    assert str(possibilistic_membership) == "PossibilisticMembership(possibility: 1, necessity: 0.5)"
+    assert str(possibilistic_membership) == "PossibilisticMembership(possibility: 1.0, necessity: 0.5)"
 
     assert possibilistic_membership.possibility == 1
     assert possibilistic_membership.necessity == 0.5
