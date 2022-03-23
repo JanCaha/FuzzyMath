@@ -409,5 +409,5 @@ def test_membership(fn_a: FuzzyNumber, fn_d: FuzzyNumber, fn_e: FuzzyNumber):
     assert fn_d.membership(1) == 0
     assert fn_d.membership(4) == 0
 
-    assert fn_e.membership(1.5) == pytest.approx(0.5, diff)
-    assert fn_e.membership(2.5) == pytest.approx(0.5, diff)
+    assert fn_e.membership(1.5).membership == pytest.approx(0.5, diff)
+    assert fn_e.membership(2.5).membership == pytest.approx(0.5, diff)
