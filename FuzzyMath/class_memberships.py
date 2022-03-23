@@ -67,3 +67,17 @@ class FuzzyMembership:
 
     def __repr__(self) -> str:
         return "FuzzyMembership({0})".format(self._membership)
+
+    def __eq__(self, __o: object) -> bool:
+
+        if not isinstance(__o, (int, float, FuzzyMembership)):
+            return NotImplemented
+
+        if isinstance(__o, (int, float)):
+            return self.membership == __o
+
+        if isinstance(__o, FuzzyMembership):
+            return self.membership == __o.membership
+
+        # just for case, should not happen
+        return False
