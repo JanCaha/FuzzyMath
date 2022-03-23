@@ -1,11 +1,11 @@
 from __future__ import annotations
 from types import FunctionType, BuiltinFunctionType
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 from bisect import bisect_left
 import warnings
 
 from .class_interval import Interval
-from .class_memberships import PossibilisticMembership
+from .class_memberships import PossibilisticMembership, FuzzyMembership
 from .fuzzymath_utils import (set_up_precision, get_precision)
 
 
@@ -730,6 +730,44 @@ class FuzzyNumber:
         intervals = [Interval(float("nan"), float("nan"))] * len(alphas)
 
         return alphas, intervals
+
+    def membership(self, value: Union[float, int]):
+
+        if not isinstance(value, (int, float)):
+            raise TypeError("Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, "
+                            "`int`.".format(type(value).__name__))
+
+        if value not in self:
+            return 0
+
+        elif self.kernel_min <= value <= self.kernel_max:
+            return 1
+
+        else:
+
+            last_alpha_containing = int(0)
+
+            for i in range(len(self)):
+                if value in self.alpha_cuts[i]:
+                    last_alpha_containing = i
+                else:
+                    break
+
+            y1 = self._alphas[last_alpha_containing]
+            y2 = self._alphas[last_alpha_containing + 1]
+
+            if self.alpha_cuts[last_alpha_containing].min <= value and value <= self.alpha_cuts[last_alpha_containing + 1].min:
+                x1 = self.alpha_cuts[last_alpha_containing].min
+                x2 = self.alpha_cuts[last_alpha_containing + 1].min
+
+            else:
+                x1 = self.alpha_cuts[last_alpha_containing].max
+                x2 = self.alpha_cuts[last_alpha_containing + 1].max
+
+            k = (y2 - y1) / (x2 - x1)
+            q = y1 - (k * x1)
+
+            return FuzzyMembership((k * value) + q)
 
     @classmethod
     def triangular(cls,
