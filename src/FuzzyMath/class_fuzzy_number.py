@@ -738,10 +738,10 @@ class FuzzyNumber:
                             "`int`.".format(type(value).__name__))
 
         if value not in self:
-            return 0
+            return FuzzyMembership(0)
 
         elif self.kernel_min <= value <= self.kernel_max:
-            return 1
+            return FuzzyMembership(1)
 
         else:
 
