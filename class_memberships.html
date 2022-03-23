@@ -30,67 +30,143 @@
 
 
 class PossibilisticMembership:
+    &#34;&#34;&#34;
+    Class that represents possibilistic membership in terms of possibility and necessity.
+    ...
+    Attributes
+    ----------
+    _possibility: float
+
+    _necessity: float
+    &#34;&#34;&#34;
 
     __slots__ = (&#34;_possibility&#34;, &#34;_necessity&#34;)
 
-    def __init__(self, poss: Union[float, int], nec: Union[float, int]) -&gt; None:
+    def __init__(self, possibility: Union[float, int], necessity: Union[float, int]) -&gt; None:
+        &#34;&#34;&#34;
+        Basic creator for the class.
+
+        Parameters
+        ----------
+        possibility : Union[float, int]
+
+        necessity : Union[float, int]
+
+        Raises
+        ------
+        TypeError
+            If either input variable is not `int` or `float`.
+        ValueError
+            If value of either variable is not from interval [0, 1]. Necessity must be smaller or equal to possibility.
+        &#34;&#34;&#34;
 
         self._possibility = 0.0
         self._necessity = 0.0
 
-        if not isinstance(poss, (int, float)):
+        if not isinstance(possibility, (int, float)):
             raise TypeError(
-                f&#34;Possibility value must be a `int` or `float`, it can not be `{type(poss).__name__}`&#34;)
+                f&#34;Possibility value must be a `int` or `float`, it can not be `{type(possibility).__name__}`&#34;
+            )
 
-        if not isinstance(nec, (int, float)):
+        if not isinstance(necessity, (int, float)):
             raise TypeError(
-                f&#34;Necessity value must be a `int` or `float`, it can not be `{type(nec).__name__}`&#34;)
+                f&#34;Necessity value must be a `int` or `float`, it can not be `{type(necessity).__name__}`&#34;
+            )
 
-        if poss &lt; 0 or 1 &lt; poss:
-            raise ValueError(f&#34;Possibility value must be from range [0, 1], it is `{poss}`.&#34;)
+        if possibility &lt; 0 or 1 &lt; possibility:
+            raise ValueError(
+                f&#34;Possibility value must be from range [0, 1], it is `{possibility}`.&#34;)
 
-        if nec &lt; 0 or 1 &lt; nec:
-            raise ValueError(f&#34;Necessity value must be from range [0, 1], it is `{nec}`.&#34;)
+        if necessity &lt; 0 or 1 &lt; necessity:
+            raise ValueError(f&#34;Necessity value must be from range [0, 1], it is `{necessity}`.&#34;)
 
-        if poss &lt; nec:
+        if possibility &lt; necessity:
             raise ValueError(
                 f&#34;Possibility value must be equal or larger then necessity. &#34;
-                f&#34;Currently this does not hold for for values possibility values `{poss}` and necessity `{nec}`.&#34;)
+                f&#34;Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`.&#34;
+            )
 
-        self._possibility = poss
-        self._necessity = nec
+        self._possibility = float(possibility)
+        self._necessity = float(necessity)
 
     @property
     def possibility(self) -&gt; float:
+        &#34;&#34;&#34;
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
+
         return self._possibility
 
     @property
     def necessity(self) -&gt; float:
+        &#34;&#34;&#34;
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
+
         return self._necessity
 
     def __repr__(self) -&gt; str:
-        return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(self._possibility, self._necessity)
+        return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(
+            self._possibility, self._necessity)
 
 
 class FuzzyMembership:
+    &#34;&#34;&#34;
+    Class that represents fuzzy membership in terms of membership.
+    ...
+    Attributes
+    ----------
+    _membership: float
+    &#34;&#34;&#34;
 
     __slots__ = (&#34;_membership&#34;)
 
     def __init__(self, membership: Union[float, int]) -&gt; None:
+        &#34;&#34;&#34;
+        Basic creator for the class.
+
+        Parameters
+        ----------
+        membership : Union[float, int]
+
+        Raises
+        ------
+        TypeError
+            If either input variable is not `int` or `float`.
+        ValueError
+            If value of either variable is not from interval [0, 1].
+        &#34;&#34;&#34;
 
         self._membership = 0.0
 
         if not isinstance(membership, (int, float)):
             raise TypeError(
-                f&#34;Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`&#34;)
+                f&#34;Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`&#34;
+            )
 
         if membership &lt; 0 or 1 &lt; membership:
             raise ValueError(f&#34;Membership value must be from range [0, 1], it is `{membership}`.&#34;)
 
-        self._membership = membership
+        self._membership = float(membership)
 
     @property
     def membership(self) -&gt; float:
+        &#34;&#34;&#34;
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
+
         return self._membership
 
     def __repr__(self) -&gt; str:
@@ -125,30 +201,80 @@ class FuzzyMembership:
 <span>(</span><span>membership: Union[float, int])</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Class that represents fuzzy membership in terms of membership.
+&hellip;
+Attributes</p>
+<hr>
+<dl>
+<dt><strong><code>_membership</code></strong> :&ensp;<code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<p>Basic creator for the class.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>membership</code></strong> :&ensp;<code>Union[float, int]</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>TypeError</code></dt>
+<dd>If either input variable is not <code>int</code> or <code>float</code>.</dd>
+<dt><code>ValueError</code></dt>
+<dd>If value of either variable is not from interval [0, 1].</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FuzzyMembership:
+    &#34;&#34;&#34;
+    Class that represents fuzzy membership in terms of membership.
+    ...
+    Attributes
+    ----------
+    _membership: float
+    &#34;&#34;&#34;
 
     __slots__ = (&#34;_membership&#34;)
 
     def __init__(self, membership: Union[float, int]) -&gt; None:
+        &#34;&#34;&#34;
+        Basic creator for the class.
+
+        Parameters
+        ----------
+        membership : Union[float, int]
+
+        Raises
+        ------
+        TypeError
+            If either input variable is not `int` or `float`.
+        ValueError
+            If value of either variable is not from interval [0, 1].
+        &#34;&#34;&#34;
 
         self._membership = 0.0
 
         if not isinstance(membership, (int, float)):
             raise TypeError(
-                f&#34;Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`&#34;)
+                f&#34;Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`&#34;
+            )
 
         if membership &lt; 0 or 1 &lt; membership:
             raise ValueError(f&#34;Membership value must be from range [0, 1], it is `{membership}`.&#34;)
 
-        self._membership = membership
+        self._membership = float(membership)
 
     @property
     def membership(self) -&gt; float:
+        &#34;&#34;&#34;
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
+
         return self._membership
 
     def __repr__(self) -&gt; str:
@@ -172,13 +298,26 @@ class FuzzyMembership:
 <dl>
 <dt id="FuzzyMath.class_memberships.FuzzyMembership.membership"><code class="name">var <span class="ident">membership</span> : float</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Property getter for the value.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def membership(self) -&gt; float:
+    &#34;&#34;&#34;
+    Property getter for the value.
+
+    Returns
+    -------
+    float
+    &#34;&#34;&#34;
+
     return self._membership</code></pre>
 </details>
 </dd>
@@ -186,79 +325,175 @@ def membership(self) -&gt; float:
 </dd>
 <dt id="FuzzyMath.class_memberships.PossibilisticMembership"><code class="flex name class">
 <span>class <span class="ident">PossibilisticMembership</span></span>
-<span>(</span><span>poss: Union[float, int], nec: Union[float, int])</span>
+<span>(</span><span>possibility: Union[float, int], necessity: Union[float, int])</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Class that represents possibilistic membership in terms of possibility and necessity.
+&hellip;
+Attributes</p>
+<hr>
+<dl>
+<dt><strong><code>_possibility</code></strong> :&ensp;<code>float</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>_necessity</code></strong> :&ensp;<code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<p>Basic creator for the class.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>possibility</code></strong> :&ensp;<code>Union[float, int]</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>necessity</code></strong> :&ensp;<code>Union[float, int]</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>TypeError</code></dt>
+<dd>If either input variable is not <code>int</code> or <code>float</code>.</dd>
+<dt><code>ValueError</code></dt>
+<dd>If value of either variable is not from interval [0, 1]. Necessity must be smaller or equal to possibility.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class PossibilisticMembership:
+    &#34;&#34;&#34;
+    Class that represents possibilistic membership in terms of possibility and necessity.
+    ...
+    Attributes
+    ----------
+    _possibility: float
+
+    _necessity: float
+    &#34;&#34;&#34;
 
     __slots__ = (&#34;_possibility&#34;, &#34;_necessity&#34;)
 
-    def __init__(self, poss: Union[float, int], nec: Union[float, int]) -&gt; None:
+    def __init__(self, possibility: Union[float, int], necessity: Union[float, int]) -&gt; None:
+        &#34;&#34;&#34;
+        Basic creator for the class.
+
+        Parameters
+        ----------
+        possibility : Union[float, int]
+
+        necessity : Union[float, int]
+
+        Raises
+        ------
+        TypeError
+            If either input variable is not `int` or `float`.
+        ValueError
+            If value of either variable is not from interval [0, 1]. Necessity must be smaller or equal to possibility.
+        &#34;&#34;&#34;
 
         self._possibility = 0.0
         self._necessity = 0.0
 
-        if not isinstance(poss, (int, float)):
+        if not isinstance(possibility, (int, float)):
             raise TypeError(
-                f&#34;Possibility value must be a `int` or `float`, it can not be `{type(poss).__name__}`&#34;)
+                f&#34;Possibility value must be a `int` or `float`, it can not be `{type(possibility).__name__}`&#34;
+            )
 
-        if not isinstance(nec, (int, float)):
+        if not isinstance(necessity, (int, float)):
             raise TypeError(
-                f&#34;Necessity value must be a `int` or `float`, it can not be `{type(nec).__name__}`&#34;)
+                f&#34;Necessity value must be a `int` or `float`, it can not be `{type(necessity).__name__}`&#34;
+            )
 
-        if poss &lt; 0 or 1 &lt; poss:
-            raise ValueError(f&#34;Possibility value must be from range [0, 1], it is `{poss}`.&#34;)
+        if possibility &lt; 0 or 1 &lt; possibility:
+            raise ValueError(
+                f&#34;Possibility value must be from range [0, 1], it is `{possibility}`.&#34;)
 
-        if nec &lt; 0 or 1 &lt; nec:
-            raise ValueError(f&#34;Necessity value must be from range [0, 1], it is `{nec}`.&#34;)
+        if necessity &lt; 0 or 1 &lt; necessity:
+            raise ValueError(f&#34;Necessity value must be from range [0, 1], it is `{necessity}`.&#34;)
 
-        if poss &lt; nec:
+        if possibility &lt; necessity:
             raise ValueError(
                 f&#34;Possibility value must be equal or larger then necessity. &#34;
-                f&#34;Currently this does not hold for for values possibility values `{poss}` and necessity `{nec}`.&#34;)
+                f&#34;Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`.&#34;
+            )
 
-        self._possibility = poss
-        self._necessity = nec
+        self._possibility = float(possibility)
+        self._necessity = float(necessity)
 
     @property
     def possibility(self) -&gt; float:
+        &#34;&#34;&#34;
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
+
         return self._possibility
 
     @property
     def necessity(self) -&gt; float:
+        &#34;&#34;&#34;
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
+
         return self._necessity
 
     def __repr__(self) -&gt; str:
-        return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(self._possibility, self._necessity)</code></pre>
+        return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(
+            self._possibility, self._necessity)</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
 <dt id="FuzzyMath.class_memberships.PossibilisticMembership.necessity"><code class="name">var <span class="ident">necessity</span> : float</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Property getter for the value.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def necessity(self) -&gt; float:
+    &#34;&#34;&#34;
+    Property getter for the value.
+
+    Returns
+    -------
+    float
+    &#34;&#34;&#34;
+
     return self._necessity</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_memberships.PossibilisticMembership.possibility"><code class="name">var <span class="ident">possibility</span> : float</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Property getter for the value.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def possibility(self) -&gt; float:
+    &#34;&#34;&#34;
+    Property getter for the value.
+
+    Returns
+    -------
+    float
+    &#34;&#34;&#34;
+
     return self._possibility</code></pre>
 </details>
 </dd>
