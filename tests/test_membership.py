@@ -10,11 +10,11 @@ def test_fuzzy_membership():
         FuzzyMembership("a")
 
     with pytest.raises(ValueError,
-                       match="Membership value must be from range \[0, 1\]"):
+                       match="Membership value must be from range"):
         FuzzyMembership(-1)
 
     with pytest.raises(ValueError,
-                       match="Membership value must be from range \[0, 1\]"):
+                       match="Membership value must be from range"):
         FuzzyMembership(2)
 
     fuzzy_membership = FuzzyMembership(0.5)
