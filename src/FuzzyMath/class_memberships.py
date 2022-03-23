@@ -5,7 +5,18 @@ class PossibilisticMembership:
 
     __slots__ = ("_possibility", "_necessity")
 
-    def __init__(self, poss: float, nec: float) -> None:
+    def __init__(self, poss: Union[float, int], nec: Union[float, int]) -> None:
+
+        self._possibility = 0.0
+        self._necessity = 0.0
+
+        if not isinstance(poss, (int, float)):
+            raise TypeError(
+                f"Possibility value must be a `int` or `float`, it can not be `{type(poss).__name__}`")
+
+        if not isinstance(nec, (int, float)):
+            raise TypeError(
+                f"Necessity value must be a `int` or `float`, it can not be `{type(nec).__name__}`")
 
         if poss < 0 or 1 < poss:
             raise ValueError(f"Possibility value must be from range [0, 1], it is `{poss}`.")
