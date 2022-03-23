@@ -28,12 +28,12 @@
 </summary>
 <pre><code class="python">from __future__ import annotations
 from types import FunctionType, BuiltinFunctionType
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 from bisect import bisect_left
 import warnings
 
 from .class_interval import Interval
-from .class_memberships import PossibilisticMembership
+from .class_memberships import PossibilisticMembership, FuzzyMembership
 from .fuzzymath_utils import (set_up_precision, get_precision)
 
 
@@ -758,6 +758,44 @@ class FuzzyNumber:
         intervals = [Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))] * len(alphas)
 
         return alphas, intervals
+
+    def membership(self, value: Union[float, int]):
+
+        if not isinstance(value, (int, float)):
+            raise TypeError(&#34;Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, &#34;
+                            &#34;`int`.&#34;.format(type(value).__name__))
+
+        if value not in self:
+            return 0
+
+        elif self.kernel_min &lt;= value &lt;= self.kernel_max:
+            return 1
+
+        else:
+
+            last_alpha_containing = int(0)
+
+            for i in range(len(self)):
+                if value in self.alpha_cuts[i]:
+                    last_alpha_containing = i
+                else:
+                    break
+
+            y1 = self._alphas[last_alpha_containing]
+            y2 = self._alphas[last_alpha_containing + 1]
+
+            if self.alpha_cuts[last_alpha_containing].min &lt;= value and value &lt;= self.alpha_cuts[last_alpha_containing + 1].min:
+                x1 = self.alpha_cuts[last_alpha_containing].min
+                x2 = self.alpha_cuts[last_alpha_containing + 1].min
+
+            else:
+                x1 = self.alpha_cuts[last_alpha_containing].max
+                x2 = self.alpha_cuts[last_alpha_containing + 1].max
+
+            k = (y2 - y1) / (x2 - x1)
+            q = y1 - (k * x1)
+
+            return FuzzyMembership((k * value) + q)
 
     @classmethod
     def triangular(cls,
@@ -1651,6 +1689,44 @@ function.</p>
 
         return alphas, intervals
 
+    def membership(self, value: Union[float, int]):
+
+        if not isinstance(value, (int, float)):
+            raise TypeError(&#34;Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, &#34;
+                            &#34;`int`.&#34;.format(type(value).__name__))
+
+        if value not in self:
+            return 0
+
+        elif self.kernel_min &lt;= value &lt;= self.kernel_max:
+            return 1
+
+        else:
+
+            last_alpha_containing = int(0)
+
+            for i in range(len(self)):
+                if value in self.alpha_cuts[i]:
+                    last_alpha_containing = i
+                else:
+                    break
+
+            y1 = self._alphas[last_alpha_containing]
+            y2 = self._alphas[last_alpha_containing + 1]
+
+            if self.alpha_cuts[last_alpha_containing].min &lt;= value and value &lt;= self.alpha_cuts[last_alpha_containing + 1].min:
+                x1 = self.alpha_cuts[last_alpha_containing].min
+                x2 = self.alpha_cuts[last_alpha_containing + 1].min
+
+            else:
+                x1 = self.alpha_cuts[last_alpha_containing].max
+                x2 = self.alpha_cuts[last_alpha_containing + 1].max
+
+            k = (y2 - y1) / (x2 - x1)
+            q = y1 - (k * x1)
+
+            return FuzzyMembership((k * value) + q)
+
     @classmethod
     def triangular(cls,
                    minimum: float, kernel: float, maximum: float,
@@ -2520,6 +2596,54 @@ def precision(self) -&gt; int:
                                   value_type=&#34;min&#34;)</code></pre>
 </details>
 </dd>
+<dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.membership"><code class="name flex">
+<span>def <span class="ident">membership</span></span>(<span>self, value: Union[float, int])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def membership(self, value: Union[float, int]):
+
+    if not isinstance(value, (int, float)):
+        raise TypeError(&#34;Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, &#34;
+                        &#34;`int`.&#34;.format(type(value).__name__))
+
+    if value not in self:
+        return 0
+
+    elif self.kernel_min &lt;= value &lt;= self.kernel_max:
+        return 1
+
+    else:
+
+        last_alpha_containing = int(0)
+
+        for i in range(len(self)):
+            if value in self.alpha_cuts[i]:
+                last_alpha_containing = i
+            else:
+                break
+
+        y1 = self._alphas[last_alpha_containing]
+        y2 = self._alphas[last_alpha_containing + 1]
+
+        if self.alpha_cuts[last_alpha_containing].min &lt;= value and value &lt;= self.alpha_cuts[last_alpha_containing + 1].min:
+            x1 = self.alpha_cuts[last_alpha_containing].min
+            x2 = self.alpha_cuts[last_alpha_containing + 1].min
+
+        else:
+            x1 = self.alpha_cuts[last_alpha_containing].max
+            x2 = self.alpha_cuts[last_alpha_containing + 1].max
+
+        k = (y2 - y1) / (x2 - x1)
+        q = y1 - (k * x1)
+
+        return FuzzyMembership((k * value) + q)</code></pre>
+</details>
+</dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.necessity_exceedance"><code class="name flex">
 <span>def <span class="ident">necessity_exceedance</span></span>(<span>self, fn_other: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
 </code></dt>
@@ -2708,6 +2832,7 @@ def precision(self) -&gt; int:
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.kernel_max" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.kernel_max">kernel_max</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.kernel_min" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.kernel_min">kernel_min</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.max" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.max">max</a></code></li>
+<li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.membership" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.membership">membership</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.min" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.min">min</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.necessity_exceedance" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.necessity_exceedance">necessity_exceedance</a></code></li>
 <li><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber.necessity_strict_exceedance" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber.necessity_strict_exceedance">necessity_strict_exceedance</a></code></li>
