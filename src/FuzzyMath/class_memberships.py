@@ -2,67 +2,143 @@ from typing import Union
 
 
 class PossibilisticMembership:
+    """
+    Class that represents possibilistic membership in terms of possibility and necessity.
+    ...
+    Attributes
+    ----------
+    _possibility: float
+
+    _necessity: float
+    """
 
     __slots__ = ("_possibility", "_necessity")
 
-    def __init__(self, poss: Union[float, int], nec: Union[float, int]) -> None:
+    def __init__(self, possibility: Union[float, int], necessity: Union[float, int]) -> None:
+        """
+        Basic creator for the class.
+
+        Parameters
+        ----------
+        possibility : Union[float, int]
+
+        necessity : Union[float, int]
+
+        Raises
+        ------
+        TypeError
+            If either input variable is not `int` or `float`.
+        ValueError
+            If value of either variable is not from interval [0, 1]. Necessity must be smaller or equal to possibility.
+        """
 
         self._possibility = 0.0
         self._necessity = 0.0
 
-        if not isinstance(poss, (int, float)):
+        if not isinstance(possibility, (int, float)):
             raise TypeError(
-                f"Possibility value must be a `int` or `float`, it can not be `{type(poss).__name__}`")
+                f"Possibility value must be a `int` or `float`, it can not be `{type(possibility).__name__}`"
+            )
 
-        if not isinstance(nec, (int, float)):
+        if not isinstance(necessity, (int, float)):
             raise TypeError(
-                f"Necessity value must be a `int` or `float`, it can not be `{type(nec).__name__}`")
+                f"Necessity value must be a `int` or `float`, it can not be `{type(necessity).__name__}`"
+            )
 
-        if poss < 0 or 1 < poss:
-            raise ValueError(f"Possibility value must be from range [0, 1], it is `{poss}`.")
+        if possibility < 0 or 1 < possibility:
+            raise ValueError(
+                f"Possibility value must be from range [0, 1], it is `{possibility}`.")
 
-        if nec < 0 or 1 < nec:
-            raise ValueError(f"Necessity value must be from range [0, 1], it is `{nec}`.")
+        if necessity < 0 or 1 < necessity:
+            raise ValueError(f"Necessity value must be from range [0, 1], it is `{necessity}`.")
 
-        if poss < nec:
+        if possibility < necessity:
             raise ValueError(
                 f"Possibility value must be equal or larger then necessity. "
-                f"Currently this does not hold for for values possibility values `{poss}` and necessity `{nec}`.")
+                f"Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`."
+            )
 
-        self._possibility = poss
-        self._necessity = nec
+        self._possibility = float(possibility)
+        self._necessity = float(necessity)
 
     @property
     def possibility(self) -> float:
+        """
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        """
+
         return self._possibility
 
     @property
     def necessity(self) -> float:
+        """
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        """
+
         return self._necessity
 
     def __repr__(self) -> str:
-        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(self._possibility, self._necessity)
+        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(
+            self._possibility, self._necessity)
 
 
 class FuzzyMembership:
+    """
+    Class that represents fuzzy membership in terms of membership.
+    ...
+    Attributes
+    ----------
+    _membership: float
+    """
 
     __slots__ = ("_membership")
 
     def __init__(self, membership: Union[float, int]) -> None:
+        """
+        Basic creator for the class.
+
+        Parameters
+        ----------
+        membership : Union[float, int]
+
+        Raises
+        ------
+        TypeError
+            If either input variable is not `int` or `float`.
+        ValueError
+            If value of either variable is not from interval [0, 1].
+        """
 
         self._membership = 0.0
 
         if not isinstance(membership, (int, float)):
             raise TypeError(
-                f"Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`")
+                f"Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`"
+            )
 
         if membership < 0 or 1 < membership:
             raise ValueError(f"Membership value must be from range [0, 1], it is `{membership}`.")
 
-        self._membership = membership
+        self._membership = float(membership)
 
     @property
     def membership(self) -> float:
+        """
+        Property getter for the value.
+
+        Returns
+        -------
+        float
+        """
+
         return self._membership
 
     def __repr__(self) -> str:
