@@ -766,10 +766,10 @@ class FuzzyNumber:
                             &#34;`int`.&#34;.format(type(value).__name__))
 
         if value not in self:
-            return 0
+            return FuzzyMembership(0)
 
         elif self.kernel_min &lt;= value &lt;= self.kernel_max:
-            return 1
+            return FuzzyMembership(1)
 
         else:
 
@@ -1696,10 +1696,10 @@ function.</p>
                             &#34;`int`.&#34;.format(type(value).__name__))
 
         if value not in self:
-            return 0
+            return FuzzyMembership(0)
 
         elif self.kernel_min &lt;= value &lt;= self.kernel_max:
-            return 1
+            return FuzzyMembership(1)
 
         else:
 
@@ -2612,10 +2612,10 @@ def precision(self) -&gt; int:
                         &#34;`int`.&#34;.format(type(value).__name__))
 
     if value not in self:
-        return 0
+        return FuzzyMembership(0)
 
     elif self.kernel_min &lt;= value &lt;= self.kernel_max:
-        return 1
+        return FuzzyMembership(1)
 
     else:
 

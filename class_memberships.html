@@ -94,7 +94,21 @@ class FuzzyMembership:
         return self._membership
 
     def __repr__(self) -&gt; str:
-        return &#34;FuzzyMembership({0})&#34;.format(self._membership)</code></pre>
+        return &#34;FuzzyMembership({0})&#34;.format(self._membership)
+
+    def __eq__(self, __o: object) -&gt; bool:
+
+        if not isinstance(__o, (int, float, FuzzyMembership)):
+            return NotImplemented
+
+        if isinstance(__o, (int, float)):
+            return self.membership == __o
+
+        if isinstance(__o, FuzzyMembership):
+            return self.membership == __o.membership
+
+        # just for case, should not happen
+        return False</code></pre>
 </details>
 </section>
 <section>
@@ -138,7 +152,21 @@ class FuzzyMembership:
         return self._membership
 
     def __repr__(self) -&gt; str:
-        return &#34;FuzzyMembership({0})&#34;.format(self._membership)</code></pre>
+        return &#34;FuzzyMembership({0})&#34;.format(self._membership)
+
+    def __eq__(self, __o: object) -&gt; bool:
+
+        if not isinstance(__o, (int, float, FuzzyMembership)):
+            return NotImplemented
+
+        if isinstance(__o, (int, float)):
+            return self.membership == __o
+
+        if isinstance(__o, FuzzyMembership):
+            return self.membership == __o.membership
+
+        # just for case, should not happen
+        return False</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
