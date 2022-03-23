@@ -22,6 +22,8 @@ def test_fuzzy_membership():
     assert str(fuzzy_membership) == "FuzzyMembership(0.5)"
 
     assert fuzzy_membership.membership == 0.5
+    assert fuzzy_membership == 0.5
+    assert fuzzy_membership == FuzzyMembership(0.5)
 
 
 def test_possibilistic_membership():
