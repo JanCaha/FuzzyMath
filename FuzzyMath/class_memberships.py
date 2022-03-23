@@ -1,3 +1,6 @@
+from typing import Union
+
+
 class PossibilisticMembership:
 
     __slots__ = ("_possibility", "_necessity")
@@ -28,3 +31,28 @@ class PossibilisticMembership:
 
     def __repr__(self) -> str:
         return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(self._possibility, self._necessity)
+
+
+class FuzzyMembership:
+
+    __slots__ = ("_membership")
+
+    def __init__(self, membership: Union[float, int]) -> None:
+
+        self._membership = 0.0
+
+        if not isinstance(membership, (int, float)):
+            raise TypeError(
+                f"Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`")
+
+        if membership < 0 or 1 < membership:
+            raise ValueError(f"Membership value must be from range [0, 1], it is `{membership}`.")
+
+        self._membership = membership
+
+    @property
+    def membership(self) -> float:
+        return self._membership
+
+    def __repr__(self) -> str:
+        return "FuzzyMembership({0})".format(self._membership)
