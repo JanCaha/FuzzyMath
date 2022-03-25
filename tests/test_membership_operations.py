@@ -16,7 +16,7 @@ def test_fuzzy_and():
     assert FuzzyAnd.drastic(fm_a, fm_b) == 0.0
     assert FuzzyAnd.Lukasiewicz(fm_a, fm_b) == 0.0
     assert FuzzyAnd.Nilpotent(fm_a, fm_b) == 0.0
-    assert FuzzyAnd.Hamacher(fm_a, fm_b) == pytest.approx(0.26582278481012656, DIFF)
+    assert FuzzyAnd.Hamacher(fm_a, fm_b) == 0.265822784810127
 
 
 def test_fuzzy_or():
