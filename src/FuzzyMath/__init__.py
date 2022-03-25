@@ -8,6 +8,7 @@ from .class_interval import Interval
 from .class_fuzzy_number import FuzzyNumber
 from .class_factories import FuzzyNumberFactory, IntervalFactory
 from .class_memberships import PossibilisticMembership, FuzzyMembership
+from .class_membership_operations import FuzzyAnd, FuzzyOr, PossibilisticAnd, PossibilisticOr
 
 from .fuzzynumber_comparisons import (possibility_exceedance,
                                       possibility_strict_exceedance,
