@@ -1,5 +1,7 @@
 from typing import Union
 
+from FuzzyMath.fuzzymath_utils import get_precision
+
 
 class PossibilisticMembership:
     """
@@ -58,8 +60,8 @@ class PossibilisticMembership:
                 f"Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`."
             )
 
-        self._possibility = float(possibility)
-        self._necessity = float(necessity)
+        self._possibility = round(float(possibility), get_precision())
+        self._necessity = round(float(necessity), get_precision())
 
     @property
     def possibility(self) -> float:
@@ -127,7 +129,7 @@ class FuzzyMembership:
         if membership < 0 or 1 < membership:
             raise ValueError(f"Membership value must be from range [0, 1], it is `{membership}`.")
 
-        self._membership = float(membership)
+        self._membership = round(float(membership), get_precision())
 
     @property
     def membership(self) -> float:
