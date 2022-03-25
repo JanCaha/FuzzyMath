@@ -28,6 +28,8 @@
 </summary>
 <pre><code class="python">from typing import Union
 
+from FuzzyMath.fuzzymath_utils import get_precision
+
 
 class PossibilisticMembership:
     &#34;&#34;&#34;
@@ -86,8 +88,8 @@ class PossibilisticMembership:
                 f&#34;Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`.&#34;
             )
 
-        self._possibility = float(possibility)
-        self._necessity = float(necessity)
+        self._possibility = round(float(possibility), get_precision())
+        self._necessity = round(float(necessity), get_precision())
 
     @property
     def possibility(self) -&gt; float:
@@ -116,6 +118,15 @@ class PossibilisticMembership:
     def __repr__(self) -&gt; str:
         return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(
             self._possibility, self._necessity)
+
+    def __eq__(self, __o: object) -&gt; bool:
+
+        if not isinstance(__o, PossibilisticMembership):
+            return NotImplemented
+
+        else:
+
+            return (self.possibility == __o.possibility and self.necessity == __o.necessity)
 
 
 class FuzzyMembership:
@@ -155,7 +166,7 @@ class FuzzyMembership:
         if membership &lt; 0 or 1 &lt; membership:
             raise ValueError(f&#34;Membership value must be from range [0, 1], it is `{membership}`.&#34;)
 
-        self._membership = float(membership)
+        self._membership = round(float(membership), get_precision())
 
     @property
     def membership(self) -&gt; float:
@@ -263,7 +274,7 @@ Attributes</p>
         if membership &lt; 0 or 1 &lt; membership:
             raise ValueError(f&#34;Membership value must be from range [0, 1], it is `{membership}`.&#34;)
 
-        self._membership = float(membership)
+        self._membership = round(float(membership), get_precision())
 
     @property
     def membership(self) -&gt; float:
@@ -414,8 +425,8 @@ Attributes</p>
                 f&#34;Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`.&#34;
             )
 
-        self._possibility = float(possibility)
-        self._necessity = float(necessity)
+        self._possibility = round(float(possibility), get_precision())
+        self._necessity = round(float(necessity), get_precision())
 
     @property
     def possibility(self) -&gt; float:
@@ -443,7 +454,16 @@ Attributes</p>
 
     def __repr__(self) -&gt; str:
         return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(
-            self._possibility, self._necessity)</code></pre>
+            self._possibility, self._necessity)
+
+    def __eq__(self, __o: object) -&gt; bool:
+
+        if not isinstance(__o, PossibilisticMembership):
+            return NotImplemented
+
+        else:
+
+            return (self.possibility == __o.possibility and self.necessity == __o.necessity)</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
