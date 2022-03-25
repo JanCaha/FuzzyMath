@@ -91,6 +91,15 @@ class PossibilisticMembership:
         return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(
             self._possibility, self._necessity)
 
+    def __eq__(self, __o: object) -> bool:
+
+        if not isinstance(__o, PossibilisticMembership):
+            return NotImplemented
+
+        else:
+
+            return (self.possibility == __o.possibility and self.necessity == __o.necessity)
+
 
 class FuzzyMembership:
     """
