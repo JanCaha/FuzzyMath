@@ -81,7 +81,7 @@ def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float
         index = 0
         for i in range(len(alphas)):
 
-            if fn_a_values[i] > fn_b_values[i]:
+            if fn_a_values[i] >= fn_b_values[i]:
                 break
 
             index += 1
@@ -109,7 +109,7 @@ def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
         index = 0
         for i in range(len(alphas)):
 
-            if fn_a_values[i] > fn_b_values[i]:
+            if fn_a_values[i] >= fn_b_values[i]:
                 break
 
             index += 1
