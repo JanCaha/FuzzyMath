@@ -34,6 +34,9 @@ from .class_memberships import FuzzyMembership, PossibilisticMembership
 fuzzyAnds = Literal[&#34;min&#34;, &#34;product&#34;, &#34;drastic&#34;, &#34;Lukasiewicz&#34;, &#34;Nilpotent&#34;, &#34;Hamacher&#34;]
 fuzzyOrs = Literal[&#34;max&#34;, &#34;product&#34;, &#34;drastic&#34;, &#34;Lukasiewicz&#34;, &#34;Nilpotent&#34;, &#34;Hamacher&#34;]
 
+FUZZY_AND_NAMES = [&#34;min&#34;, &#34;product&#34;, &#34;drastic&#34;, &#34;Lukasiewicz&#34;, &#34;Nilpotent&#34;, &#34;Hamacher&#34;]
+FUZZY_OR_NAMES = [&#34;max&#34;, &#34;product&#34;, &#34;drastic&#34;, &#34;Lukasiewicz&#34;, &#34;Nilpotent&#34;, &#34;Hamacher&#34;]
+
 
 class PossibilisticOperation:
 
@@ -87,6 +90,11 @@ class FuzzyAnd:
 
     @staticmethod
     def fuzzyAnd(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyAnds):
+
+        if type not in FUZZY_AND_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `fuzzy and`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_AND_NAMES)))
+
         method_to_call = getattr(FuzzyAnd, type)
         return method_to_call(a, b)
 
@@ -138,6 +146,10 @@ class PossibilisticAnd(PossibilisticOperation):
     @staticmethod
     def possibilisticAnd(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyAnds):
 
+        if type not in FUZZY_AND_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `possibilistic and`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_AND_NAMES)))
+
         method_to_call = getattr(FuzzyAnd, type)
 
         a_poss, b_poss = PossibilisticAnd._possibilities(a, b)
@@ -184,6 +196,11 @@ class FuzzyOr:
 
     @staticmethod
     def fuzzyOr(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyOrs):
+
+        if type not in FUZZY_OR_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `fuzzy or`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_OR_NAMES)))
+
         method_to_call = getattr(FuzzyOr, type)
         return method_to_call(a, b)
 
@@ -234,6 +251,10 @@ class PossibilisticOr(PossibilisticOperation):
 
     @staticmethod
     def possibilisticOr(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyOrs):
+
+        if type not in FUZZY_OR_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `possibilistic or`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_OR_NAMES)))
 
         method_to_call = getattr(FuzzyOr, type)
 
@@ -304,6 +325,11 @@ class PossibilisticOr(PossibilisticOperation):
 
     @staticmethod
     def fuzzyAnd(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyAnds):
+
+        if type not in FUZZY_AND_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `fuzzy and`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_AND_NAMES)))
+
         method_to_call = getattr(FuzzyAnd, type)
         return method_to_call(a, b)</code></pre>
 </details>
@@ -389,6 +415,11 @@ def drastic(a: FuzzyMembership, b: FuzzyMembership) -&gt; FuzzyMembership:
 </summary>
 <pre><code class="python">@staticmethod
 def fuzzyAnd(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyAnds):
+
+    if type not in FUZZY_AND_NAMES:
+        raise ValueError(&#34;Unknown value `{}` for `fuzzy and`. Known types are `{}`.&#34;.format(
+            type, &#34;, &#34;.join(FUZZY_AND_NAMES)))
+
     method_to_call = getattr(FuzzyAnd, type)
     return method_to_call(a, b)</code></pre>
 </details>
@@ -468,6 +499,11 @@ def product(a: FuzzyMembership, b: FuzzyMembership) -&gt; FuzzyMembership:
 
     @staticmethod
     def fuzzyOr(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyOrs):
+
+        if type not in FUZZY_OR_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `fuzzy or`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_OR_NAMES)))
+
         method_to_call = getattr(FuzzyOr, type)
         return method_to_call(a, b)</code></pre>
 </details>
@@ -548,6 +584,11 @@ def drastic(a: FuzzyMembership, b: FuzzyMembership) -&gt; FuzzyMembership:
 </summary>
 <pre><code class="python">@staticmethod
 def fuzzyOr(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyOrs):
+
+    if type not in FUZZY_OR_NAMES:
+        raise ValueError(&#34;Unknown value `{}` for `fuzzy or`. Known types are `{}`.&#34;.format(
+            type, &#34;, &#34;.join(FUZZY_OR_NAMES)))
+
     method_to_call = getattr(FuzzyOr, type)
     return method_to_call(a, b)</code></pre>
 </details>
@@ -637,6 +678,10 @@ def product(a: FuzzyMembership, b: FuzzyMembership) -&gt; FuzzyMembership:
 
     @staticmethod
     def possibilisticAnd(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyAnds):
+
+        if type not in FUZZY_AND_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `possibilistic and`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_AND_NAMES)))
 
         method_to_call = getattr(FuzzyAnd, type)
 
@@ -750,6 +795,10 @@ def min(a: PossibilisticMembership, b: PossibilisticMembership):
 <pre><code class="python">@staticmethod
 def possibilisticAnd(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyAnds):
 
+    if type not in FUZZY_AND_NAMES:
+        raise ValueError(&#34;Unknown value `{}` for `possibilistic and`. Known types are `{}`.&#34;.format(
+            type, &#34;, &#34;.join(FUZZY_AND_NAMES)))
+
     method_to_call = getattr(FuzzyAnd, type)
 
     a_poss, b_poss = PossibilisticAnd._possibilities(a, b)
@@ -859,6 +908,10 @@ def product(a: PossibilisticMembership, b: PossibilisticMembership):
 
     @staticmethod
     def possibilisticOr(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyOrs):
+
+        if type not in FUZZY_OR_NAMES:
+            raise ValueError(&#34;Unknown value `{}` for `possibilistic or`. Known types are `{}`.&#34;.format(
+                type, &#34;, &#34;.join(FUZZY_OR_NAMES)))
 
         method_to_call = getattr(FuzzyOr, type)
 
@@ -971,6 +1024,10 @@ def max(a: PossibilisticMembership, b: PossibilisticMembership):
 </summary>
 <pre><code class="python">@staticmethod
 def possibilisticOr(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyOrs):
+
+    if type not in FUZZY_OR_NAMES:
+        raise ValueError(&#34;Unknown value `{}` for `possibilistic or`. Known types are `{}`.&#34;.format(
+            type, &#34;, &#34;.join(FUZZY_OR_NAMES)))
 
     method_to_call = getattr(FuzzyOr, type)
 
