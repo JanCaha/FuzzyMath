@@ -1,6 +1,6 @@
 from typing import Union
 
-from FuzzyMath.fuzzymath_utils import get_precision
+from .fuzzymath_utils import get_precision
 
 
 class PossibilisticMembership:
