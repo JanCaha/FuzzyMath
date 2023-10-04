@@ -15,13 +15,13 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
 
       - name: Install pandoc
         run: |
           sudo apt install -y pandoc
 
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
