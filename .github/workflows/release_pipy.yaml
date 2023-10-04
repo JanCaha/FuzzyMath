@@ -37,7 +37,7 @@ jobs:
       - name: Release
         run: |
           python3 setup.py sdist bdist_wheel
-         " twine upload dist/* --username ${{ secrets.TWINE_USERNAME }} --password "${{ secrets.TWINE_PASSWORD }}"
+          twine upload dist/* --username ${{ secrets.TWINE_USERNAME }} --password "${{ secrets.TWINE_PASSWORD }}"
     
       - name: Upload WHL file as artifact
         uses: actions/upload-artifact@v3
