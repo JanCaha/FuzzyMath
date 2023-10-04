@@ -40,3 +40,9 @@ jobs:
         run: |
           python3 setup.py sdist bdist_wheel
           twine upload dist/* --repository-url https://upload.pypi.org/legacy/ --username ${{ secrets.TWINE_USERNAME }} --password ${{ secrets.TWINE_PASSWORD }}
+    
+      - name: Upload WHL file as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: FuzzyMath
+          path: dist/FuzzyMath-*.whl
