@@ -7,3 +7,5 @@ mypy
 autopep8
 pdoc3
 wheel
+build
+twine

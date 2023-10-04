@@ -26,11 +26,9 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
 
-      - name: Python install tools
+      - name: Python install required packages
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade build
-          python3 -m pip install --upgrade twine
+            pip install -r requirements-dev.txt
 
       - name: Translate Readme.md to rst
         run: |
