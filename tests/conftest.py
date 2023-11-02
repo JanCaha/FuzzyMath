@@ -1,5 +1,7 @@
 import pytest
 
+from decimal import Decimal
+
 from FuzzyMath import Interval, FuzzyNumber, IntervalFactory, FuzzyNumberFactory
 
 
@@ -56,3 +58,7 @@ def fn_d() -> FuzzyNumber:
 @pytest.fixture
 def fn_e() -> FuzzyNumber:
     return FuzzyNumberFactory.triangular(1, 2, 3, number_of_cuts=6)
+
+@pytest.fixture
+def quantize_precision() -> Decimal:
+    return Decimal(10) ** -15
