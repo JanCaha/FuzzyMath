@@ -1,5 +1,6 @@
 import math
 import pytest
+from decimal import Decimal, InvalidOperation
 
 from FuzzyMath.class_interval import Interval
 from FuzzyMath.class_factories import IntervalFactory
@@ -15,14 +16,13 @@ def test_creation_errors():
                        match="The interval is invalid. `minimum` must be lower or equal to `maximum`"):
         IntervalFactory.infimum_supremum(3, 1)
 
-    with pytest.raises(ValueError,
-                       match="`precision` should be value from range `0` to `15`"):
-        Interval(1, 3, precision=-1)
-        Interval(1, 3, precision=16)
+    with pytest.raises(InvalidOperation,
+                       match="Cannot convert value `a`"):
+        Interval("a", 1)
 
-    with pytest.warns(UserWarning,
-                      match="Using default value of precision"):
-        Interval(1, 3, precision="pre")
+    with pytest.raises(InvalidOperation,
+                       match="Cannot convert value `bbb`"):
+        Interval("1.87", "bbb")
 
     with pytest.raises(ValueError,
                        match="Cannot parse Interval from this definition"):
@@ -51,14 +51,16 @@ def test_creation():
 
     assert isinstance(IntervalFactory.empty(), Interval)
 
-    interval = IntervalFactory.two_values(1.0000000000001, 3.000000009, precision=2)
-
-    assert interval == IntervalFactory.two_values(1, 3, precision=2)
-
     interval = IntervalFactory.parse_string("[1, 2.5]")
 
-    assert interval.min == 1
-    assert interval.max == 2.5
+    assert interval.min == Decimal("1")
+    assert interval.max == Decimal("2.5")
+
+    interval = IntervalFactory.infimum_supremum("0.1", "0.3")
+
+    assert isinstance(interval, Interval)
+    assert interval.min == Decimal("0.1")
+    assert interval.max == Decimal("0.3")
 
 
 def test_degenerate_interval():
@@ -266,12 +268,12 @@ def test_apply_function(i_a: Interval, i_b: Interval):
                        match="got an unexpected keyword argument 'c'"):
         i_a.apply_function(math.log2, c=5)
 
-    assert i_a.apply_function(math.log2).min == pytest.approx(math.log2(i_a.min), 0.00001)
+    assert float(i_a.apply_function(math.log2).min) == pytest.approx(math.log2(i_a.min), 0.00001)
 
-    assert i_a.apply_function(math.log2).max == pytest.approx(math.log2(i_a.max), 0.00001)
+    assert float(i_a.apply_function(math.log2).max) == pytest.approx(math.log2(i_a.max), 0.00001)
 
-    assert i_b.apply_function(math.cos).min == pytest.approx(-1, 0.00001)
+    assert float(i_b.apply_function(math.cos).min) == pytest.approx(-1, 0.00001)
 
-    assert i_b.apply_function(math.cos).max == pytest.approx(0.28366, 0.00001)
+    assert float(i_b.apply_function(math.cos).max) == pytest.approx(0.28366, 0.00001)
 
     assert i_a.apply_function(math.pow, 2, number_elements=10) == IntervalFactory.two_values(1, 9)
