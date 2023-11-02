@@ -411,11 +411,11 @@ class FuzzyNumber:
     def __len__(self) -> int:
         return len(self.alpha_cuts)
 
-    def possibility_exceedance(self, fn_other: FuzzyNumber) -> float:
+    def possibility_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import possibility_exceedance
         return possibility_exceedance(self, fn_other)
 
-    def necessity_exceedance(self, fn_other: FuzzyNumber) -> float:
+    def necessity_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import necessity_exceedance
         return necessity_exceedance(self, fn_other)
 
@@ -423,11 +423,11 @@ class FuzzyNumber:
         from .fuzzynumber_comparisons import exceedance
         return exceedance(self, fn_other)
 
-    def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -> float:
+    def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import possibility_strict_exceedance
         return possibility_strict_exceedance(self, fn_other)
 
-    def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -> float:
+    def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import necessity_strict_exceedance
         return necessity_strict_exceedance(self, fn_other)
 
@@ -435,11 +435,11 @@ class FuzzyNumber:
         from .fuzzynumber_comparisons import strict_exceedance
         return strict_exceedance(self, fn_other)
 
-    def possibility_undervaluation(self, fn_other: FuzzyNumber) -> float:
+    def possibility_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import possibility_undervaluation
         return possibility_undervaluation(self, fn_other)
 
-    def necessity_undervaluation(self, fn_other: FuzzyNumber) -> float:
+    def necessity_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import necessity_undervaluation
         return necessity_undervaluation(self, fn_other)
 
@@ -447,11 +447,11 @@ class FuzzyNumber:
         from .fuzzynumber_comparisons import undervaluation
         return undervaluation(self, fn_other)
 
-    def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -> float:
+    def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import possibility_strict_undervaluation
         return possibility_strict_undervaluation(self, fn_other)
 
-    def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -> float:
+    def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
         from .fuzzynumber_comparisons import necessity_strict_undervaluation
         return necessity_strict_undervaluation(self, fn_other)
 
