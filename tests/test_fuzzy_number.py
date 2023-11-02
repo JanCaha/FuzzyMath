@@ -1,6 +1,6 @@
 import pytest
-import unittest
 import math
+from decimal import Decimal
 
 from FuzzyMath.class_fuzzy_number import FuzzyNumber
 from FuzzyMath.class_interval import Interval
@@ -259,28 +259,26 @@ def test_comparisons(fn_a: FuzzyNumber, fn_b: FuzzyNumber, fn_c: FuzzyNumber):
         fn_a > "test"
 
 
-def test_complex_comparisons():
+def test_complex_comparisons(quantize_precision):
 
-    fn_a = FuzzyNumberFactory.triangular(2, 3, 5)
-    fn_b = FuzzyNumberFactory.triangular(1.5, 4, 4.8)
+    fn_a = FuzzyNumberFactory.triangular("2", "3", "5")
+    fn_b = FuzzyNumberFactory.triangular("1.5", "4", "4.8")
 
-    diff = 0.000000001
+    assert fn_a.possibility_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.7777777777777777").quantize(quantize_precision)
 
-    assert fn_a.possibility_exceedance(fn_b) == pytest.approx(0.7777777777777777, diff)
+    assert fn_a.necessity_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.4285714285714289").quantize(quantize_precision)
 
-    assert fn_a.necessity_exceedance(fn_b) == pytest.approx(0.4285714285714289, diff)
+    assert fn_a.possibility_strict_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.357142857142857").quantize(quantize_precision)
 
-    assert fn_a.possibility_strict_exceedance(fn_b) == pytest.approx(0.357142857142857, diff)
+    assert fn_a.necessity_strict_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.0").quantize(quantize_precision)
 
-    assert fn_a.necessity_strict_exceedance(fn_b) == pytest.approx(0.0, diff)
+    assert fn_a.possibility_undervaluation(fn_b).quantize(quantize_precision) == Decimal("1.0").quantize(quantize_precision)
 
-    assert fn_a.possibility_undervaluation(fn_b) == pytest.approx(1.0, diff)
+    assert fn_a.necessity_undervaluation(fn_b).quantize(quantize_precision) == Decimal("0.6428571428571429").quantize(quantize_precision)
 
-    assert fn_a.necessity_undervaluation(fn_b) == pytest.approx(0.6428571428571429, diff)
+    assert fn_a.possibility_strict_undervaluation(fn_b).quantize(quantize_precision) == Decimal("0.5714285714285711").quantize(quantize_precision)
 
-    assert fn_a.possibility_strict_undervaluation(fn_b) == pytest.approx(0.5714285714285711, diff)
-
-    assert fn_a.necessity_strict_undervaluation(fn_b) == pytest.approx(0.22222222222222235, diff)
+    assert fn_a.necessity_strict_undervaluation(fn_b).quantize(quantize_precision) == Decimal("0.22222222222222235").quantize(quantize_precision)
 
     comparison = fn_a.exceedance(fn_b)
 
