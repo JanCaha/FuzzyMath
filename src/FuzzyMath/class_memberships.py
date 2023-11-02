@@ -171,11 +171,14 @@ class FuzzyMembership:
 
     def __eq__(self, __o: object) -> bool:
 
-        if not isinstance(__o, (int, float, FuzzyMembership)):
+        if not isinstance(__o, (int, float, FuzzyMembership, Decimal)):
             return NotImplemented
 
-        if isinstance(__o, (int, float)):
+        if isinstance(__o, Decimal):
             return self.membership == __o
+
+        if isinstance(__o, (int, float)):
+            return self.membership == Decimal(__o)
 
         if isinstance(__o, FuzzyMembership):
             return self.membership == __o.membership
