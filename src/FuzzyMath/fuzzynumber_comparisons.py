@@ -1,16 +1,17 @@
 from typing import List
+from decimal import Decimal
 
 from .class_fuzzy_number import FuzzyNumber
 from .class_memberships import PossibilisticMembership
 
 
-def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
+def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
 
     if fn_a.max <= fn_b.min:
-        return 0
+        return Decimal(0)
 
     elif fn_a.kernel_min >= fn_b.kernel_min:
-        return 1
+        return Decimal(1)
 
     else:
 
@@ -34,13 +35,13 @@ def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
                                       index=index, index_change=-1)
 
 
-def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
+def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
 
     if fn_a.kernel_min <= fn_b.min:
-        return 0
+        return Decimal(0)
 
     elif fn_a.min >= fn_b.kernel_min:
-        return 1
+        return Decimal(1)
 
     else:
 
@@ -62,13 +63,13 @@ def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
                                       index=index, index_change=-1)
 
 
-def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
+def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
 
     if fn_a.max < fn_b.max:
-        return 0
+        return Decimal(0)
 
     elif fn_a.kernel_min > fn_b.max:
-        return 1
+        return Decimal(1)
 
     else:
 
@@ -90,13 +91,13 @@ def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float
                                       index=index, index_change=1)
 
 
-def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
+def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
 
     if fn_a.kernel_min < fn_b.kernel_max:
-        return 0
+        return Decimal(0)
 
     elif fn_a.min > fn_b.max:
-        return 1
+        return Decimal(1)
 
     else:
 
@@ -118,20 +119,20 @@ def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
                                       index=index, index_change=1)
 
 
-def possibility_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
-    return 1 - necessity_strict_exceedance(fn_a, fn_b)
+def possibility_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
+    return Decimal(1) - necessity_strict_exceedance(fn_a, fn_b)
 
 
-def necessity_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
-    return 1 - possibility_strict_exceedance(fn_a, fn_b)
+def necessity_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
+    return Decimal(1) - possibility_strict_exceedance(fn_a, fn_b)
 
 
-def possibility_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
-    return 1 - necessity_exceedance(fn_a, fn_b)
+def possibility_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
+    return Decimal(1) - necessity_exceedance(fn_a, fn_b)
 
 
-def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> float:
-    return 1 - possibility_exceedance(fn_a, fn_b)
+def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
+    return Decimal(1) - possibility_exceedance(fn_a, fn_b)
 
 
 def __value_intersection_y(fn_a_values: List[float],
