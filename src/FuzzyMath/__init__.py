@@ -23,4 +23,3 @@ from .fuzzynumber_comparisons import (possibility_exceedance,
                                       undervaluation,
                                       strict_undervaluation)
 
-from .fuzzymath_utils import set_precision, get_precision
