@@ -66,13 +66,13 @@ def test_creation():
 
     assert isinstance(FuzzyNumberFactory.triangular(1, 2, 3), FuzzyNumber)
     assert isinstance(FuzzyNumberFactory.triangular(1, 2, 3), FuzzyNumber)
-    assert isinstance(FuzzyNumberFactory.triangular(1, 2, 3, number_of_cuts=10, precision=2), FuzzyNumber)
+    assert isinstance(FuzzyNumberFactory.triangular(1, 2, 3, number_of_cuts=10), FuzzyNumber)
 
     assert isinstance(FuzzyNumberFactory.trapezoidal(1, 2, 3, 4), FuzzyNumber)
-    assert isinstance(FuzzyNumberFactory.trapezoidal(1, 2, 3, 4, number_of_cuts=10, precision=2), FuzzyNumber)
+    assert isinstance(FuzzyNumberFactory.trapezoidal(1, 2, 3, 4, number_of_cuts=10), FuzzyNumber)
 
     assert isinstance(FuzzyNumberFactory.crisp_number(0), FuzzyNumber)
-    assert isinstance(FuzzyNumberFactory.crisp_number(0, precision=1), FuzzyNumber)
+    assert isinstance(FuzzyNumberFactory.crisp_number(0), FuzzyNumber)
 
 
 def test_fuzzynumber_creation_string():
@@ -87,7 +87,7 @@ def test_fuzzynumber_creation_string():
 
     assert isinstance(FuzzyNumberFactory.parse_string(string_fn), FuzzyNumber)
 
-    assert isinstance(FuzzyNumberFactory.parse_string(string_fn, precision=1), FuzzyNumber)
+    assert isinstance(FuzzyNumberFactory.parse_string(string_fn), FuzzyNumber)
 
 
 def test_fuzzynumber_creation_string_errors():
@@ -154,21 +154,21 @@ def test_contain(fn_a: FuzzyNumber):
 
 def test_get_alpha_cut_values():
 
-    assert FuzzyNumber.get_alpha_cut_values(6, precision=4) == [0, 0.2, 0.4, 0.6, 0.8, 1]
-    assert FuzzyNumber.get_alpha_cut_values(2, precision=4) == [0, 1]
-    assert FuzzyNumber.get_alpha_cut_values(11, precision=8) == [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    assert FuzzyNumber.get_alpha_cut_values(6) == [0, 0.2, 0.4, 0.6, 0.8, 1]
+    assert FuzzyNumber.get_alpha_cut_values(2) == [0, 1]
+    assert FuzzyNumber.get_alpha_cut_values(11) == [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 
     with pytest.raises(ValueError,
                        match="`number_of_cuts` has to be integer and higher than 1"):
-        FuzzyNumber.get_alpha_cut_values("str", precision=2)
+        FuzzyNumber.get_alpha_cut_values("str")
 
     with pytest.raises(ValueError,
                        match="`number_of_cuts` has to be integer and higher than 1"):
-        FuzzyNumber.get_alpha_cut_values(5.0, precision=2)
+        FuzzyNumber.get_alpha_cut_values(5.0)
 
     with pytest.raises(ValueError,
                        match="`number_of_cuts` has to be integer and higher than 1"):
-        FuzzyNumber.get_alpha_cut_values(1, precision=2)
+        FuzzyNumber.get_alpha_cut_values(1)
 
 
 def test_add(fn_a: FuzzyNumber, fn_b: FuzzyNumber, fn_c: FuzzyNumber):
@@ -221,7 +221,7 @@ def test_pow(fn_a: FuzzyNumber):
 
 def test_function():
 
-    fn = FuzzyNumberFactory.triangular(-math.pi / 2, 0, math.pi / 2, 11, 8)
+    fn = FuzzyNumberFactory.triangular(-math.pi / 2, 0, math.pi / 2, 11)
 
     with pytest.raises(ValueError,
                        match="`function` must be either"):
