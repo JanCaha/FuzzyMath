@@ -1,12 +1,14 @@
 import pytest
 import math
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from FuzzyMath.class_fuzzy_number import FuzzyNumber
 from FuzzyMath.class_interval import Interval
 from FuzzyMath.class_memberships import PossibilisticMembership
 from FuzzyMath.class_factories import FuzzyNumberFactory, IntervalFactory
 
+
+from conftest import assert_equal_decimals 
 
 def test_creation_errors():
 
@@ -23,12 +25,12 @@ def test_creation_errors():
         FuzzyNumber([1, 2, 3], [1, 2])
 
     with pytest.raises(ValueError,
-                       match="All elements of `alphas` must be from range"):
+                       match="`alpha` must be from range"):
         FuzzyNumber([0, 0.5, 1, 1.1], [None] * 4)
 
-    with pytest.raises(ValueError,
-                       match="All elements of `alphas` must be int or float"):
-        FuzzyNumber([0, 0.5, 1, "1.1"], [None] * 4)
+    with pytest.raises(InvalidOperation,
+                       match="Cannot convert alpha value `a`"):
+        FuzzyNumber([0, 0.5, 1, "a"], [None] * 4)
 
     with pytest.raises(ValueError,
                        match="Values in `alphas` are not unique"):
@@ -112,10 +114,9 @@ def test_fuzzynumber_creation_string_errors():
         string_fn = '(0.0;1.0,3.0)(0.5;2.5,2.75)(1.0;2.0,2.0)'
         FuzzyNumberFactory.parse_string(string_fn)
 
-
 def test_alphas(fn_a: FuzzyNumber, fn_e: FuzzyNumber):
-    assert fn_a.alpha_levels == [0, 1]
-    assert fn_e.alpha_levels == [0, 0.2, 0.4, 0.6, 0.8, 1]
+    assert fn_a.alpha_levels == [Decimal(0), Decimal(1)]
+    assert fn_e.alpha_levels == [Decimal(0), Decimal("0.2"), Decimal("0.4"), Decimal("0.6"), Decimal("0.8"), Decimal(1)]
 
 
 def test_alpha_cuts(fn_a: FuzzyNumber):
@@ -154,9 +155,10 @@ def test_contain(fn_a: FuzzyNumber):
 
 def test_get_alpha_cut_values():
 
-    assert FuzzyNumber.get_alpha_cut_values(6) == [0, 0.2, 0.4, 0.6, 0.8, 1]
-    assert FuzzyNumber.get_alpha_cut_values(2) == [0, 1]
-    assert FuzzyNumber.get_alpha_cut_values(11) == [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    assert FuzzyNumber.get_alpha_cut_values(6) == [Decimal("0"), Decimal("0.2"), Decimal("0.4"), Decimal("0.6"), Decimal("0.8"), Decimal("1")]
+    assert FuzzyNumber.get_alpha_cut_values(2) == [Decimal("0"), Decimal("1")]
+    assert FuzzyNumber.get_alpha_cut_values(11) == [Decimal("0"), Decimal("0.1"), Decimal("0.2"), Decimal("0.3"), Decimal("0.4"), Decimal("0.5"), 
+                                                    Decimal("0.6"), Decimal("0.7"), Decimal("0.8"), Decimal("0.9"), Decimal("1")]
 
     with pytest.raises(ValueError,
                        match="`number_of_cuts` has to be integer and higher than 1"):
