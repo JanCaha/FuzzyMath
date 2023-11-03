@@ -694,7 +694,7 @@ class FuzzyNumber:
 
         return alphas, intervals
 
-    def membership(self, value: Union[float, int]):
+    def membership(self, value: Union[float, int]) -> FuzzyMembership:
 
         if not isinstance(value, (int, float)):
             raise TypeError("Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, "
@@ -730,4 +730,4 @@ class FuzzyNumber:
             k = (y2 - y1) / (x2 - x1)
             q = y1 - (k * x1)
 
-            return FuzzyMembership((k * value) + q)
+            return FuzzyMembership((k * Decimal(value)) + q)
