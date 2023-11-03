@@ -17,6 +17,16 @@ class FactoryBase(ABC):
             raise InvalidOperation(f"Cannot convert `{variable_name}` value ({variable}) to number.") from e
         return var
 
+    @staticmethod
+    def validate_alphas(alphas: List[Union[str, int, float, Decimal]], variable_name: str = "alphas") -> List[Decimal]:
+        decimal_alphas = []
+        for alpha in alphas:
+            try:
+                decimal_alphas.append(Decimal(alpha))
+            except InvalidOperation as e:
+                raise InvalidOperation(f"Cannot convert `{variable_name}` value ({alpha}) to number.") from e
+        return decimal_alphas
+
 
 class FuzzyNumberFactory(FactoryBase):
     """
@@ -62,7 +72,7 @@ class FuzzyNumberFactory(FactoryBase):
 
         if number_of_cuts is None or number_of_cuts <= 2:
 
-            return FuzzyNumber(alphas=[0, 1],
+            return FuzzyNumber(alphas=[Decimal(0), Decimal(1)],
                                alpha_cuts=[
                                    IntervalFactory.infimum_supremum(minimum,
                                                                     maximum),
@@ -137,7 +147,7 @@ class FuzzyNumberFactory(FactoryBase):
 
         if number_of_cuts is None or number_of_cuts <= 2:
 
-            return FuzzyNumber(alphas=[0, 1],
+            return FuzzyNumber(alphas=[Decimal(0), Decimal(1)],
                                alpha_cuts=[
                                    IntervalFactory.infimum_supremum(minimum,
                                                                     maximum),
@@ -184,7 +194,7 @@ class FuzzyNumberFactory(FactoryBase):
 
         value = FuzzyNumberFactory.validate_variable(value, "value")
 
-        return FuzzyNumber(alphas=[0, 1],
+        return FuzzyNumber(alphas=[Decimal(0), Decimal(1)],
                            alpha_cuts=[
                                IntervalFactory.infimum_supremum(value, value),
                                IntervalFactory.infimum_supremum(value, value)
@@ -210,7 +220,7 @@ class FuzzyNumberFactory(FactoryBase):
 
         elements = re_a_cuts.findall(string)
 
-        alphas: List[float] = [0] * len(elements)
+        alphas: List[Decimal] = [0] * len(elements)
         alpha_cuts: List[Interval] = [IntervalFactory.empty()] * len(elements)
 
         i: int = 0
@@ -224,7 +234,7 @@ class FuzzyNumberFactory(FactoryBase):
                     "Cannot parse FuzzyNumber from this definition. "
                     "Not all elements provide 3 values (alpha cut value and interval).")
 
-            numbers = [float(x) for x in numbers]
+            numbers = [Decimal(x) for x in numbers]
 
             try:
                 FuzzyNumber._validate_alpha(numbers[0])
@@ -232,7 +242,7 @@ class FuzzyNumberFactory(FactoryBase):
                 raise ValueError("`{}` element of Fuzzy Number is incorrectly defined. {}".format(
                     a_cut_def, err))
 
-            alphas[i] = numbers[0]
+            alphas[i] = Decimal(numbers[0])
 
             try:
                 alpha_cuts[i] = IntervalFactory.infimum_supremum(numbers[1], numbers[2])
