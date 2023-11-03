@@ -35,8 +35,8 @@ class Interval:
 
         Parameters
         ----------
-        a: Union[str, int, float]
-        b: Union[str, int, float]
+        a: Union[str, int, float, Decimal]
+        b: Union[str, int, float, Decimal]
         """
 
         try:
