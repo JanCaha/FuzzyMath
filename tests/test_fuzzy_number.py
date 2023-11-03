@@ -259,109 +259,102 @@ def test_comparisons(fn_a: FuzzyNumber, fn_b: FuzzyNumber, fn_c: FuzzyNumber):
         fn_a > "test"
 
 
-def test_complex_comparisons(quantize_precision):
+def test_complex_comparisons_1(quantize_precision):
 
     fn_a = FuzzyNumberFactory.triangular("2", "3", "5")
     fn_b = FuzzyNumberFactory.triangular("1.5", "4", "4.8")
 
-    assert fn_a.possibility_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.7777777777777777").quantize(quantize_precision)
-
-    assert fn_a.necessity_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.4285714285714289").quantize(quantize_precision)
-
-    assert fn_a.possibility_strict_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.357142857142857").quantize(quantize_precision)
-
-    assert fn_a.necessity_strict_exceedance(fn_b).quantize(quantize_precision) == Decimal("0.0").quantize(quantize_precision)
-
-    assert fn_a.possibility_undervaluation(fn_b).quantize(quantize_precision) == Decimal("1.0").quantize(quantize_precision)
-
-    assert fn_a.necessity_undervaluation(fn_b).quantize(quantize_precision) == Decimal("0.6428571428571429").quantize(quantize_precision)
-
-    assert fn_a.possibility_strict_undervaluation(fn_b).quantize(quantize_precision) == Decimal("0.5714285714285711").quantize(quantize_precision)
-
-    assert fn_a.necessity_strict_undervaluation(fn_b).quantize(quantize_precision) == Decimal("0.22222222222222235").quantize(quantize_precision)
-
-    comparison = fn_a.exceedance(fn_b)
-
-    assert isinstance(comparison, PossibilisticMembership)
-
-    assert comparison.possibility == pytest.approx(0.7777777777777777, diff)
-
-    assert comparison.necessity == pytest.approx(0.4285714285714289, diff)
-
-    comparison = fn_a.strict_exceedance(fn_b)
-
-    assert isinstance(comparison, PossibilisticMembership)
-
-    assert comparison.possibility == pytest.approx(0.357142857142857, diff)
-
-    assert comparison.necessity == pytest.approx(0.0, diff)
-
-    comparison = fn_a.undervaluation(fn_b)
-
-    assert isinstance(comparison, PossibilisticMembership)
-
-    assert comparison.possibility == pytest.approx(1.0, diff)
-
-    assert comparison.necessity == pytest.approx(0.6428571428571429, diff)
-
-    comparison = fn_a.strict_undervaluation(fn_b)
-
-    assert isinstance(comparison, PossibilisticMembership)
-
-    assert comparison.possibility == pytest.approx(0.5714285714285711, diff)
-
-    assert comparison.necessity == pytest.approx(0.22222222222222235, diff)
-
-    fn_a = FuzzyNumberFactory.triangular(1.7, 2.7, 2.8)
-    fn_b = FuzzyNumberFactory.triangular(0, 1.8, 2.2)
-
-    assert fn_a.possibility_exceedance(fn_b) == pytest.approx(1.0, diff)
-
-    assert fn_a.necessity_exceedance(fn_b) == pytest.approx(0.9642857142857143, diff)
-
-    assert fn_a.possibility_strict_exceedance(fn_b) == pytest.approx(1.0, diff)
-
-    assert fn_a.necessity_strict_exceedance(fn_b) == pytest.approx(0.642857142857143, diff)
-
-    assert fn_a.possibility_undervaluation(fn_b) == pytest.approx(0.35714285714285726, diff)
-
-    assert fn_a.necessity_undervaluation(fn_b) == pytest.approx(0.0, diff)
-
-    assert fn_a.possibility_strict_undervaluation(fn_b) == pytest.approx(0.03571428571428574, diff)
-
-    assert fn_a.necessity_strict_undervaluation(fn_b) == pytest.approx(0.0, diff)
+    assert_equal_decimals(fn_a.possibility_exceedance(fn_b), "0.7777777777777777", quantize_precision)
+    
+    assert_equal_decimals(fn_a.necessity_exceedance(fn_b), "0.4285714285714289", quantize_precision)
+    
+    assert_equal_decimals(fn_a.possibility_strict_exceedance(fn_b), "0.357142857142857", quantize_precision)
+    
+    assert_equal_decimals(fn_a.necessity_strict_exceedance(fn_b), "0.0", quantize_precision)
+    
+    assert_equal_decimals(fn_a.possibility_undervaluation(fn_b), "1.0", quantize_precision)
+    
+    assert_equal_decimals(fn_a.necessity_undervaluation(fn_b), "0.6428571428571429", quantize_precision)
+    
+    assert_equal_decimals(fn_a.possibility_strict_undervaluation(fn_b), "0.5714285714285711", quantize_precision)
+    
+    assert_equal_decimals(fn_a.necessity_strict_undervaluation(fn_b), "0.22222222222222235", quantize_precision)
 
     comparison = fn_a.exceedance(fn_b)
 
     assert isinstance(comparison, PossibilisticMembership)
 
-    assert comparison.possibility == pytest.approx(1.0, diff)
-
-    assert comparison.necessity == pytest.approx(0.9642857142857143, diff)
-
+    assert_equal_decimals(comparison.possibility, "0.7777777777777777", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.4285714285714289", quantize_precision)
+    
     comparison = fn_a.strict_exceedance(fn_b)
 
     assert isinstance(comparison, PossibilisticMembership)
 
-    assert comparison.possibility == pytest.approx(1.0, diff)
+    assert_equal_decimals(comparison.possibility, "0.357142857142857", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.0", quantize_precision)
+    
+    comparison = fn_a.undervaluation(fn_b)
 
-    assert comparison.necessity == pytest.approx(0.642857142857143, diff)
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert_equal_decimals(comparison.possibility, "1.0", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.6428571428571429", quantize_precision)
+    
+    comparison = fn_a.strict_undervaluation(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert_equal_decimals(comparison.possibility, "0.5714285714285711", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.22222222222222235", quantize_precision)
+
+def test_complex_comparisons_2(quantize_precision):
+
+    fn_a = FuzzyNumberFactory.triangular("1.7", "2.7", "2.8")
+    fn_b = FuzzyNumberFactory.triangular("0", "1.8", "2.2")
+
+    assert_equal_decimals(fn_a.possibility_exceedance(fn_b), "1.0", quantize_precision)
+    
+    assert_equal_decimals(fn_a.necessity_exceedance(fn_b), "0.9642857142857143", quantize_precision)
+    
+    assert_equal_decimals(fn_a.possibility_strict_exceedance(fn_b), "1.0", quantize_precision)
+
+    assert_equal_decimals(fn_a.necessity_strict_exceedance(fn_b), "0.642857142857143", quantize_precision)
+
+    assert_equal_decimals(fn_a.possibility_undervaluation(fn_b), "0.35714285714285726", quantize_precision)
+    
+    assert_equal_decimals(fn_a.necessity_undervaluation(fn_b), "0.0", quantize_precision)
+    
+    assert_equal_decimals(fn_a.possibility_strict_undervaluation(fn_b), "0.03571428571428574", quantize_precision)
+    
+    assert_equal_decimals(fn_a.necessity_strict_undervaluation(fn_b), "0.0", quantize_precision)
+    
+    comparison = fn_a.exceedance(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+    assert_equal_decimals(comparison.possibility, "1.0", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.9642857142857143", quantize_precision)
+    
+    comparison = fn_a.strict_exceedance(fn_b)
+
+    assert isinstance(comparison, PossibilisticMembership)
+
+    assert_equal_decimals(comparison.possibility, "1.0", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.642857142857143", quantize_precision)
 
     comparison = fn_a.undervaluation(fn_b)
 
     assert isinstance(comparison, PossibilisticMembership)
 
-    assert comparison.possibility == pytest.approx(0.35714285714285726, diff)
-
-    assert comparison.necessity == pytest.approx(0.0, diff)
-
+    assert_equal_decimals(comparison.possibility, "0.35714285714285726", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.0", quantize_precision)
+    
     comparison = fn_a.strict_undervaluation(fn_b)
 
     assert isinstance(comparison, PossibilisticMembership)
 
-    assert comparison.possibility == pytest.approx(0.03571428571428574, diff)
-
-    assert comparison.necessity == pytest.approx(0.0, diff)
+    assert_equal_decimals(comparison.possibility, "0.03571428571428574", quantize_precision)
+    assert_equal_decimals(comparison.necessity, "0.0", quantize_precision)
 
 
 def test_hash(i_a: FuzzyNumber):
