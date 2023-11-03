@@ -374,31 +374,29 @@ def test_str(i_a: FuzzyNumber):
     assert isinstance(i_a.__str__(), str)
 
 
-def test_membership(fn_a: FuzzyNumber, fn_d: FuzzyNumber, fn_e: FuzzyNumber):
+def test_membership(fn_a: FuzzyNumber, fn_d: FuzzyNumber, fn_e: FuzzyNumber, quantize_precision):
 
-    diff = 0.000000001
+    assert fn_a.membership(0) == Decimal(0)
+    assert fn_a.membership(0.999) == Decimal(0)
+    assert fn_a.membership(3.001) == Decimal(0)
+    assert fn_a.membership(99) == Decimal(0)
 
-    assert fn_a.membership(0) == 0
-    assert fn_a.membership(0.999) == 0
-    assert fn_a.membership(3.001) == 0
-    assert fn_a.membership(99) == 0
+    assert fn_a.membership(2) == Decimal(1)
 
-    assert fn_a.membership(2) == 1
+    assert fn_a.membership(1.5) == Decimal("0.5")
+    assert fn_a.membership(2.5) == Decimal("0.5")
 
-    assert fn_a.membership(1.5) == 0.5
-    assert fn_a.membership(2.5) == 0.5
+    assert fn_a.membership(1.25) == Decimal("0.25")
+    assert fn_a.membership(1.75) == Decimal("0.75")
 
-    assert fn_a.membership(1.25) == 0.25
-    assert fn_a.membership(1.75) == 0.75
+    assert fn_a.membership(2.25) == Decimal("0.75")
+    assert fn_a.membership(2.75) == Decimal("0.25")
 
-    assert fn_a.membership(2.25) == 0.75
-    assert fn_a.membership(2.75) == 0.25
+    assert fn_d.membership(2.5) == Decimal("1")
+    assert fn_d.membership(2) == Decimal("1")
+    assert fn_d.membership(3) == Decimal("1")
+    assert fn_d.membership(1) == Decimal("0")
+    assert fn_d.membership(4) == Decimal("0")
 
-    assert fn_d.membership(2.5) == 1
-    assert fn_d.membership(2) == 1
-    assert fn_d.membership(3) == 1
-    assert fn_d.membership(1) == 0
-    assert fn_d.membership(4) == 0
-
-    assert fn_e.membership(1.5).membership == pytest.approx(0.5, diff)
-    assert fn_e.membership(2.5).membership == pytest.approx(0.5, diff)
+    assert_equal_decimals(fn_e.membership(1.5).membership, "0.5", quantize_precision)
+    assert_equal_decimals(fn_e.membership(2.5).membership, "0.5", quantize_precision)
