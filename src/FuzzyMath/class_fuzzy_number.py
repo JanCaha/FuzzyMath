@@ -2,7 +2,7 @@ from __future__ import annotations
 from types import FunctionType, BuiltinFunctionType
 from typing import Callable, List, Tuple, Union
 from bisect import bisect_left
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from .class_interval import Interval
 from .class_memberships import PossibilisticMembership, FuzzyMembership
@@ -45,12 +45,9 @@ class FuzzyNumber:
             raise ValueError("Lists `alphas` and `alpha_cuts` must be of same length. Currently the "
                              "lengths are {0} and {1}.".format(len(alphas), len(alpha_cuts)))
 
-        for alpha in alphas:
-            if not isinstance(alpha, (int, float)):
-                raise ValueError("All elements of `alphas` must be int or float.")
-            if not (0 <= alpha <= 1):
-                raise ValueError("All elements of `alphas` must be from range [0,1].")
-
+        for i, alpha in enumerate(alphas):
+            alphas[i] = self._validate_alpha(alpha)
+  
         if len(alphas) != len(set(alphas)):
             raise ValueError("Values in `alphas` are not unique.")
 
@@ -157,13 +154,13 @@ class FuzzyNumber:
         """
         return self.kernel.max
 
-    def get_alpha_cut(self, alpha: float) -> Interval:
+    def get_alpha_cut(self, alpha: Union[str, int, float, Decimal]) -> Interval:
         """
         Extracts alpha cut specified by `alpha` variable.
 
         Parameters
         ----------
-        alpha: float
+        alpha: Union[str, int, float, Decimal]
             Value of alpha to extract alpha cut for. Must be from range [0, 1].
 
         Returns
@@ -171,7 +168,7 @@ class FuzzyNumber:
         Interval
         """
 
-        self._validate_alpha(alpha)
+        alpha = self._validate_alpha(alpha)
 
         if alpha in self.alpha_levels:
             return self._alpha_cuts.get(alpha)
@@ -179,13 +176,13 @@ class FuzzyNumber:
             return self._calculate_alpha_cut(alpha)
 
     @staticmethod
-    def _validate_alpha(alpha: float) -> None:
+    def _validate_alpha(alpha: Union[str, int, float, Decimal]) -> Decimal:
         """
         Validates value of of alpha. Must be from range [0, 1].
 
         Parameters
         ----------
-        alpha: float
+        alpha: Union[str, int, float, Decimal]
             Alpha to validate.
 
         Raises
@@ -194,13 +191,25 @@ class FuzzyNumber:
             If `alpha` is not from range [0, 1].
         TypeError
             If `alpha` is not int or float.
+
+        Returns
+        -------
+        Decimal
         """
 
-        if not isinstance(alpha, (int, float)):
-            raise TypeError("`alpha` must be float or int.")
+        if not isinstance(alpha, (str, int, float, Decimal)):
+            raise TypeError("`alpha` must be Decimal, int, float or str.")
+
+        if not isinstance(alpha, Decimal):
+            try:
+                alpha = Decimal(alpha)
+            except InvalidOperation as e:
+                raise InvalidOperation(f"Cannot convert alpha value `{alpha}` to number.") from e
 
         if not (0 <= alpha <= 1):
             raise ValueError("`alpha` must be from range [0,1].")
+
+        return alpha
 
     def _calculate_alpha_cut(self, alpha: float) -> Interval:
         """
@@ -307,7 +316,7 @@ class FuzzyNumber:
             return NotImplemented
 
     @staticmethod
-    def get_alpha_cut_values(number_of_parts: int) -> List[float]:
+    def get_alpha_cut_values(number_of_parts: int) -> List[Decimal]:
         """
         Returns alpha cut values for given number of parts.
 
@@ -318,8 +327,8 @@ class FuzzyNumber:
 
         Returns
         -------
-        List[float]
-            List of floats representing alphas.
+        List[Decimal]
+            List of Decimal representing alphas.
         """
 
         if not isinstance(number_of_parts, int) or number_of_parts <= 1:
@@ -333,7 +342,7 @@ class FuzzyNumber:
 
         i = 0
         while i <= number_of_parts - 1:
-            values[i] = i / (number_of_parts - 1)
+            values[i] = Decimal(i) / (Decimal(number_of_parts) - Decimal(1))
             i += 1
 
         return values
@@ -581,9 +590,9 @@ class FuzzyNumber:
         return FuzzyNumber(alphas, intervals)
 
     def __get_cuts_values(self,
-                          alphas: List[float] = None,
+                          alphas: List[Decimal] = None,
                           order_by_alphas_from_one: bool = False,
-                          value_type: str = "min") -> List[float]:
+                          value_type: str = "min") -> List[Decimal]:
         if alphas is None:
             alphas = self.alpha_levels
         else:
