@@ -1,4 +1,5 @@
 import pytest
+import typing
 
 from decimal import Decimal
 
@@ -62,3 +63,9 @@ def fn_e() -> FuzzyNumber:
 @pytest.fixture
 def quantize_precision() -> Decimal:
     return Decimal(10) ** -15
+
+def assert_equal_decimals(a: Decimal, b: typing.Union[Decimal, str], quantize_precision: Decimal) -> None:
+    if isinstance(b, str):
+        b = Decimal(b)
+
+    assert a.quantize(quantize_precision) == b.quantize(quantize_precision)
