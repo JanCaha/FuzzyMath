@@ -1,5 +1,5 @@
-from typing import Union
 from decimal import Decimal, InvalidOperation
+from typing import Union
 
 
 class PossibilisticMembership:
@@ -15,7 +15,9 @@ class PossibilisticMembership:
 
     __slots__ = ("_possibility", "_necessity")
 
-    def __init__(self, possibility: Union[str, int, float, Decimal], necessity: Union[str, int, float, Decimal]) -> None:
+    def __init__(
+        self, possibility: Union[str, int, float, Decimal], necessity: Union[str, int, float, Decimal]
+    ) -> None:
         """
         Basic creator for the class.
 
@@ -60,8 +62,7 @@ class PossibilisticMembership:
             raise InvalidOperation(f"Cannot convert `necessity` value ({necessity}) to number.") from e
 
         if self._possibility < 0 or 1 < self._possibility:
-            raise ValueError(
-                f"Possibility value must be from range [0, 1], it is `{possibility}`.")
+            raise ValueError(f"Possibility value must be from range [0, 1], it is `{possibility}`.")
 
         if self._necessity < 0 or 1 < self._necessity:
             raise ValueError(f"Necessity value must be from range [0, 1], it is `{necessity}`.")
@@ -97,17 +98,14 @@ class PossibilisticMembership:
         return self._necessity
 
     def __repr__(self) -> str:
-        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(
-            self._possibility, self._necessity)
+        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(self._possibility, self._necessity)
 
     def __eq__(self, __o: object) -> bool:
-
         if not isinstance(__o, PossibilisticMembership):
             return NotImplemented
 
         else:
-
-            return (self.possibility == __o.possibility and self.necessity == __o.necessity)
+            return self.possibility == __o.possibility and self.necessity == __o.necessity
 
 
 class FuzzyMembership:
@@ -119,7 +117,7 @@ class FuzzyMembership:
     _membership: Decimal
     """
 
-    __slots__ = ("_membership")
+    __slots__ = "_membership"
 
     def __init__(self, membership: Union[str, int, float, Decimal]) -> None:
         """
@@ -150,7 +148,7 @@ class FuzzyMembership:
             raise InvalidOperation(f"Cannot convert `membershiship` value ({membership}) to number.") from e
 
         self._membership = self._membership.normalize()
-        
+
         if self._membership < 0 or 1 < self._membership:
             raise ValueError(f"Membership value must be from range [0, 1], it is `{membership}`.")
 
@@ -170,7 +168,6 @@ class FuzzyMembership:
         return "FuzzyMembership({0})".format(self._membership)
 
     def __eq__(self, __o: object) -> bool:
-
         if not isinstance(__o, (int, float, FuzzyMembership, Decimal)):
             return NotImplemented
 

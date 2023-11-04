@@ -1,9 +1,9 @@
-import pytest
 import typing
-
 from decimal import Decimal
 
-from FuzzyMath import Interval, FuzzyNumber, IntervalFactory, FuzzyNumberFactory
+import pytest
+
+from FuzzyMath import FuzzyNumber, FuzzyNumberFactory, Interval, IntervalFactory
 
 
 @pytest.fixture
@@ -60,9 +60,11 @@ def fn_d() -> FuzzyNumber:
 def fn_e() -> FuzzyNumber:
     return FuzzyNumberFactory.triangular(1, 2, 3, number_of_cuts=6)
 
+
 @pytest.fixture
 def quantize_precision() -> Decimal:
     return Decimal(10) ** -15
+
 
 def assert_equal_decimals(a: Decimal, b: typing.Union[Decimal, str], quantize_precision: Decimal) -> None:
     if isinstance(b, str):
