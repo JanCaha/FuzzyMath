@@ -10,16 +10,5 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true,
         "**/.mypy_cache": true
-    },
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": false
-        },
-        "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.formatOnSave": false,
-    },
-    "black-formatter.args": [
-        "-l",
-        "120"
-    ]
+    }
 }
