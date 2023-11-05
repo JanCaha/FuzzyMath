@@ -6,7 +6,6 @@ from conftest import assert_equal_decimals
 
 from FuzzyMath.class_factories import FuzzyNumberFactory, IntervalFactory
 from FuzzyMath.class_fuzzy_number import FuzzyNumber
-from FuzzyMath.class_interval import Interval
 from FuzzyMath.class_memberships import PossibilisticMembership
 
 

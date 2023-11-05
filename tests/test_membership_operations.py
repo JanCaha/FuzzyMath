@@ -1,10 +1,6 @@
 from decimal import Decimal
 
-import pytest
-
 from FuzzyMath import FuzzyAnd, FuzzyMembership, FuzzyOr, PossibilisticAnd, PossibilisticMembership, PossibilisticOr
-
-DIFF = 0.0000000001
 
 
 def test_fuzzy_and(quantize_precision):

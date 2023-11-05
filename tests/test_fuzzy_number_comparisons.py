@@ -1,7 +1,6 @@
 from conftest import assert_equal_decimals
 
 from FuzzyMath import (
-    FuzzyNumber,
     FuzzyNumberFactory,
     PossibilisticMembership,
     exceedance,
