@@ -77,3 +77,32 @@ class FuzzyMathPrecision(object):
             return value
         else:
             return value.quantize(fuzzy_precision.alpha_precision)
+
+
+class FuzzyMathPrecisionContext:
+    def __init__(
+        self, numeric_precision: typing.Optional[int] = None, alpha_precision: typing.Optional[int] = None
+    ) -> None:
+        self.numeric_precision = numeric_precision
+        self.alpha_precision = alpha_precision
+
+        self.previous_numeric_precision = FuzzyMathPrecision.numeric_precision
+        self.previous_alpha_precision = FuzzyMathPrecision.alpha_precision
+
+    def __enter__(self):
+        if self.numeric_precision:
+            FuzzyMathPrecision.set_numeric_precision(self.numeric_precision)
+        if self.alpha_precision:
+            FuzzyMathPrecision.set_alpha_precision(self.alpha_precision)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.previous_numeric_precision is None:
+            FuzzyMathPrecision.unset_numeric_precision()
+        else:
+            FuzzyMathPrecision.set_numeric_precision(self.previous_numeric_precision)
+
+        if self.previous_alpha_precision is None:
+            FuzzyMathPrecision.unset_numeric_precision()
+        else:
+            FuzzyMathPrecision.set_alpha_precision(self.previous_alpha_precision)
