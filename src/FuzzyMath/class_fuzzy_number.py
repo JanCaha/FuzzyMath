@@ -18,7 +18,7 @@ class FuzzyNumber:
     _alpha_cuts: List[Interval]
         List of Intervals representing alpha cuts.
 
-    _alphas: List[float]
+    _alphas: List[Decimal]
         List of alpha values.
     """
 
