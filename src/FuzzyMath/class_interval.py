@@ -8,6 +8,8 @@ from typing import Callable, Union
 
 import numpy as np
 
+from .class_precision import FuzzyMathPrecision
+
 
 class Interval:
     """
@@ -41,12 +43,12 @@ class Interval:
         """
 
         try:
-            a = Decimal(a).normalize()
+            a = FuzzyMathPrecision.prepare_number(Decimal(a)).normalize()
         except InvalidOperation as e:
             raise InvalidOperation(f"Cannot convert value `{a}` to number.") from e
 
         try:
-            b = Decimal(b).normalize()
+            b = FuzzyMathPrecision.prepare_number(Decimal(b)).normalize()
         except InvalidOperation as e:
             raise InvalidOperation(f"Cannot convert value `{b}` to number.") from e
 
