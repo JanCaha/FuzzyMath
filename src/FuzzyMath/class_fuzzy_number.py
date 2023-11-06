@@ -37,15 +37,15 @@ class FuzzyNumber:
         """
 
         if not isinstance(alphas, List):
-            raise TypeError("`alphas` must be a list. It is `{0}`.".format(type(alphas).__name__))
+            raise TypeError(f"`alphas` must be a list. It is `{type(alphas).__name__}`.")
 
         if not isinstance(alpha_cuts, List):
-            raise TypeError("`alpha_cuts` must be a list. It is `{0}`.".format(type(alphas).__name__))
+            raise TypeError(f"`alpha_cuts` must be a list. It is `{type(alphas).__name__}`.")
 
-        if not (len(alphas) == len(alpha_cuts)):
+        if len(alphas) != len(alpha_cuts):
             raise ValueError(
-                "Lists `alphas` and `alpha_cuts` must be of same length. Currently the "
-                "lengths are {0} and {1}.".format(len(alphas), len(alpha_cuts))
+                f"Lists `alphas` and `alpha_cuts` must be of same length. "
+                f"Currently the lengths are {len(alphas)} and {len(alpha_cuts)}."
             )
 
         for i, alpha in enumerate(alphas):
@@ -68,10 +68,10 @@ class FuzzyNumber:
 
         for alpha in self.alpha_levels:
             if not previous_interval.is_empty:
-                if not (self.get_alpha_cut(alpha) in previous_interval):
+                if not self.get_alpha_cut(alpha) in previous_interval:
                     raise ValueError(
                         "Interval on lower alpha level has to contain the higher level alpha cuts."
-                        "This does not hold for {0} and {1}.".format(previous_interval, self.get_alpha_cut(alpha))
+                        f"This does not hold for {previous_interval} and {self.get_alpha_cut(alpha)}."
                     )
 
             previous_interval = self.get_alpha_cut(alpha)
@@ -79,7 +79,7 @@ class FuzzyNumber:
         if not (self._alphas[0] == 0, self._alphas[-1] == 1):
             raise ValueError(
                 "The lowest alpha level has to be 0 and the highest alpha level has to be 1."
-                "This does not hold for {0} and {1}.".format(self._alphas[0], self._alphas[-1])
+                f"This does not hold for {self._alphas[0]} and {self._alphas[-1]}."
             )
 
     @property
