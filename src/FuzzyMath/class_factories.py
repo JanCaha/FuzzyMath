@@ -10,6 +10,18 @@ from .class_interval import Interval
 class FactoryBase(ABC):
     @staticmethod
     def validate_variable(variable: Union[float, int, str, Decimal], variable_name: str) -> Decimal:
+        """Checks that input variable can be converted to valid Decimal.
+
+        Args:
+            variable (Union[float, int, str, Decimal]): value to convert to Decimal.
+            variable_name (str): name of variable for error message.
+
+        Raises:
+            InvalidOperation: if variable cannot be converted to Decimal.
+
+        Returns:
+            Decimal
+        """
         try:
             var = Decimal(variable)
         except InvalidOperation as e:
@@ -18,6 +30,18 @@ class FactoryBase(ABC):
 
     @staticmethod
     def validate_alphas(alphas: List[Union[str, int, float, Decimal]], variable_name: str = "alphas") -> List[Decimal]:
+        """Validate that all alphas are valid alpha values and converts them to Decimals.
+
+        Args:
+            alphas (List[Union[str, int, float, Decimal]]): List of alpha cut values.
+            variable_name (str, optional): Name of variable for error message. Defaults to "alphas".
+
+        Raises:
+            InvalidOperation: If any alphas value cannot be converted to Decimal.
+
+        Returns:
+            List[Decimal]
+        """
         decimal_alphas = []
         for alpha in alphas:
             try:
