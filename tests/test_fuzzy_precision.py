@@ -65,3 +65,48 @@ def test_interval_precision():
     assert FuzzyMathPrecision.prepare_number(value) == value
     assert FuzzyMathPrecision.prepare_alpha(value) == value
 
+
+def test_math_precision_context():
+    i_1 = IntervalFactory.two_values("1.12345", "2.98765")
+    i_2 = IntervalFactory.two_values("1.12345", "2.98765")
+
+    res = i_1 + i_2
+
+    assert res == IntervalFactory.two_values("2.2469", "5.9753")
+
+    with FuzzyMathPrecisionContext(1):
+        assert FuzzyMathPrecision().alpha_precision is None
+        assert FuzzyMathPrecision().numeric_precision == to_decimal_precision(1)
+        res = i_1 + i_2
+
+    assert res == IntervalFactory.two_values("2.2", "6.0")
+    assert FuzzyMathPrecision().alpha_precision is None
+    assert FuzzyMathPrecision().numeric_precision is None
+
+    with FuzzyMathPrecisionContext(3):
+        assert FuzzyMathPrecision().alpha_precision is None
+        assert FuzzyMathPrecision().numeric_precision == to_decimal_precision(3)
+        res = i_1 + i_2
+
+    assert res == IntervalFactory.two_values("2.247", "5.975")
+    assert FuzzyMathPrecision().alpha_precision is None
+    assert FuzzyMathPrecision().numeric_precision is None
+
+
+def test_fuzzy_number_precision():
+    with FuzzyMathPrecisionContext(1, 2):
+        fn_a = FuzzyNumberFactory.triangular("1.123", "2.123", "3.123", 7)
+
+    assert fn_a.min == Decimal("1.1")
+    assert fn_a.kernel_min == Decimal("2.1")
+    assert fn_a.max == Decimal("3.1")
+
+    assert fn_a.alpha_levels == [
+        Decimal("0.00"),
+        Decimal("0.17"),
+        Decimal("0.33"),
+        Decimal("0.50"),
+        Decimal("0.67"),
+        Decimal("0.83"),
+        Decimal("1.00"),
+    ]
