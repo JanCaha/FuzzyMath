@@ -24,7 +24,7 @@ class FuzzyNumber:
 
     __slots__ = ("_alpha_cuts", "_alphas")
 
-    def __init__(self, alphas: List[float], alpha_cuts: List[Interval]):
+    def __init__(self, alphas: List[Union[float, Decimal]], alpha_cuts: List[Interval]):
         """
         Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
         `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or `FuzzyNumberFactory.parse_string()` instead of this
@@ -32,7 +32,7 @@ class FuzzyNumber:
 
         Parameters
         ----------
-        alphas: List[float]
+        alphas: List[Decimal]
         alpha_cuts: List[Interval]
         """
 
