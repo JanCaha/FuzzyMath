@@ -27,196 +27,231 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import re
-from typing import List
+from abc import ABC
+from decimal import Decimal, InvalidOperation
+from typing import List, Union
 
 from .class_fuzzy_number import FuzzyNumber
 from .class_interval import Interval
 
 
-class FuzzyNumberFactory:
+class FactoryBase(ABC):
+    @staticmethod
+    def validate_variable(variable: Union[float, int, str, Decimal], variable_name: str) -&gt; Decimal:
+        &#34;&#34;&#34;Checks that input variable can be converted to valid Decimal.
+
+        Args:
+            variable (Union[float, int, str, Decimal]): value to convert to Decimal.
+            variable_name (str): name of variable for error message.
+
+        Raises:
+            InvalidOperation: if variable cannot be converted to Decimal.
+
+        Returns:
+            Decimal
+        &#34;&#34;&#34;
+        try:
+            var = Decimal(variable)
+        except InvalidOperation as e:
+            raise InvalidOperation(f&#34;Cannot convert `{variable_name}` value ({variable}) to number.&#34;) from e
+        return var
+
+    @staticmethod
+    def validate_alphas(alphas: List[Union[str, int, float, Decimal]], variable_name: str = &#34;alphas&#34;) -&gt; List[Decimal]:
+        &#34;&#34;&#34;Validate that all alphas are valid alpha values and converts them to Decimals.
+
+        Args:
+            alphas (List[Union[str, int, float, Decimal]]): List of alpha cut values.
+            variable_name (str, optional): Name of variable for error message. Defaults to &#34;alphas&#34;.
+
+        Raises:
+            InvalidOperation: If any alphas value cannot be converted to Decimal.
+
+        Returns:
+            List[Decimal]
+        &#34;&#34;&#34;
+        decimal_alphas = []
+        for alpha in alphas:
+            try:
+                decimal_alphas.append(Decimal(alpha))
+            except InvalidOperation as e:
+                raise InvalidOperation(f&#34;Cannot convert `{variable_name}` value ({alpha}) to number.&#34;) from e
+        return decimal_alphas
+
+
+class FuzzyNumberFactory(FactoryBase):
     &#34;&#34;&#34;
     Class that supports creation of fuzzy numbers based on different functions. All the functions are static.
     &#34;&#34;&#34;
 
     @staticmethod
-    def triangular(minimum: float,
-                   kernel: float,
-                   maximum: float,
-                   number_of_cuts: int = None,
-                   precision: int = None) -&gt; FuzzyNumber:
+    def triangular(
+        minimum: Union[str, int, float, Decimal],
+        kernel: Union[str, int, float, Decimal],
+        maximum: Union[str, int, float, Decimal],
+        number_of_cuts: int = None,
+    ) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates triangular `FuzzyNumber` based on input parameters.
 
         Parameters
         ----------
-        minimum: float
+        minimum: Union[str, int, float, Decimal]
             Minimal value of fuzzy number.
 
-        kernel: float
+        kernel: Union[str, int, float, Decimal]
             Kernel (midpoint) value of fuzzy number.
 
-        maximum: float
+        maximum: Union[str, int, float, Decimal]
             Maximal value of fuzzy number.
 
         number_of_cuts: int
             Number of alpha cuts.
-
-        precision: int
 
         Returns
         -------
         FuzzyNumber
         &#34;&#34;&#34;
 
+        minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+        maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+        kernel = FuzzyNumberFactory.validate_variable(kernel, &#34;kernel&#34;)
+
         if not minimum &lt;= kernel &lt;= maximum:
             raise ValueError(
                 &#34;The fuzzy number is invalid. The structure needs to be `minimum` &lt;= `kernel` &#34;
-                &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;.
-                format(minimum, kernel, maximum))
+                &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;.format(
+                    minimum, kernel, maximum
+                )
+            )
 
         if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return FuzzyNumber(alphas=[0, 1],
-                               alpha_cuts=[
-                                   IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision),
-                                   IntervalFactory.infimum_supremum(kernel,
-                                                                    kernel,
-                                                                    precision=precision)
-            ],
-                precision=precision)
+            return FuzzyNumber(
+                alphas=[Decimal(0), Decimal(1)],
+                alpha_cuts=[
+                    IntervalFactory.infimum_supremum(minimum, maximum),
+                    IntervalFactory.infimum_supremum(kernel, kernel),
+                ],
+            )
 
         else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts)
 
             intervals = [IntervalFactory.empty()] * len(alphas)
 
             i = 0
             for alpha in alphas:
                 if alpha == 0:
-                    intervals[i] = IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(minimum, maximum)
                 elif alpha == 1:
-                    intervals[i] = IntervalFactory.infimum_supremum(kernel,
-                                                                    kernel,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(kernel, kernel)
                 else:
                     int_min = ((kernel - minimum) / (number_of_cuts - 1)) * i + minimum
                     int_max = maximum - ((maximum - kernel) / (number_of_cuts - 1)) * i
-                    intervals[i] = IntervalFactory.infimum_supremum(int_min,
-                                                                    int_max,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(int_min, int_max)
                 i += 1
 
-            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals, precision=precision)
+            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals)
 
     @staticmethod
-    def trapezoidal(minimum: float,
-                    kernel_minimum: float,
-                    kernel_maximum: float,
-                    maximum: float,
-                    number_of_cuts: int = None,
-                    precision: int = None) -&gt; FuzzyNumber:
+    def trapezoidal(
+        minimum: Union[str, int, float, Decimal],
+        kernel_minimum: Union[str, int, float, Decimal],
+        kernel_maximum: Union[str, int, float, Decimal],
+        maximum: Union[str, int, float, Decimal],
+        number_of_cuts: int = None,
+    ) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates trapezoidal `FuzzyNumber` based on input parameters.
 
         Parameters
         ----------
-        minimum: float
+        minimum: Union[str, int, float, Decimal]
             Minimal value of fuzzy number.
 
-        kernel_minimum: float
+        kernel_minimum: Union[str, int, float, Decimal]
             Minimum kernel value of fuzzy number.
 
-        kernel_maximum: float
+        kernel_maximum: Union[str, int, float, Decimal]
             Maximal kernel value of fuzzy number.
 
-        maximum: float
+        maximum: Union[str, int, float, Decimal]
             Maximal value of fuzzy number.
 
         number_of_cuts: int
             Number of alpha cuts.
 
-        precision: int
-
         Returns
         -------
         FuzzyNumber
         &#34;&#34;&#34;
+
+        minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+        maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+        kernel_minimum = FuzzyNumberFactory.validate_variable(kernel_minimum, &#34;kernel_minimum&#34;)
+        kernel_maximum = FuzzyNumberFactory.validate_variable(kernel_maximum, &#34;kernel_maximum&#34;)
 
         if not minimum &lt;= kernel_minimum &lt;= kernel_maximum &lt;= maximum:
             raise ValueError(
                 &#34;The fuzzy number is invalid. The structure needs to be &#34;
                 &#34;`minimum` &lt;= `kernel_minimum` &lt;= `kernel_maximum` &lt;= `maximum`. &#34;
                 &#34;Currently it is `{0}` &lt;= `{1}` &lt;= `{2}` &lt;= `{3}`, which does not hold.&#34;.format(
-                    minimum, kernel_minimum, kernel_maximum, maximum))
+                    minimum, kernel_minimum, kernel_maximum, maximum
+                )
+            )
 
         if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return FuzzyNumber(alphas=[0, 1],
-                               alpha_cuts=[
-                                   IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision),
-                                   IntervalFactory.infimum_supremum(kernel_minimum,
-                                                                    kernel_maximum,
-                                                                    precision=precision)
-            ],
-                precision=precision)
+            return FuzzyNumber(
+                alphas=[Decimal(0), Decimal(1)],
+                alpha_cuts=[
+                    IntervalFactory.infimum_supremum(minimum, maximum),
+                    IntervalFactory.infimum_supremum(kernel_minimum, kernel_maximum),
+                ],
+            )
 
         else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts)
 
             intervals = [IntervalFactory.empty()] * len(alphas)
 
             i = 0
             for alpha in alphas:
                 if alpha == 0:
-                    intervals[i] = IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(minimum, maximum)
                 elif alpha == 1:
-                    intervals[i] = IntervalFactory.infimum_supremum(kernel_minimum,
-                                                                    kernel_maximum,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(kernel_minimum, kernel_maximum)
                 else:
                     int_min = ((kernel_minimum - minimum) / (number_of_cuts - 1)) * i + minimum
                     int_max = maximum - ((maximum - kernel_maximum) / (number_of_cuts - 1)) * i
-                    intervals[i] = IntervalFactory.infimum_supremum(int_min,
-                                                                    int_max,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(int_min, int_max)
                 i += 1
 
-            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals, precision=precision)
+            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals)
 
     @staticmethod
-    def crisp_number(value: float, precision: int = None) -&gt; FuzzyNumber:
+    def crisp_number(value: Union[str, int, float, Decimal]) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates `FuzzyNumber` based on input parameters.
 
         Parameters
         ----------
-        value: float
+        value: Union[str, int, float, Decimal]
             Value fuzzy number.
-
-        precision: int
 
         Returns
         -------
         FuzzyNumber
         &#34;&#34;&#34;
 
-        return FuzzyNumber(alphas=[0, 1],
-                           alpha_cuts=[
-                               IntervalFactory.infimum_supremum(value, value, precision=precision),
-                               IntervalFactory.infimum_supremum(value, value, precision=precision)
-        ],
-            precision=precision)
+        value = FuzzyNumberFactory.validate_variable(value, &#34;value&#34;)
+
+        return FuzzyNumber(
+            alphas=[Decimal(0), Decimal(1)],
+            alpha_cuts=[IntervalFactory.infimum_supremum(value, value), IntervalFactory.infimum_supremum(value, value)],
+        )
 
     @staticmethod
-    def parse_string(string: str, precision: int = None) -&gt; FuzzyNumber:
+    def parse_string(string: str) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates `FuzzyNumber` based on input string. The input string should be output of `__repr__()` function of
         `FuzzyNumber`.
@@ -224,8 +259,6 @@ class FuzzyNumberFactory:
         Parameters
         ----------
         string: str
-
-        precision: int
 
         Returns
         -------
@@ -237,39 +270,37 @@ class FuzzyNumberFactory:
 
         elements = re_a_cuts.findall(string)
 
-        alphas: List[float] = [0] * len(elements)
+        alphas: List[Decimal] = [0] * len(elements)
         alpha_cuts: List[Interval] = [IntervalFactory.empty()] * len(elements)
 
         i: int = 0
 
         for a_cut_def in elements:
-
             numbers = re_numbers.findall(a_cut_def)
 
             if len(numbers) != 3:
                 raise ValueError(
                     &#34;Cannot parse FuzzyNumber from this definition. &#34;
-                    &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;)
+                    &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;
+                )
 
-            numbers = [float(x) for x in numbers]
+            numbers = [Decimal(x) for x in numbers]
 
             try:
                 FuzzyNumber._validate_alpha(numbers[0])
             except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(
-                    a_cut_def, err))
+                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(a_cut_def, err))
 
-            alphas[i] = numbers[0]
+            alphas[i] = Decimal(numbers[0])
 
             try:
                 alpha_cuts[i] = IntervalFactory.infimum_supremum(numbers[1], numbers[2])
             except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(
-                    a_cut_def, err))
+                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(a_cut_def, err))
 
             i += 1
 
-        return FuzzyNumber(alphas, alpha_cuts, precision)
+        return FuzzyNumber(alphas, alpha_cuts)
 
 
 class IntervalFactory:
@@ -286,21 +317,20 @@ class IntervalFactory:
         -------
         Interval
         &#34;&#34;&#34;
-        return Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))
+        return Interval(Decimal(&#34;nan&#34;), Decimal(&#34;nan&#34;))
 
     @staticmethod
-    def infimum_supremum(minimum: float, maximum: float, precision: int = None) -&gt; Interval:
+    def infimum_supremum(
+        minimum: Union[str, int, float, Decimal], maximum: Union[str, int, float, Decimal]
+    ) -&gt; Interval:
         &#34;&#34;&#34;
         Interval defined by minimum and maximum.
 
         Parameters
         ----------
-        minimum: float
+        minimum: Union[str, int, float, Decimal]
 
-        maximum: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        maximum: Union[str, int, float, Decimal]
 
         Returns
         -------
@@ -312,47 +342,44 @@ class IntervalFactory:
             If `minimum &gt; maximum` which is not valid interval for this definition.
         &#34;&#34;&#34;
 
+        minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+        maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+
         if minimum &gt; maximum:
             raise ValueError(
                 &#34;The interval is invalid. `minimum` must be lower or equal to&#34;
-                &#34; `maximum`. Currently it is `{0}` &lt;= `{1}`, which does not hold.&#34;.format(
-                    minimum, maximum))
+                &#34; `maximum`. Currently it is `{0}` &lt;= `{1}`, which does not hold.&#34;.format(minimum, maximum)
+            )
 
-        return Interval(minimum, maximum, precision=precision)
+        return Interval(minimum, maximum)
 
     @staticmethod
-    def two_values(a: float, b: float, precision: int = None) -&gt; Interval:
+    def two_values(a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]) -&gt; Interval:
         &#34;&#34;&#34;
         Interval defined by two values.
 
         Parameters
         ----------
-        a: float
+        a: Union[str, int, float, Decimal]
 
-        b: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        b: Union[str, int, float, Decimal]
 
         Returns
         -------
         Interval
         &#34;&#34;&#34;
-        return Interval(a, b, precision=precision)
+        return Interval(a, b)
 
     @staticmethod
-    def midpoint_width(midpoint: float, width: float, precision: int = None) -&gt; Interval:
+    def midpoint_width(midpoint: Union[str, int, float, Decimal], width: Union[str, int, float, Decimal]) -&gt; Interval:
         &#34;&#34;&#34;
         Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].
 
         Parameters
         ----------
-        midpoint: float
+        midpoint: Union[str, int, float, Decimal]
 
-        width: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        width: Union[str, int, float, Decimal]
 
         Returns
         -------
@@ -363,20 +390,22 @@ class IntervalFactory:
         ArithmeticError
             If `width &lt; 0` which is not valid width definition.
         &#34;&#34;&#34;
+        width = FuzzyNumberFactory.validate_variable(width, &#34;width&#34;)
+        midpoint = FuzzyNumberFactory.validate_variable(midpoint, &#34;midpoint&#34;)
+
         if width &lt; 0:
-            raise ArithmeticError(&#34;`width` of interval must number higher or at least equal to 0. &#34;
-                                  &#34;The value `{0}` does not fulfill this.&#34;.format(width))
+            raise ArithmeticError(
+                &#34;`width` of interval must number higher or at least equal to 0. &#34;
+                &#34;The value `{0}` does not fulfill this.&#34;.format(width)
+            )
 
-        midpoint = float(midpoint)
-        width = float(width)
+        a = midpoint - (width / Decimal(2))
+        b = midpoint + (width / Decimal(2))
 
-        a = midpoint - (width / 2)
-        b = midpoint + (width / 2)
-
-        return Interval(a, b, precision=precision)
+        return Interval(a, b)
 
     @staticmethod
-    def parse_string(string: str, precision: int = None) -&gt; Interval:
+    def parse_string(string: str) -&gt; Interval:
         &#34;&#34;&#34;
         Creates `Interval` based on input string. The input string should be output of `__repr__()` function of
         `Interval`.
@@ -384,8 +413,6 @@ class IntervalFactory:
         Parameters
         ----------
         string: str
-
-        precision: int
 
         Returns
         -------
@@ -397,10 +424,12 @@ class IntervalFactory:
         numbers = re_values.findall(string)
 
         if len(numbers) != 2:
-            raise ValueError(&#34;Cannot parse Interval from this definition. &#34;
-                             &#34;Element does not provide 2 values (minimal and maximal).&#34;)
+            raise ValueError(
+                &#34;Cannot parse Interval from this definition. &#34;
+                &#34;Element does not provide 2 values (minimal and maximal).&#34;
+            )
 
-        return Interval(numbers[0], numbers[1], precision=precision)</code></pre>
+        return Interval(numbers[0], numbers[1])</code></pre>
 </details>
 </section>
 <section>
@@ -412,6 +441,161 @@ class IntervalFactory:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="FuzzyMath.class_factories.FactoryBase"><code class="flex name class">
+<span>class <span class="ident">FactoryBase</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Helper class that provides a standard way to create an ABC using
+inheritance.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FactoryBase(ABC):
+    @staticmethod
+    def validate_variable(variable: Union[float, int, str, Decimal], variable_name: str) -&gt; Decimal:
+        &#34;&#34;&#34;Checks that input variable can be converted to valid Decimal.
+
+        Args:
+            variable (Union[float, int, str, Decimal]): value to convert to Decimal.
+            variable_name (str): name of variable for error message.
+
+        Raises:
+            InvalidOperation: if variable cannot be converted to Decimal.
+
+        Returns:
+            Decimal
+        &#34;&#34;&#34;
+        try:
+            var = Decimal(variable)
+        except InvalidOperation as e:
+            raise InvalidOperation(f&#34;Cannot convert `{variable_name}` value ({variable}) to number.&#34;) from e
+        return var
+
+    @staticmethod
+    def validate_alphas(alphas: List[Union[str, int, float, Decimal]], variable_name: str = &#34;alphas&#34;) -&gt; List[Decimal]:
+        &#34;&#34;&#34;Validate that all alphas are valid alpha values and converts them to Decimals.
+
+        Args:
+            alphas (List[Union[str, int, float, Decimal]]): List of alpha cut values.
+            variable_name (str, optional): Name of variable for error message. Defaults to &#34;alphas&#34;.
+
+        Raises:
+            InvalidOperation: If any alphas value cannot be converted to Decimal.
+
+        Returns:
+            List[Decimal]
+        &#34;&#34;&#34;
+        decimal_alphas = []
+        for alpha in alphas:
+            try:
+                decimal_alphas.append(Decimal(alpha))
+            except InvalidOperation as e:
+                raise InvalidOperation(f&#34;Cannot convert `{variable_name}` value ({alpha}) to number.&#34;) from e
+        return decimal_alphas</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="FuzzyMath.class_factories.FuzzyNumberFactory" href="#FuzzyMath.class_factories.FuzzyNumberFactory">FuzzyNumberFactory</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="FuzzyMath.class_factories.FactoryBase.validate_alphas"><code class="name flex">
+<span>def <span class="ident">validate_alphas</span></span>(<span>alphas: List[Union[str, int, float, decimal.Decimal]], variable_name: str = 'alphas') ‑> List[decimal.Decimal]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validate that all alphas are valid alpha values and converts them to Decimals.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>alphas</code></strong> :&ensp;<code>List[Union[str, int, float, Decimal]]</code></dt>
+<dd>List of alpha cut values.</dd>
+<dt><strong><code>variable_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Name of variable for error message. Defaults to "alphas".</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>InvalidOperation</code></dt>
+<dd>If any alphas value cannot be converted to Decimal.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>List[Decimal]</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def validate_alphas(alphas: List[Union[str, int, float, Decimal]], variable_name: str = &#34;alphas&#34;) -&gt; List[Decimal]:
+    &#34;&#34;&#34;Validate that all alphas are valid alpha values and converts them to Decimals.
+
+    Args:
+        alphas (List[Union[str, int, float, Decimal]]): List of alpha cut values.
+        variable_name (str, optional): Name of variable for error message. Defaults to &#34;alphas&#34;.
+
+    Raises:
+        InvalidOperation: If any alphas value cannot be converted to Decimal.
+
+    Returns:
+        List[Decimal]
+    &#34;&#34;&#34;
+    decimal_alphas = []
+    for alpha in alphas:
+        try:
+            decimal_alphas.append(Decimal(alpha))
+        except InvalidOperation as e:
+            raise InvalidOperation(f&#34;Cannot convert `{variable_name}` value ({alpha}) to number.&#34;) from e
+    return decimal_alphas</code></pre>
+</details>
+</dd>
+<dt id="FuzzyMath.class_factories.FactoryBase.validate_variable"><code class="name flex">
+<span>def <span class="ident">validate_variable</span></span>(<span>variable: Union[float, int, str, decimal.Decimal], variable_name: str) ‑> decimal.Decimal</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Checks that input variable can be converted to valid Decimal.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>variable</code></strong> :&ensp;<code>Union[float, int, str, Decimal]</code></dt>
+<dd>value to convert to Decimal.</dd>
+<dt><strong><code>variable_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of variable for error message.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>InvalidOperation</code></dt>
+<dd>if variable cannot be converted to Decimal.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Decimal</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def validate_variable(variable: Union[float, int, str, Decimal], variable_name: str) -&gt; Decimal:
+    &#34;&#34;&#34;Checks that input variable can be converted to valid Decimal.
+
+    Args:
+        variable (Union[float, int, str, Decimal]): value to convert to Decimal.
+        variable_name (str): name of variable for error message.
+
+    Raises:
+        InvalidOperation: if variable cannot be converted to Decimal.
+
+    Returns:
+        Decimal
+    &#34;&#34;&#34;
+    try:
+        var = Decimal(variable)
+    except InvalidOperation as e:
+        raise InvalidOperation(f&#34;Cannot convert `{variable_name}` value ({variable}) to number.&#34;) from e
+    return var</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="FuzzyMath.class_factories.FuzzyNumberFactory"><code class="flex name class">
 <span>class <span class="ident">FuzzyNumberFactory</span></span>
 </code></dt>
@@ -421,190 +605,179 @@ class IntervalFactory:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class FuzzyNumberFactory:
+<pre><code class="python">class FuzzyNumberFactory(FactoryBase):
     &#34;&#34;&#34;
     Class that supports creation of fuzzy numbers based on different functions. All the functions are static.
     &#34;&#34;&#34;
 
     @staticmethod
-    def triangular(minimum: float,
-                   kernel: float,
-                   maximum: float,
-                   number_of_cuts: int = None,
-                   precision: int = None) -&gt; FuzzyNumber:
+    def triangular(
+        minimum: Union[str, int, float, Decimal],
+        kernel: Union[str, int, float, Decimal],
+        maximum: Union[str, int, float, Decimal],
+        number_of_cuts: int = None,
+    ) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates triangular `FuzzyNumber` based on input parameters.
 
         Parameters
         ----------
-        minimum: float
+        minimum: Union[str, int, float, Decimal]
             Minimal value of fuzzy number.
 
-        kernel: float
+        kernel: Union[str, int, float, Decimal]
             Kernel (midpoint) value of fuzzy number.
 
-        maximum: float
+        maximum: Union[str, int, float, Decimal]
             Maximal value of fuzzy number.
 
         number_of_cuts: int
             Number of alpha cuts.
-
-        precision: int
 
         Returns
         -------
         FuzzyNumber
         &#34;&#34;&#34;
 
+        minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+        maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+        kernel = FuzzyNumberFactory.validate_variable(kernel, &#34;kernel&#34;)
+
         if not minimum &lt;= kernel &lt;= maximum:
             raise ValueError(
                 &#34;The fuzzy number is invalid. The structure needs to be `minimum` &lt;= `kernel` &#34;
-                &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;.
-                format(minimum, kernel, maximum))
+                &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;.format(
+                    minimum, kernel, maximum
+                )
+            )
 
         if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return FuzzyNumber(alphas=[0, 1],
-                               alpha_cuts=[
-                                   IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision),
-                                   IntervalFactory.infimum_supremum(kernel,
-                                                                    kernel,
-                                                                    precision=precision)
-            ],
-                precision=precision)
+            return FuzzyNumber(
+                alphas=[Decimal(0), Decimal(1)],
+                alpha_cuts=[
+                    IntervalFactory.infimum_supremum(minimum, maximum),
+                    IntervalFactory.infimum_supremum(kernel, kernel),
+                ],
+            )
 
         else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts)
 
             intervals = [IntervalFactory.empty()] * len(alphas)
 
             i = 0
             for alpha in alphas:
                 if alpha == 0:
-                    intervals[i] = IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(minimum, maximum)
                 elif alpha == 1:
-                    intervals[i] = IntervalFactory.infimum_supremum(kernel,
-                                                                    kernel,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(kernel, kernel)
                 else:
                     int_min = ((kernel - minimum) / (number_of_cuts - 1)) * i + minimum
                     int_max = maximum - ((maximum - kernel) / (number_of_cuts - 1)) * i
-                    intervals[i] = IntervalFactory.infimum_supremum(int_min,
-                                                                    int_max,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(int_min, int_max)
                 i += 1
 
-            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals, precision=precision)
+            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals)
 
     @staticmethod
-    def trapezoidal(minimum: float,
-                    kernel_minimum: float,
-                    kernel_maximum: float,
-                    maximum: float,
-                    number_of_cuts: int = None,
-                    precision: int = None) -&gt; FuzzyNumber:
+    def trapezoidal(
+        minimum: Union[str, int, float, Decimal],
+        kernel_minimum: Union[str, int, float, Decimal],
+        kernel_maximum: Union[str, int, float, Decimal],
+        maximum: Union[str, int, float, Decimal],
+        number_of_cuts: int = None,
+    ) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates trapezoidal `FuzzyNumber` based on input parameters.
 
         Parameters
         ----------
-        minimum: float
+        minimum: Union[str, int, float, Decimal]
             Minimal value of fuzzy number.
 
-        kernel_minimum: float
+        kernel_minimum: Union[str, int, float, Decimal]
             Minimum kernel value of fuzzy number.
 
-        kernel_maximum: float
+        kernel_maximum: Union[str, int, float, Decimal]
             Maximal kernel value of fuzzy number.
 
-        maximum: float
+        maximum: Union[str, int, float, Decimal]
             Maximal value of fuzzy number.
 
         number_of_cuts: int
             Number of alpha cuts.
 
-        precision: int
-
         Returns
         -------
         FuzzyNumber
         &#34;&#34;&#34;
+
+        minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+        maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+        kernel_minimum = FuzzyNumberFactory.validate_variable(kernel_minimum, &#34;kernel_minimum&#34;)
+        kernel_maximum = FuzzyNumberFactory.validate_variable(kernel_maximum, &#34;kernel_maximum&#34;)
 
         if not minimum &lt;= kernel_minimum &lt;= kernel_maximum &lt;= maximum:
             raise ValueError(
                 &#34;The fuzzy number is invalid. The structure needs to be &#34;
                 &#34;`minimum` &lt;= `kernel_minimum` &lt;= `kernel_maximum` &lt;= `maximum`. &#34;
                 &#34;Currently it is `{0}` &lt;= `{1}` &lt;= `{2}` &lt;= `{3}`, which does not hold.&#34;.format(
-                    minimum, kernel_minimum, kernel_maximum, maximum))
+                    minimum, kernel_minimum, kernel_maximum, maximum
+                )
+            )
 
         if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-            return FuzzyNumber(alphas=[0, 1],
-                               alpha_cuts=[
-                                   IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision),
-                                   IntervalFactory.infimum_supremum(kernel_minimum,
-                                                                    kernel_maximum,
-                                                                    precision=precision)
-            ],
-                precision=precision)
+            return FuzzyNumber(
+                alphas=[Decimal(0), Decimal(1)],
+                alpha_cuts=[
+                    IntervalFactory.infimum_supremum(minimum, maximum),
+                    IntervalFactory.infimum_supremum(kernel_minimum, kernel_maximum),
+                ],
+            )
 
         else:
-            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+            alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts)
 
             intervals = [IntervalFactory.empty()] * len(alphas)
 
             i = 0
             for alpha in alphas:
                 if alpha == 0:
-                    intervals[i] = IntervalFactory.infimum_supremum(minimum,
-                                                                    maximum,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(minimum, maximum)
                 elif alpha == 1:
-                    intervals[i] = IntervalFactory.infimum_supremum(kernel_minimum,
-                                                                    kernel_maximum,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(kernel_minimum, kernel_maximum)
                 else:
                     int_min = ((kernel_minimum - minimum) / (number_of_cuts - 1)) * i + minimum
                     int_max = maximum - ((maximum - kernel_maximum) / (number_of_cuts - 1)) * i
-                    intervals[i] = IntervalFactory.infimum_supremum(int_min,
-                                                                    int_max,
-                                                                    precision=precision)
+                    intervals[i] = IntervalFactory.infimum_supremum(int_min, int_max)
                 i += 1
 
-            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals, precision=precision)
+            return FuzzyNumber(alphas=alphas, alpha_cuts=intervals)
 
     @staticmethod
-    def crisp_number(value: float, precision: int = None) -&gt; FuzzyNumber:
+    def crisp_number(value: Union[str, int, float, Decimal]) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates `FuzzyNumber` based on input parameters.
 
         Parameters
         ----------
-        value: float
+        value: Union[str, int, float, Decimal]
             Value fuzzy number.
-
-        precision: int
 
         Returns
         -------
         FuzzyNumber
         &#34;&#34;&#34;
 
-        return FuzzyNumber(alphas=[0, 1],
-                           alpha_cuts=[
-                               IntervalFactory.infimum_supremum(value, value, precision=precision),
-                               IntervalFactory.infimum_supremum(value, value, precision=precision)
-        ],
-            precision=precision)
+        value = FuzzyNumberFactory.validate_variable(value, &#34;value&#34;)
+
+        return FuzzyNumber(
+            alphas=[Decimal(0), Decimal(1)],
+            alpha_cuts=[IntervalFactory.infimum_supremum(value, value), IntervalFactory.infimum_supremum(value, value)],
+        )
 
     @staticmethod
-    def parse_string(string: str, precision: int = None) -&gt; FuzzyNumber:
+    def parse_string(string: str) -&gt; FuzzyNumber:
         &#34;&#34;&#34;
         Creates `FuzzyNumber` based on input string. The input string should be output of `__repr__()` function of
         `FuzzyNumber`.
@@ -612,8 +785,6 @@ class IntervalFactory:
         Parameters
         ----------
         string: str
-
-        precision: int
 
         Returns
         -------
@@ -625,53 +796,54 @@ class IntervalFactory:
 
         elements = re_a_cuts.findall(string)
 
-        alphas: List[float] = [0] * len(elements)
+        alphas: List[Decimal] = [0] * len(elements)
         alpha_cuts: List[Interval] = [IntervalFactory.empty()] * len(elements)
 
         i: int = 0
 
         for a_cut_def in elements:
-
             numbers = re_numbers.findall(a_cut_def)
 
             if len(numbers) != 3:
                 raise ValueError(
                     &#34;Cannot parse FuzzyNumber from this definition. &#34;
-                    &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;)
+                    &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;
+                )
 
-            numbers = [float(x) for x in numbers]
+            numbers = [Decimal(x) for x in numbers]
 
             try:
                 FuzzyNumber._validate_alpha(numbers[0])
             except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(
-                    a_cut_def, err))
+                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(a_cut_def, err))
 
-            alphas[i] = numbers[0]
+            alphas[i] = Decimal(numbers[0])
 
             try:
                 alpha_cuts[i] = IntervalFactory.infimum_supremum(numbers[1], numbers[2])
             except ValueError as err:
-                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(
-                    a_cut_def, err))
+                raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(a_cut_def, err))
 
             i += 1
 
-        return FuzzyNumber(alphas, alpha_cuts, precision)</code></pre>
+        return FuzzyNumber(alphas, alpha_cuts)</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="FuzzyMath.class_factories.FactoryBase" href="#FuzzyMath.class_factories.FactoryBase">FactoryBase</a></li>
+<li>abc.ABC</li>
+</ul>
 <h3>Static methods</h3>
 <dl>
 <dt id="FuzzyMath.class_factories.FuzzyNumberFactory.crisp_number"><code class="name flex">
-<span>def <span class="ident">crisp_number</span></span>(<span>value: float, precision: int = None) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
+<span>def <span class="ident">crisp_number</span></span>(<span>value: Union[float, int, str, decimal.Decimal]) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates <code>FuzzyNumber</code> based on input parameters.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>value</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>value</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Value fuzzy number.</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>&nbsp;</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -683,32 +855,30 @@ class IntervalFactory:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def crisp_number(value: float, precision: int = None) -&gt; FuzzyNumber:
+def crisp_number(value: Union[str, int, float, Decimal]) -&gt; FuzzyNumber:
     &#34;&#34;&#34;
     Creates `FuzzyNumber` based on input parameters.
 
     Parameters
     ----------
-    value: float
+    value: Union[str, int, float, Decimal]
         Value fuzzy number.
-
-    precision: int
 
     Returns
     -------
     FuzzyNumber
     &#34;&#34;&#34;
 
-    return FuzzyNumber(alphas=[0, 1],
-                       alpha_cuts=[
-                           IntervalFactory.infimum_supremum(value, value, precision=precision),
-                           IntervalFactory.infimum_supremum(value, value, precision=precision)
-    ],
-        precision=precision)</code></pre>
+    value = FuzzyNumberFactory.validate_variable(value, &#34;value&#34;)
+
+    return FuzzyNumber(
+        alphas=[Decimal(0), Decimal(1)],
+        alpha_cuts=[IntervalFactory.infimum_supremum(value, value), IntervalFactory.infimum_supremum(value, value)],
+    )</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_factories.FuzzyNumberFactory.parse_string"><code class="name flex">
-<span>def <span class="ident">parse_string</span></span>(<span>string: str, precision: int = None) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
+<span>def <span class="ident">parse_string</span></span>(<span>string: str) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates <code>FuzzyNumber</code> based on input string. The input string should be output of <code>__repr__()</code> function of
@@ -717,8 +887,6 @@ def crisp_number(value: float, precision: int = None) -&gt; FuzzyNumber:
 <dl>
 <dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>&nbsp;</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -730,7 +898,7 @@ def crisp_number(value: float, precision: int = None) -&gt; FuzzyNumber:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def parse_string(string: str, precision: int = None) -&gt; FuzzyNumber:
+def parse_string(string: str) -&gt; FuzzyNumber:
     &#34;&#34;&#34;
     Creates `FuzzyNumber` based on input string. The input string should be output of `__repr__()` function of
     `FuzzyNumber`.
@@ -738,8 +906,6 @@ def parse_string(string: str, precision: int = None) -&gt; FuzzyNumber:
     Parameters
     ----------
     string: str
-
-    precision: int
 
     Returns
     -------
@@ -751,60 +917,56 @@ def parse_string(string: str, precision: int = None) -&gt; FuzzyNumber:
 
     elements = re_a_cuts.findall(string)
 
-    alphas: List[float] = [0] * len(elements)
+    alphas: List[Decimal] = [0] * len(elements)
     alpha_cuts: List[Interval] = [IntervalFactory.empty()] * len(elements)
 
     i: int = 0
 
     for a_cut_def in elements:
-
         numbers = re_numbers.findall(a_cut_def)
 
         if len(numbers) != 3:
             raise ValueError(
                 &#34;Cannot parse FuzzyNumber from this definition. &#34;
-                &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;)
+                &#34;Not all elements provide 3 values (alpha cut value and interval).&#34;
+            )
 
-        numbers = [float(x) for x in numbers]
+        numbers = [Decimal(x) for x in numbers]
 
         try:
             FuzzyNumber._validate_alpha(numbers[0])
         except ValueError as err:
-            raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(
-                a_cut_def, err))
+            raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(a_cut_def, err))
 
-        alphas[i] = numbers[0]
+        alphas[i] = Decimal(numbers[0])
 
         try:
             alpha_cuts[i] = IntervalFactory.infimum_supremum(numbers[1], numbers[2])
         except ValueError as err:
-            raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(
-                a_cut_def, err))
+            raise ValueError(&#34;`{}` element of Fuzzy Number is incorrectly defined. {}&#34;.format(a_cut_def, err))
 
         i += 1
 
-    return FuzzyNumber(alphas, alpha_cuts, precision)</code></pre>
+    return FuzzyNumber(alphas, alpha_cuts)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_factories.FuzzyNumberFactory.trapezoidal"><code class="name flex">
-<span>def <span class="ident">trapezoidal</span></span>(<span>minimum: float, kernel_minimum: float, kernel_maximum: float, maximum: float, number_of_cuts: int = None, precision: int = None) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
+<span>def <span class="ident">trapezoidal</span></span>(<span>minimum: Union[float, int, str, decimal.Decimal], kernel_minimum: Union[float, int, str, decimal.Decimal], kernel_maximum: Union[float, int, str, decimal.Decimal], maximum: Union[float, int, str, decimal.Decimal], number_of_cuts: int = None) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates trapezoidal <code>FuzzyNumber</code> based on input parameters.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>minimum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>minimum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Minimal value of fuzzy number.</dd>
-<dt><strong><code>kernel_minimum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>kernel_minimum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Minimum kernel value of fuzzy number.</dd>
-<dt><strong><code>kernel_maximum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>kernel_maximum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Maximal kernel value of fuzzy number.</dd>
-<dt><strong><code>maximum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>maximum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Maximal value of fuzzy number.</dd>
 <dt><strong><code>number_of_cuts</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of alpha cuts.</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>&nbsp;</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -816,102 +978,96 @@ def parse_string(string: str, precision: int = None) -&gt; FuzzyNumber:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def trapezoidal(minimum: float,
-                kernel_minimum: float,
-                kernel_maximum: float,
-                maximum: float,
-                number_of_cuts: int = None,
-                precision: int = None) -&gt; FuzzyNumber:
+def trapezoidal(
+    minimum: Union[str, int, float, Decimal],
+    kernel_minimum: Union[str, int, float, Decimal],
+    kernel_maximum: Union[str, int, float, Decimal],
+    maximum: Union[str, int, float, Decimal],
+    number_of_cuts: int = None,
+) -&gt; FuzzyNumber:
     &#34;&#34;&#34;
     Creates trapezoidal `FuzzyNumber` based on input parameters.
 
     Parameters
     ----------
-    minimum: float
+    minimum: Union[str, int, float, Decimal]
         Minimal value of fuzzy number.
 
-    kernel_minimum: float
+    kernel_minimum: Union[str, int, float, Decimal]
         Minimum kernel value of fuzzy number.
 
-    kernel_maximum: float
+    kernel_maximum: Union[str, int, float, Decimal]
         Maximal kernel value of fuzzy number.
 
-    maximum: float
+    maximum: Union[str, int, float, Decimal]
         Maximal value of fuzzy number.
 
     number_of_cuts: int
         Number of alpha cuts.
 
-    precision: int
-
     Returns
     -------
     FuzzyNumber
     &#34;&#34;&#34;
+
+    minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+    maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+    kernel_minimum = FuzzyNumberFactory.validate_variable(kernel_minimum, &#34;kernel_minimum&#34;)
+    kernel_maximum = FuzzyNumberFactory.validate_variable(kernel_maximum, &#34;kernel_maximum&#34;)
 
     if not minimum &lt;= kernel_minimum &lt;= kernel_maximum &lt;= maximum:
         raise ValueError(
             &#34;The fuzzy number is invalid. The structure needs to be &#34;
             &#34;`minimum` &lt;= `kernel_minimum` &lt;= `kernel_maximum` &lt;= `maximum`. &#34;
             &#34;Currently it is `{0}` &lt;= `{1}` &lt;= `{2}` &lt;= `{3}`, which does not hold.&#34;.format(
-                minimum, kernel_minimum, kernel_maximum, maximum))
+                minimum, kernel_minimum, kernel_maximum, maximum
+            )
+        )
 
     if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-        return FuzzyNumber(alphas=[0, 1],
-                           alpha_cuts=[
-                               IntervalFactory.infimum_supremum(minimum,
-                                                                maximum,
-                                                                precision=precision),
-                               IntervalFactory.infimum_supremum(kernel_minimum,
-                                                                kernel_maximum,
-                                                                precision=precision)
-        ],
-            precision=precision)
+        return FuzzyNumber(
+            alphas=[Decimal(0), Decimal(1)],
+            alpha_cuts=[
+                IntervalFactory.infimum_supremum(minimum, maximum),
+                IntervalFactory.infimum_supremum(kernel_minimum, kernel_maximum),
+            ],
+        )
 
     else:
-        alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+        alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts)
 
         intervals = [IntervalFactory.empty()] * len(alphas)
 
         i = 0
         for alpha in alphas:
             if alpha == 0:
-                intervals[i] = IntervalFactory.infimum_supremum(minimum,
-                                                                maximum,
-                                                                precision=precision)
+                intervals[i] = IntervalFactory.infimum_supremum(minimum, maximum)
             elif alpha == 1:
-                intervals[i] = IntervalFactory.infimum_supremum(kernel_minimum,
-                                                                kernel_maximum,
-                                                                precision=precision)
+                intervals[i] = IntervalFactory.infimum_supremum(kernel_minimum, kernel_maximum)
             else:
                 int_min = ((kernel_minimum - minimum) / (number_of_cuts - 1)) * i + minimum
                 int_max = maximum - ((maximum - kernel_maximum) / (number_of_cuts - 1)) * i
-                intervals[i] = IntervalFactory.infimum_supremum(int_min,
-                                                                int_max,
-                                                                precision=precision)
+                intervals[i] = IntervalFactory.infimum_supremum(int_min, int_max)
             i += 1
 
-        return FuzzyNumber(alphas=alphas, alpha_cuts=intervals, precision=precision)</code></pre>
+        return FuzzyNumber(alphas=alphas, alpha_cuts=intervals)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_factories.FuzzyNumberFactory.triangular"><code class="name flex">
-<span>def <span class="ident">triangular</span></span>(<span>minimum: float, kernel: float, maximum: float, number_of_cuts: int = None, precision: int = None) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
+<span>def <span class="ident">triangular</span></span>(<span>minimum: Union[float, int, str, decimal.Decimal], kernel: Union[float, int, str, decimal.Decimal], maximum: Union[float, int, str, decimal.Decimal], number_of_cuts: int = None) ‑> <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates triangular <code>FuzzyNumber</code> based on input parameters.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>minimum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>minimum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Minimal value of fuzzy number.</dd>
-<dt><strong><code>kernel</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>kernel</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Kernel (midpoint) value of fuzzy number.</dd>
-<dt><strong><code>maximum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>maximum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>Maximal value of fuzzy number.</dd>
 <dt><strong><code>number_of_cuts</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of alpha cuts.</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>&nbsp;</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -923,81 +1079,85 @@ def trapezoidal(minimum: float,
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def triangular(minimum: float,
-               kernel: float,
-               maximum: float,
-               number_of_cuts: int = None,
-               precision: int = None) -&gt; FuzzyNumber:
+def triangular(
+    minimum: Union[str, int, float, Decimal],
+    kernel: Union[str, int, float, Decimal],
+    maximum: Union[str, int, float, Decimal],
+    number_of_cuts: int = None,
+) -&gt; FuzzyNumber:
     &#34;&#34;&#34;
     Creates triangular `FuzzyNumber` based on input parameters.
 
     Parameters
     ----------
-    minimum: float
+    minimum: Union[str, int, float, Decimal]
         Minimal value of fuzzy number.
 
-    kernel: float
+    kernel: Union[str, int, float, Decimal]
         Kernel (midpoint) value of fuzzy number.
 
-    maximum: float
+    maximum: Union[str, int, float, Decimal]
         Maximal value of fuzzy number.
 
     number_of_cuts: int
         Number of alpha cuts.
-
-    precision: int
 
     Returns
     -------
     FuzzyNumber
     &#34;&#34;&#34;
 
+    minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+    maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+    kernel = FuzzyNumberFactory.validate_variable(kernel, &#34;kernel&#34;)
+
     if not minimum &lt;= kernel &lt;= maximum:
         raise ValueError(
             &#34;The fuzzy number is invalid. The structure needs to be `minimum` &lt;= `kernel` &#34;
-            &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;.
-            format(minimum, kernel, maximum))
+            &#34;&lt;= `maximum`. Currently it is `{0}` &lt;= `{1}` &lt;= `{2}`, which does not hold.&#34;.format(
+                minimum, kernel, maximum
+            )
+        )
 
     if number_of_cuts is None or number_of_cuts &lt;= 2:
-
-        return FuzzyNumber(alphas=[0, 1],
-                           alpha_cuts=[
-                               IntervalFactory.infimum_supremum(minimum,
-                                                                maximum,
-                                                                precision=precision),
-                               IntervalFactory.infimum_supremum(kernel,
-                                                                kernel,
-                                                                precision=precision)
-        ],
-            precision=precision)
+        return FuzzyNumber(
+            alphas=[Decimal(0), Decimal(1)],
+            alpha_cuts=[
+                IntervalFactory.infimum_supremum(minimum, maximum),
+                IntervalFactory.infimum_supremum(kernel, kernel),
+            ],
+        )
 
     else:
-        alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts, precision)
+        alphas = FuzzyNumber.get_alpha_cut_values(number_of_cuts)
 
         intervals = [IntervalFactory.empty()] * len(alphas)
 
         i = 0
         for alpha in alphas:
             if alpha == 0:
-                intervals[i] = IntervalFactory.infimum_supremum(minimum,
-                                                                maximum,
-                                                                precision=precision)
+                intervals[i] = IntervalFactory.infimum_supremum(minimum, maximum)
             elif alpha == 1:
-                intervals[i] = IntervalFactory.infimum_supremum(kernel,
-                                                                kernel,
-                                                                precision=precision)
+                intervals[i] = IntervalFactory.infimum_supremum(kernel, kernel)
             else:
                 int_min = ((kernel - minimum) / (number_of_cuts - 1)) * i + minimum
                 int_max = maximum - ((maximum - kernel) / (number_of_cuts - 1)) * i
-                intervals[i] = IntervalFactory.infimum_supremum(int_min,
-                                                                int_max,
-                                                                precision=precision)
+                intervals[i] = IntervalFactory.infimum_supremum(int_min, int_max)
             i += 1
 
-        return FuzzyNumber(alphas=alphas, alpha_cuts=intervals, precision=precision)</code></pre>
+        return FuzzyNumber(alphas=alphas, alpha_cuts=intervals)</code></pre>
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="FuzzyMath.class_factories.FactoryBase" href="#FuzzyMath.class_factories.FactoryBase">FactoryBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="FuzzyMath.class_factories.FactoryBase.validate_alphas" href="#FuzzyMath.class_factories.FactoryBase.validate_alphas">validate_alphas</a></code></li>
+<li><code><a title="FuzzyMath.class_factories.FactoryBase.validate_variable" href="#FuzzyMath.class_factories.FactoryBase.validate_variable">validate_variable</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="FuzzyMath.class_factories.IntervalFactory"><code class="flex name class">
 <span>class <span class="ident">IntervalFactory</span></span>
@@ -1022,21 +1182,20 @@ def triangular(minimum: float,
         -------
         Interval
         &#34;&#34;&#34;
-        return Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))
+        return Interval(Decimal(&#34;nan&#34;), Decimal(&#34;nan&#34;))
 
     @staticmethod
-    def infimum_supremum(minimum: float, maximum: float, precision: int = None) -&gt; Interval:
+    def infimum_supremum(
+        minimum: Union[str, int, float, Decimal], maximum: Union[str, int, float, Decimal]
+    ) -&gt; Interval:
         &#34;&#34;&#34;
         Interval defined by minimum and maximum.
 
         Parameters
         ----------
-        minimum: float
+        minimum: Union[str, int, float, Decimal]
 
-        maximum: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        maximum: Union[str, int, float, Decimal]
 
         Returns
         -------
@@ -1048,47 +1207,44 @@ def triangular(minimum: float,
             If `minimum &gt; maximum` which is not valid interval for this definition.
         &#34;&#34;&#34;
 
+        minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+        maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+
         if minimum &gt; maximum:
             raise ValueError(
                 &#34;The interval is invalid. `minimum` must be lower or equal to&#34;
-                &#34; `maximum`. Currently it is `{0}` &lt;= `{1}`, which does not hold.&#34;.format(
-                    minimum, maximum))
+                &#34; `maximum`. Currently it is `{0}` &lt;= `{1}`, which does not hold.&#34;.format(minimum, maximum)
+            )
 
-        return Interval(minimum, maximum, precision=precision)
+        return Interval(minimum, maximum)
 
     @staticmethod
-    def two_values(a: float, b: float, precision: int = None) -&gt; Interval:
+    def two_values(a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]) -&gt; Interval:
         &#34;&#34;&#34;
         Interval defined by two values.
 
         Parameters
         ----------
-        a: float
+        a: Union[str, int, float, Decimal]
 
-        b: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        b: Union[str, int, float, Decimal]
 
         Returns
         -------
         Interval
         &#34;&#34;&#34;
-        return Interval(a, b, precision=precision)
+        return Interval(a, b)
 
     @staticmethod
-    def midpoint_width(midpoint: float, width: float, precision: int = None) -&gt; Interval:
+    def midpoint_width(midpoint: Union[str, int, float, Decimal], width: Union[str, int, float, Decimal]) -&gt; Interval:
         &#34;&#34;&#34;
         Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].
 
         Parameters
         ----------
-        midpoint: float
+        midpoint: Union[str, int, float, Decimal]
 
-        width: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        width: Union[str, int, float, Decimal]
 
         Returns
         -------
@@ -1099,20 +1255,22 @@ def triangular(minimum: float,
         ArithmeticError
             If `width &lt; 0` which is not valid width definition.
         &#34;&#34;&#34;
+        width = FuzzyNumberFactory.validate_variable(width, &#34;width&#34;)
+        midpoint = FuzzyNumberFactory.validate_variable(midpoint, &#34;midpoint&#34;)
+
         if width &lt; 0:
-            raise ArithmeticError(&#34;`width` of interval must number higher or at least equal to 0. &#34;
-                                  &#34;The value `{0}` does not fulfill this.&#34;.format(width))
+            raise ArithmeticError(
+                &#34;`width` of interval must number higher or at least equal to 0. &#34;
+                &#34;The value `{0}` does not fulfill this.&#34;.format(width)
+            )
 
-        midpoint = float(midpoint)
-        width = float(width)
+        a = midpoint - (width / Decimal(2))
+        b = midpoint + (width / Decimal(2))
 
-        a = midpoint - (width / 2)
-        b = midpoint + (width / 2)
-
-        return Interval(a, b, precision=precision)
+        return Interval(a, b)
 
     @staticmethod
-    def parse_string(string: str, precision: int = None) -&gt; Interval:
+    def parse_string(string: str) -&gt; Interval:
         &#34;&#34;&#34;
         Creates `Interval` based on input string. The input string should be output of `__repr__()` function of
         `Interval`.
@@ -1120,8 +1278,6 @@ def triangular(minimum: float,
         Parameters
         ----------
         string: str
-
-        precision: int
 
         Returns
         -------
@@ -1133,10 +1289,12 @@ def triangular(minimum: float,
         numbers = re_values.findall(string)
 
         if len(numbers) != 2:
-            raise ValueError(&#34;Cannot parse Interval from this definition. &#34;
-                             &#34;Element does not provide 2 values (minimal and maximal).&#34;)
+            raise ValueError(
+                &#34;Cannot parse Interval from this definition. &#34;
+                &#34;Element does not provide 2 values (minimal and maximal).&#34;
+            )
 
-        return Interval(numbers[0], numbers[1], precision=precision)</code></pre>
+        return Interval(numbers[0], numbers[1])</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -1163,22 +1321,20 @@ def empty() -&gt; Interval:
     -------
     Interval
     &#34;&#34;&#34;
-    return Interval(float(&#34;nan&#34;), float(&#34;nan&#34;))</code></pre>
+    return Interval(Decimal(&#34;nan&#34;), Decimal(&#34;nan&#34;))</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_factories.IntervalFactory.infimum_supremum"><code class="name flex">
-<span>def <span class="ident">infimum_supremum</span></span>(<span>minimum: float, maximum: float, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
+<span>def <span class="ident">infimum_supremum</span></span>(<span>minimum: Union[float, int, str, decimal.Decimal], maximum: Union[float, int, str, decimal.Decimal]) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interval defined by minimum and maximum.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>minimum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>minimum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>maximum</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>maximum</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Precision of the interval, default value is <code>None</code>. If <code>None</code> then package wide default value is used.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1195,18 +1351,17 @@ def empty() -&gt; Interval:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def infimum_supremum(minimum: float, maximum: float, precision: int = None) -&gt; Interval:
+def infimum_supremum(
+    minimum: Union[str, int, float, Decimal], maximum: Union[str, int, float, Decimal]
+) -&gt; Interval:
     &#34;&#34;&#34;
     Interval defined by minimum and maximum.
 
     Parameters
     ----------
-    minimum: float
+    minimum: Union[str, int, float, Decimal]
 
-    maximum: float
-
-    precision: int
-        Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+    maximum: Union[str, int, float, Decimal]
 
     Returns
     -------
@@ -1218,28 +1373,29 @@ def infimum_supremum(minimum: float, maximum: float, precision: int = None) -&gt
         If `minimum &gt; maximum` which is not valid interval for this definition.
     &#34;&#34;&#34;
 
+    minimum = FuzzyNumberFactory.validate_variable(minimum, &#34;minimum&#34;)
+    maximum = FuzzyNumberFactory.validate_variable(maximum, &#34;maximum&#34;)
+
     if minimum &gt; maximum:
         raise ValueError(
             &#34;The interval is invalid. `minimum` must be lower or equal to&#34;
-            &#34; `maximum`. Currently it is `{0}` &lt;= `{1}`, which does not hold.&#34;.format(
-                minimum, maximum))
+            &#34; `maximum`. Currently it is `{0}` &lt;= `{1}`, which does not hold.&#34;.format(minimum, maximum)
+        )
 
-    return Interval(minimum, maximum, precision=precision)</code></pre>
+    return Interval(minimum, maximum)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_factories.IntervalFactory.midpoint_width"><code class="name flex">
-<span>def <span class="ident">midpoint_width</span></span>(<span>midpoint: float, width: float, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
+<span>def <span class="ident">midpoint_width</span></span>(<span>midpoint: Union[float, int, str, decimal.Decimal], width: Union[float, int, str, decimal.Decimal]) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>midpoint</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>midpoint</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>width</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>width</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Precision of the interval, default value is <code>None</code>. If <code>None</code> then package wide default value is used.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1256,18 +1412,15 @@ def infimum_supremum(minimum: float, maximum: float, precision: int = None) -&gt
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def midpoint_width(midpoint: float, width: float, precision: int = None) -&gt; Interval:
+def midpoint_width(midpoint: Union[str, int, float, Decimal], width: Union[str, int, float, Decimal]) -&gt; Interval:
     &#34;&#34;&#34;
     Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].
 
     Parameters
     ----------
-    midpoint: float
+    midpoint: Union[str, int, float, Decimal]
 
-    width: float
-
-    precision: int
-        Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+    width: Union[str, int, float, Decimal]
 
     Returns
     -------
@@ -1278,21 +1431,23 @@ def midpoint_width(midpoint: float, width: float, precision: int = None) -&gt; I
     ArithmeticError
         If `width &lt; 0` which is not valid width definition.
     &#34;&#34;&#34;
+    width = FuzzyNumberFactory.validate_variable(width, &#34;width&#34;)
+    midpoint = FuzzyNumberFactory.validate_variable(midpoint, &#34;midpoint&#34;)
+
     if width &lt; 0:
-        raise ArithmeticError(&#34;`width` of interval must number higher or at least equal to 0. &#34;
-                              &#34;The value `{0}` does not fulfill this.&#34;.format(width))
+        raise ArithmeticError(
+            &#34;`width` of interval must number higher or at least equal to 0. &#34;
+            &#34;The value `{0}` does not fulfill this.&#34;.format(width)
+        )
 
-    midpoint = float(midpoint)
-    width = float(width)
+    a = midpoint - (width / Decimal(2))
+    b = midpoint + (width / Decimal(2))
 
-    a = midpoint - (width / 2)
-    b = midpoint + (width / 2)
-
-    return Interval(a, b, precision=precision)</code></pre>
+    return Interval(a, b)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_factories.IntervalFactory.parse_string"><code class="name flex">
-<span>def <span class="ident">parse_string</span></span>(<span>string: str, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
+<span>def <span class="ident">parse_string</span></span>(<span>string: str) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates <code>Interval</code> based on input string. The input string should be output of <code>__repr__()</code> function of
@@ -1300,8 +1455,6 @@ def midpoint_width(midpoint: float, width: float, precision: int = None) -&gt; I
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
 <dd>&nbsp;</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -1314,7 +1467,7 @@ def midpoint_width(midpoint: float, width: float, precision: int = None) -&gt; I
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def parse_string(string: str, precision: int = None) -&gt; Interval:
+def parse_string(string: str) -&gt; Interval:
     &#34;&#34;&#34;
     Creates `Interval` based on input string. The input string should be output of `__repr__()` function of
     `Interval`.
@@ -1322,8 +1475,6 @@ def parse_string(string: str, precision: int = None) -&gt; Interval:
     Parameters
     ----------
     string: str
-
-    precision: int
 
     Returns
     -------
@@ -1335,25 +1486,25 @@ def parse_string(string: str, precision: int = None) -&gt; Interval:
     numbers = re_values.findall(string)
 
     if len(numbers) != 2:
-        raise ValueError(&#34;Cannot parse Interval from this definition. &#34;
-                         &#34;Element does not provide 2 values (minimal and maximal).&#34;)
+        raise ValueError(
+            &#34;Cannot parse Interval from this definition. &#34;
+            &#34;Element does not provide 2 values (minimal and maximal).&#34;
+        )
 
-    return Interval(numbers[0], numbers[1], precision=precision)</code></pre>
+    return Interval(numbers[0], numbers[1])</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_factories.IntervalFactory.two_values"><code class="name flex">
-<span>def <span class="ident">two_values</span></span>(<span>a: float, b: float, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
+<span>def <span class="ident">two_values</span></span>(<span>a: Union[float, int, str, decimal.Decimal], b: Union[float, int, str, decimal.Decimal]) ‑> <a title="FuzzyMath.class_interval.Interval" href="class_interval.html#FuzzyMath.class_interval.Interval">Interval</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interval defined by two values.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>a</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>b</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Precision of the interval, default value is <code>None</code>. If <code>None</code> then package wide default value is used.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1365,24 +1516,21 @@ def parse_string(string: str, precision: int = None) -&gt; Interval:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def two_values(a: float, b: float, precision: int = None) -&gt; Interval:
+def two_values(a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]) -&gt; Interval:
     &#34;&#34;&#34;
     Interval defined by two values.
 
     Parameters
     ----------
-    a: float
+    a: Union[str, int, float, Decimal]
 
-    b: float
-
-    precision: int
-        Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+    b: Union[str, int, float, Decimal]
 
     Returns
     -------
     Interval
     &#34;&#34;&#34;
-    return Interval(a, b, precision=precision)</code></pre>
+    return Interval(a, b)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1403,6 +1551,13 @@ def two_values(a: float, b: float, precision: int = None) -&gt; Interval:
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="FuzzyMath.class_factories.FactoryBase" href="#FuzzyMath.class_factories.FactoryBase">FactoryBase</a></code></h4>
+<ul class="">
+<li><code><a title="FuzzyMath.class_factories.FactoryBase.validate_alphas" href="#FuzzyMath.class_factories.FactoryBase.validate_alphas">validate_alphas</a></code></li>
+<li><code><a title="FuzzyMath.class_factories.FactoryBase.validate_variable" href="#FuzzyMath.class_factories.FactoryBase.validate_variable">validate_variable</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="FuzzyMath.class_factories.FuzzyNumberFactory" href="#FuzzyMath.class_factories.FuzzyNumberFactory">FuzzyNumberFactory</a></code></h4>
 <ul class="">

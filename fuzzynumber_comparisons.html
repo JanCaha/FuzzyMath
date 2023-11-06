@@ -26,31 +26,28 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import List
+<pre><code class="python">from decimal import Decimal
+from typing import List
 
 from .class_fuzzy_number import FuzzyNumber
 from .class_memberships import PossibilisticMembership
 
 
-def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.max &lt;= fn_b.min:
-        return 0
+        return Decimal(0)
 
     elif fn_a.kernel_min &gt;= fn_b.kernel_min:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
@@ -58,126 +55,110 @@ def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
 
         alphas.reverse()
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=-1)
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=-1)
 
 
-def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.kernel_min &lt;= fn_b.min:
-        return 0
+        return Decimal(0)
 
     elif fn_a.min &gt;= fn_b.kernel_min:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
             index += 1
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=-1)
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=-1)
 
 
-def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.max &lt; fn_b.max:
-        return 0
+        return Decimal(0)
 
     elif fn_a.kernel_min &gt; fn_b.max:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
             index += 1
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=1)
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=1)
 
 
-def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.kernel_min &lt; fn_b.kernel_max:
-        return 0
+        return Decimal(0)
 
     elif fn_a.min &gt; fn_b.max:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
             index += 1
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=1)
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=1)
 
 
-def possibility_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - necessity_strict_exceedance(fn_a, fn_b)
+def possibility_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - necessity_strict_exceedance(fn_a, fn_b)
 
 
-def necessity_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - possibility_strict_exceedance(fn_a, fn_b)
+def necessity_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - possibility_strict_exceedance(fn_a, fn_b)
 
 
-def possibility_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - necessity_exceedance(fn_a, fn_b)
+def possibility_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - necessity_exceedance(fn_a, fn_b)
 
 
-def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - possibility_exceedance(fn_a, fn_b)
+def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - possibility_exceedance(fn_a, fn_b)
 
 
-def __value_intersection_y(fn_a_values: List[float],
-                           fn_b_values: List[float],
-                           alphas: List[float],
-                           index: int,
-                           index_change: int):
+def __value_intersection_y(
+    fn_a_values: List[float], fn_b_values: List[float], alphas: List[float], index: int, index_change: int
+):
+    return __intersection_y(
+        fn_a_values[index],
+        alphas[index],
+        fn_a_values[index + index_change],
+        alphas[index + index_change],
+        fn_b_values[index],
+        alphas[index],
+        fn_b_values[index + index_change],
+        alphas[index + index_change],
+    )
 
-    return __intersection_y(fn_a_values[index], alphas[index],
-                            fn_a_values[index + index_change], alphas[index + index_change],
-                            fn_b_values[index], alphas[index],
-                            fn_b_values[index + index_change], alphas[index + index_change])
 
-
-def __intersection_y(x1, y1,
-                     x2, y2,
-                     x3, y3,
-                     x4, y4):
+def __intersection_y(x1, y1, x2, y2, x3, y3, x4, y4):
     x12 = x1 - x2
     x34 = x3 - x4
     y12 = y1 - y2
@@ -195,27 +176,21 @@ def __intersection_y(x1, y1,
 
 
 def exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_exceedance(fn_a, fn_b),
-                                   necessity_exceedance(fn_a, fn_b))
+    return PossibilisticMembership(possibility_exceedance(fn_a, fn_b), necessity_exceedance(fn_a, fn_b))
 
 
 def strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_strict_exceedance(fn_a, fn_b),
-                                   necessity_strict_exceedance(fn_a, fn_b))
+    return PossibilisticMembership(possibility_strict_exceedance(fn_a, fn_b), necessity_strict_exceedance(fn_a, fn_b))
 
 
 def undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_undervaluation(fn_a, fn_b),
-                                   necessity_undervaluation(fn_a, fn_b))
+    return PossibilisticMembership(possibility_undervaluation(fn_a, fn_b), necessity_undervaluation(fn_a, fn_b))
 
 
 def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_strict_undervaluation(fn_a, fn_b),
-                                   necessity_strict_undervaluation(fn_a, fn_b))</code></pre>
+    return PossibilisticMembership(
+        possibility_strict_undervaluation(fn_a, fn_b), necessity_strict_undervaluation(fn_a, fn_b)
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -235,13 +210,11 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_exceedance(fn_a, fn_b),
-                                   necessity_exceedance(fn_a, fn_b))</code></pre>
+    return PossibilisticMembership(possibility_exceedance(fn_a, fn_b), necessity_exceedance(fn_a, fn_b))</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.necessity_exceedance"><code class="name flex">
-<span>def <span class="ident">necessity_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">necessity_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -249,36 +222,31 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+<pre><code class="python">def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.kernel_min &lt;= fn_b.min:
-        return 0
+        return Decimal(0)
 
     elif fn_a.min &gt;= fn_b.kernel_min:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
             index += 1
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=-1)</code></pre>
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=-1)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.necessity_strict_exceedance"><code class="name flex">
-<span>def <span class="ident">necessity_strict_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">necessity_strict_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -286,36 +254,31 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+<pre><code class="python">def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.kernel_min &lt; fn_b.kernel_max:
-        return 0
+        return Decimal(0)
 
     elif fn_a.min &gt; fn_b.max:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
             index += 1
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=1)</code></pre>
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=1)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.necessity_strict_undervaluation"><code class="name flex">
-<span>def <span class="ident">necessity_strict_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">necessity_strict_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -323,12 +286,12 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - possibility_exceedance(fn_a, fn_b)</code></pre>
+<pre><code class="python">def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - possibility_exceedance(fn_a, fn_b)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.necessity_undervaluation"><code class="name flex">
-<span>def <span class="ident">necessity_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">necessity_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -336,12 +299,12 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - possibility_strict_exceedance(fn_a, fn_b)</code></pre>
+<pre><code class="python">def necessity_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - possibility_strict_exceedance(fn_a, fn_b)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.possibility_exceedance"><code class="name flex">
-<span>def <span class="ident">possibility_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">possibility_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -349,25 +312,21 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+<pre><code class="python">def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.max &lt;= fn_b.min:
-        return 0
+        return Decimal(0)
 
     elif fn_a.kernel_min &gt;= fn_b.kernel_min:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
@@ -375,12 +334,11 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 
         alphas.reverse()
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=-1)</code></pre>
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=-1)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.possibility_strict_exceedance"><code class="name flex">
-<span>def <span class="ident">possibility_strict_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">possibility_strict_exceedance</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -388,36 +346,31 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-
+<pre><code class="python">def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
     if fn_a.max &lt; fn_b.max:
-        return 0
+        return Decimal(0)
 
     elif fn_a.kernel_min &gt; fn_b.max:
-        return 1
+        return Decimal(1)
 
     else:
-
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels,
-                                             fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
 
         index = 0
         for i in range(len(alphas)):
-
             if fn_a_values[i] &gt;= fn_b_values[i]:
                 break
 
             index += 1
 
-        return __value_intersection_y(fn_a_values, fn_b_values, alphas,
-                                      index=index, index_change=1)</code></pre>
+        return __value_intersection_y(fn_a_values, fn_b_values, alphas, index=index, index_change=1)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.possibility_strict_undervaluation"><code class="name flex">
-<span>def <span class="ident">possibility_strict_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">possibility_strict_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -425,12 +378,12 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - necessity_exceedance(fn_a, fn_b)</code></pre>
+<pre><code class="python">def possibility_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - necessity_exceedance(fn_a, fn_b)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.possibility_undervaluation"><code class="name flex">
-<span>def <span class="ident">possibility_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> float</span>
+<span>def <span class="ident">possibility_undervaluation</span></span>(<span>fn_a: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>, fn_b: <a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="class_fuzzy_number.html#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a>) ‑> decimal.Decimal</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -438,8 +391,8 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; float:
-    return 1 - necessity_strict_exceedance(fn_a, fn_b)</code></pre>
+<pre><code class="python">def possibility_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Decimal:
+    return Decimal(1) - necessity_strict_exceedance(fn_a, fn_b)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.strict_exceedance"><code class="name flex">
@@ -452,9 +405,7 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_strict_exceedance(fn_a, fn_b),
-                                   necessity_strict_exceedance(fn_a, fn_b))</code></pre>
+    return PossibilisticMembership(possibility_strict_exceedance(fn_a, fn_b), necessity_strict_exceedance(fn_a, fn_b))</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.strict_undervaluation"><code class="name flex">
@@ -467,9 +418,9 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_strict_undervaluation(fn_a, fn_b),
-                                   necessity_strict_undervaluation(fn_a, fn_b))</code></pre>
+    return PossibilisticMembership(
+        possibility_strict_undervaluation(fn_a, fn_b), necessity_strict_undervaluation(fn_a, fn_b)
+    )</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.fuzzynumber_comparisons.undervaluation"><code class="name flex">
@@ -482,9 +433,7 @@ def strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; Possibilis
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -&gt; PossibilisticMembership:
-
-    return PossibilisticMembership(possibility_undervaluation(fn_a, fn_b),
-                                   necessity_undervaluation(fn_a, fn_b))</code></pre>
+    return PossibilisticMembership(possibility_undervaluation(fn_a, fn_b), necessity_undervaluation(fn_a, fn_b))</code></pre>
 </details>
 </dd>
 </dl>

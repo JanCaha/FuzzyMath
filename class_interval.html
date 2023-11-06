@@ -27,16 +27,16 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from __future__ import annotations
-from typing import Callable
-from types import FunctionType, BuiltinFunctionType
-from inspect import signature, BoundArguments
+
 import math
-import warnings
+from decimal import Decimal, InvalidOperation
+from inspect import BoundArguments, signature
+from types import BuiltinFunctionType, FunctionType
+from typing import Callable, Union
 
 import numpy as np
 
-from .fuzzymath_utils import (get_precision,
-                              set_up_precision)
+from .class_precision import FuzzyMathPrecision
 
 
 class Interval:
@@ -47,182 +47,50 @@ class Interval:
 
     Attributes
     ----------
-    _min: float
+    _min: Decimal
         Minimal value of interval.
 
-    _max: float
+    _max: Decimal
         Maximal value of interval.
-
-    _precision: int
-        Number of decimals used as precision for this interval.
 
     _degenerate: bool
         Is the interval degenerate? Degenerate interval have _min == _max.
     &#34;&#34;&#34;
 
-    __slots__ = (&#34;_min&#34;, &#34;_max&#34;, &#34;_precision&#34;, &#34;_degenerate&#34;)
+    __slots__ = (&#34;_min&#34;, &#34;_max&#34;, &#34;_degenerate&#34;)
 
-    def __init__(self, a: float, b: float, precision: int = None):
+    def __init__(self, a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]):
         &#34;&#34;&#34;
         Default constructor of interval. But generally it is more useful to use functions `IntervalFactory.infimum_supremum()`,
-         `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
+        `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
 
         Parameters
         ----------
-        a: float
-        b: float
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        a: Union[str, int, float, Decimal]
+        b: Union[str, int, float, Decimal]
         &#34;&#34;&#34;
-        a = float(a)
-        b = float(b)
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
+        try:
+            a = FuzzyMathPrecision.prepare_number(Decimal(a)).normalize()
+        except InvalidOperation as e:
+            raise InvalidOperation(f&#34;Cannot convert value `{a}` to number.&#34;) from e
+
+        try:
+            b = FuzzyMathPrecision.prepare_number(Decimal(b)).normalize()
+        except InvalidOperation as e:
+            raise InvalidOperation(f&#34;Cannot convert value `{b}` to number.&#34;) from e
 
         self._degenerate = False
 
-        minimum = min(a, b)
-        maximum = max(a, b)
-
-        self._precision = int(precision)
-        self._min = round(minimum, self._precision)
-        self._max = round(maximum, self._precision)
+        if a.is_nan() or b.is_nan():
+            self._min = Decimal(&#34;nan&#34;)
+            self._max = Decimal(&#34;nan&#34;)
+        else:
+            self._min = min(a, b)
+            self._max = max(a, b)
 
         if self._min == self._max:
             self._degenerate = True
-
-    @classmethod
-    def empty(cls) -&gt; Interval:
-        &#34;&#34;&#34;
-        Creates empty interval, which has no values.
-
-        Returns
-        -------
-        Interval
-        &#34;&#34;&#34;
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.empty()
-
-    @classmethod
-    def infimum_supremum(cls, minimum: float, maximum: float, precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Interval defined by minimum and maximum.
-
-        Parameters
-        ----------
-        minimum: float
-
-        maximum: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-        Returns
-        -------
-        Interval
-
-        Raises
-        -------
-        ValueError
-            If `minimum &gt; maximum` which is not valid interval for this definition.
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.infimum_supremum(minimum, maximum, precision=precision)
-
-    @classmethod
-    def two_values(cls, a: float, b: float, precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Interval defined by two values.
-
-        Parameters
-        ----------
-        a: float
-
-        b: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-        Returns
-        -------
-        Interval
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.two_values(a, b, precision=precision)
-
-    @classmethod
-    def midpoint_width(cls, midpoint: float, width: float, precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].
-
-        Parameters
-        ----------
-        midpoint: float
-
-        width: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-        Returns
-        -------
-        Interval
-
-        Raises
-        -------
-        ArithmeticError
-            If `width &lt; 0` which is not valid width definition.
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.midpoint_width(midpoint, width, precision=precision)
-
-    @classmethod
-    def parse_string(cls,
-                     string: str,
-                     precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Creates `Interval` based on input string. The input string should be output of `__repr__()` function of
-        `Interval`.
-
-        Parameters
-        ----------
-        string: str
-
-        precision: int
-
-        Returns
-        -------
-        Interval
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.parse_string(string, precision=precision)
 
     def __repr__(self):
         &#34;&#34;&#34;
@@ -235,37 +103,26 @@ class Interval:
         return &#34;[{0}, {1}]&#34;.format(self.min, self.max)
 
     @property
-    def min(self) -&gt; float:
+    def min(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Minimal value of `Interval`.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         return self._min
 
     @property
-    def max(self) -&gt; float:
+    def max(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Maximal value of `Interval`.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         return self._max
-
-    @property
-    def precision(self) -&gt; int:
-        &#34;&#34;&#34;
-        Returns precision used in this `Interval`.
-
-        Returns
-        -------
-        int
-        &#34;&#34;&#34;
-        return int(self._precision)
 
     @property
     def degenerate(self) -&gt; bool:
@@ -279,24 +136,24 @@ class Interval:
         return self._degenerate
 
     @property
-    def width(self) -&gt; float:
+    def width(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Width of interval. Width is equal to maximum - minimum.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         return self._max - self._min
 
     @property
-    def mid_point(self) -&gt; float:
+    def mid_point(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Middle point of `Interval`. Middle point is calculated as (minimum + maximum) / 2.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         if self.degenerate:
             return self._min
@@ -315,13 +172,14 @@ class Interval:
         return math.isnan(self.min) and math.isnan(self.max)
 
     def __contains__(self, item) -&gt; bool:
-        if isinstance(item, (int, float)):
+        if isinstance(item, (int, float, Decimal)):
             return self.min &lt;= item &lt;= self.max
         elif isinstance(item, Interval):
             return self.min &lt;= item.min and item.max &lt;= self.max
         else:
-            raise TypeError(&#34;Cannot test if object of type `{0}` is in Interval. Only implemented for `float`, &#34;
-                            &#34;`int` and `Interval`.&#34;.format(type(item).__name__))
+            raise TypeError(
+                f&#34;Cannot test if object of type `{type(item).__name__}` is in Interval. Only implemented for `float`, `int` and `Interval`.&#34;
+            )
 
     def intersects(self, other: Interval) -&gt; bool:
         &#34;&#34;&#34;
@@ -363,8 +221,9 @@ class Interval:
         if self.intersects(other):
             return Interval(max(self.min, other.min), min(self.max, other.max))
         else:
-            raise ArithmeticError(&#34;Intervals `{0}` and `{1}` do not intersect, &#34;
-                                  &#34;cannot construct intersection.&#34;.format(self, other))
+            raise ArithmeticError(
+                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct intersection.&#34;.format(self, other)
+            )
 
     def union(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -386,8 +245,9 @@ class Interval:
         if self.intersects(other):
             return Interval(min(self.min, other.min), max(self.max, other.max))
         else:
-            raise ArithmeticError(&#34;Intervals `{0}` and `{1}` do not intersect, &#34;
-                                  &#34;cannot construct valid union.&#34;.format(self, other))
+            raise ArithmeticError(
+                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct valid union.&#34;.format(self, other)
+            )
 
     def union_hull(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -453,12 +313,9 @@ class Interval:
         &#34;&#34;&#34;
         return 0 &lt;= self.mid_point
 
-    def apply_function(self,
-                       function: Callable,
-                       *args,
-                       monotone: bool = False,
-                       number_elements: float = 1000,
-                       **kwargs) -&gt; Interval:
+    def apply_function(
+        self, function: Callable, *args, monotone: bool = False, number_elements: Union[float, Decimal] = 1000, **kwargs
+    ) -&gt; Interval:
         &#34;&#34;&#34;
         Apply mathematical function to interval.
 
@@ -486,39 +343,34 @@ class Interval:
         &#34;&#34;&#34;
 
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
-            raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;
-                            .format(type(function).__name__))
+            raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;.format(type(function).__name__))
 
         if self.degenerate:
             elements = [self.min]
         elif monotone:
             elements = [self.min, self.max]
         else:
-            step = (self.max - self.min) / number_elements
+            step = (self.max - self.min) / Decimal(number_elements)
 
-            elements = np.arange(self.min,
-                                 self.max + 0.1 * step,
-                                 step=step).tolist()
-
-            elements = [round(x, self.precision) for x in elements]
+            elements = np.arange(self.min, self.max + (Decimal(0.1) * step), step=step).tolist()
 
         function_signature = signature(function)
 
         results = [0] * len(elements)
 
-        for i in range(0, len(elements)):
-            bound_params: BoundArguments = function_signature.bind(elements[i], *args, **kwargs)
+        for i, element in enumerate(elements):
+            bound_params: BoundArguments = function_signature.bind(element, *args, **kwargs)
             bound_params.apply_defaults()
 
             results[i] = function(*bound_params.args, **bound_params.kwargs)
 
-        return Interval(min(results), max(results), precision=self.precision)
+        return Interval(min(results), max(results))
 
     def __add__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            return Interval(self.min + other, self.max + other, precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(self.min + Decimal(other), self.max + Decimal(other))
         elif isinstance(other, Interval):
-            return Interval(self.min + other.min, self.max + other.max, precision=min(self.precision, other.precision))
+            return Interval(self.min + other.min, self.max + other.max)
         else:
             return NotImplemented
 
@@ -526,113 +378,97 @@ class Interval:
         return self + other
 
     def __sub__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            return Interval(self.min - other, self.max - other, precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(self.min - Decimal(other), self.max - Decimal(other))
         elif isinstance(other, Interval):
-            return Interval(self.min - other.max, self.max - other.min, precision=min(self.precision, other.precision))
+            return Interval(self.min - other.max, self.max - other.min)
         else:
             return NotImplemented
 
     def __rsub__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            return Interval(other - self.min, other - self.max, precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(Decimal(other) - self.min, Decimal(other) - self.max)
         else:
             return NotImplemented
 
     def __mul__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            values = [self.min * other,
-                      self.min * other,
-                      self.max * other,
-                      self.max * other]
-            return Interval(min(values), max(values), precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            values = [
+                self.min * Decimal(other),
+                self.min * Decimal(other),
+                self.max * Decimal(other),
+                self.max * Decimal(other),
+            ]
+            return Interval(min(values), max(values))
         elif isinstance(other, Interval):
-            values = [self.min * other.min,
-                      self.min * other.max,
-                      self.max * other.min,
-                      self.max * other.max]
-            return Interval(min(values), max(values), precision=min(self.precision, other.precision))
+            values = [self.min * other.min, self.min * other.max, self.max * other.min, self.max * other.max]
+            return Interval(min(values), max(values))
         else:
             return NotImplemented
 
     def __rmul__(self, other) -&gt; Interval:
-
         return self * other
 
     def __truediv__(self, other) -&gt; Interval:
-
-        if isinstance(other, (float, int)):
-
+        if isinstance(other, (float, int, Decimal)):
             if other == 0:
                 raise ArithmeticError(&#34;Cannot divide by 0.&#34;)
 
-            values = [self.min / other,
-                      self.min / other,
-                      self.max / other,
-                      self.max / other]
+            values = [
+                self.min / Decimal(other),
+                self.min / Decimal(other),
+                self.max / Decimal(other),
+                self.max / Decimal(other),
+            ]
 
-            return Interval(min(values), max(values), precision=self.precision)
+            return Interval(min(values), max(values))
 
         elif isinstance(other, Interval):
-
             if 0 in other:
+                raise ArithmeticError(f&#34;Cannot divide by interval that contains `0`. The interval is `{other}`.&#34;)
 
-                raise ArithmeticError(&#34;Cannot divide by interval that contains `0`. &#34;
-                                      &#34;The interval is `{0}`.&#34;.format(other))
+            values = [self.min / other.min, self.min / other.max, self.max / other.min, self.max / other.max]
 
-            values = [self.min / other.min,
-                      self.min / other.max,
-                      self.max / other.min,
-                      self.max / other.max]
-
-            return Interval(min(values), max(values), precision=min(self.precision, other.precision))
+            return Interval(min(values), max(values))
 
         else:
-
             return NotImplemented
 
     def __rtruediv__(self, other) -&gt; Interval:
+        if isinstance(other, (float, int, Decimal)):
+            values = [
+                Decimal(other) / self.min,
+                Decimal(other) / self.min,
+                Decimal(other) / self.max,
+                Decimal(other) / self.max,
+            ]
 
-        if isinstance(other, (float, int)):
-
-            values = [other / self.min,
-                      other / self.min,
-                      other / self.max,
-                      other / self.max]
-
-            return Interval(min(values), max(values), precision=self.precision)
+            return Interval(min(values), max(values))
 
         else:
-
             return NotImplemented
 
     def __pow__(self, power) -&gt; Interval:
-
         if isinstance(power, int):
-
-            min_power = self.min ** power
-            max_power = self.max ** power
+            min_power = self.min ** Decimal(power)
+            max_power = self.max ** Decimal(power)
 
             if (power % 2) == 0:
-
                 if self.min &lt;= 0 &lt;= self.max:
-                    min_res = min(0, max(min_power, max_power))
-                    max_res = max(0, max(min_power, max_power))
+                    min_res = min(Decimal(0), max(min_power, max_power))
+                    max_res = max(Decimal(0), min_power, max_power)
 
                 else:
-
                     min_res = min(min_power, max_power)
                     max_res = max(min_power, max_power)
 
             else:
-
                 min_res = min(min_power, max_power)
                 max_res = max(min_power, max_power)
 
-            return Interval(min_res, max_res, precision=self.precision)
+            return Interval(min_res, max_res)
 
         else:
-
             return NotImplemented
 
     # def __abs__(self):
@@ -640,32 +476,23 @@ class Interval:
     #                                math.fabs(self.max), precision=self.precision)
 
     def __neg__(self) -&gt; Interval:
-
-        return Interval(self.min * (-1), self.max * (-1), precision=self.precision)
+        return Interval(self.min * (-1), self.max * (-1))
 
     def __eq__(self, other) -&gt; bool:
-
         if isinstance(other, Interval):
-
-            return self.min == other.min and \
-                self.max == other.max and \
-                self.precision == other.precision
+            return self.min == other.min and self.max == other.max
 
         else:
-
             return NotImplemented
 
     def __lt__(self, other) -&gt; bool:
-
         return self.max &lt; other.min
 
     def __gt__(self, other) -&gt; bool:
-
         return self.min &gt; other.max
 
     def __hash__(self) -&gt; int:
-
-        return hash((self.min, self.max, self.precision))</code></pre>
+        return hash((self.min, self.max))</code></pre>
 </details>
 </section>
 <section>
@@ -679,19 +506,17 @@ class Interval:
 <dl>
 <dt id="FuzzyMath.class_interval.Interval"><code class="flex name class">
 <span>class <span class="ident">Interval</span></span>
-<span>(</span><span>a: float, b: float, precision: int = None)</span>
+<span>(</span><span>a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interval representation.</p>
 <p>&hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>_min</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>_min</code></strong> :&ensp;<code>Decimal</code></dt>
 <dd>Minimal value of interval.</dd>
-<dt><strong><code>_max</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>_max</code></strong> :&ensp;<code>Decimal</code></dt>
 <dd>Maximal value of interval.</dd>
-<dt><strong><code>_precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Number of decimals used as precision for this interval.</dd>
 <dt><strong><code>_degenerate</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Is the interval degenerate? Degenerate interval have _min == _max.</dd>
 </dl>
@@ -699,12 +524,10 @@ class Interval:
 <code>IntervalFactory.empty()</code>, <code>IntervalFactory.two_values()</code> and <code>IntervalFactory.midpoint_width()</code> instead of this function.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>a</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>b</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Precision of the interval, default value is <code>None</code>. If <code>None</code> then package wide default value is used.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -718,182 +541,50 @@ class Interval:
 
     Attributes
     ----------
-    _min: float
+    _min: Decimal
         Minimal value of interval.
 
-    _max: float
+    _max: Decimal
         Maximal value of interval.
-
-    _precision: int
-        Number of decimals used as precision for this interval.
 
     _degenerate: bool
         Is the interval degenerate? Degenerate interval have _min == _max.
     &#34;&#34;&#34;
 
-    __slots__ = (&#34;_min&#34;, &#34;_max&#34;, &#34;_precision&#34;, &#34;_degenerate&#34;)
+    __slots__ = (&#34;_min&#34;, &#34;_max&#34;, &#34;_degenerate&#34;)
 
-    def __init__(self, a: float, b: float, precision: int = None):
+    def __init__(self, a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]):
         &#34;&#34;&#34;
         Default constructor of interval. But generally it is more useful to use functions `IntervalFactory.infimum_supremum()`,
-         `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
+        `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
 
         Parameters
         ----------
-        a: float
-        b: float
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
+        a: Union[str, int, float, Decimal]
+        b: Union[str, int, float, Decimal]
         &#34;&#34;&#34;
-        a = float(a)
-        b = float(b)
 
-        if not precision:
-            precision = get_precision()
-        else:
-            precision = set_up_precision(precision)
+        try:
+            a = FuzzyMathPrecision.prepare_number(Decimal(a)).normalize()
+        except InvalidOperation as e:
+            raise InvalidOperation(f&#34;Cannot convert value `{a}` to number.&#34;) from e
+
+        try:
+            b = FuzzyMathPrecision.prepare_number(Decimal(b)).normalize()
+        except InvalidOperation as e:
+            raise InvalidOperation(f&#34;Cannot convert value `{b}` to number.&#34;) from e
 
         self._degenerate = False
 
-        minimum = min(a, b)
-        maximum = max(a, b)
-
-        self._precision = int(precision)
-        self._min = round(minimum, self._precision)
-        self._max = round(maximum, self._precision)
+        if a.is_nan() or b.is_nan():
+            self._min = Decimal(&#34;nan&#34;)
+            self._max = Decimal(&#34;nan&#34;)
+        else:
+            self._min = min(a, b)
+            self._max = max(a, b)
 
         if self._min == self._max:
             self._degenerate = True
-
-    @classmethod
-    def empty(cls) -&gt; Interval:
-        &#34;&#34;&#34;
-        Creates empty interval, which has no values.
-
-        Returns
-        -------
-        Interval
-        &#34;&#34;&#34;
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.empty()
-
-    @classmethod
-    def infimum_supremum(cls, minimum: float, maximum: float, precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Interval defined by minimum and maximum.
-
-        Parameters
-        ----------
-        minimum: float
-
-        maximum: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-        Returns
-        -------
-        Interval
-
-        Raises
-        -------
-        ValueError
-            If `minimum &gt; maximum` which is not valid interval for this definition.
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.infimum_supremum(minimum, maximum, precision=precision)
-
-    @classmethod
-    def two_values(cls, a: float, b: float, precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Interval defined by two values.
-
-        Parameters
-        ----------
-        a: float
-
-        b: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-        Returns
-        -------
-        Interval
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.two_values(a, b, precision=precision)
-
-    @classmethod
-    def midpoint_width(cls, midpoint: float, width: float, precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].
-
-        Parameters
-        ----------
-        midpoint: float
-
-        width: float
-
-        precision: int
-            Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-        Returns
-        -------
-        Interval
-
-        Raises
-        -------
-        ArithmeticError
-            If `width &lt; 0` which is not valid width definition.
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.midpoint_width(midpoint, width, precision=precision)
-
-    @classmethod
-    def parse_string(cls,
-                     string: str,
-                     precision: int = None) -&gt; Interval:
-        &#34;&#34;&#34;
-        Creates `Interval` based on input string. The input string should be output of `__repr__()` function of
-        `Interval`.
-
-        Parameters
-        ----------
-        string: str
-
-        precision: int
-
-        Returns
-        -------
-        Interval
-        &#34;&#34;&#34;
-
-        warnings.warn(
-            &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-            DeprecationWarning)
-
-        from .class_factories import IntervalFactory
-        return IntervalFactory.parse_string(string, precision=precision)
 
     def __repr__(self):
         &#34;&#34;&#34;
@@ -906,37 +597,26 @@ class Interval:
         return &#34;[{0}, {1}]&#34;.format(self.min, self.max)
 
     @property
-    def min(self) -&gt; float:
+    def min(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Minimal value of `Interval`.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         return self._min
 
     @property
-    def max(self) -&gt; float:
+    def max(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Maximal value of `Interval`.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         return self._max
-
-    @property
-    def precision(self) -&gt; int:
-        &#34;&#34;&#34;
-        Returns precision used in this `Interval`.
-
-        Returns
-        -------
-        int
-        &#34;&#34;&#34;
-        return int(self._precision)
 
     @property
     def degenerate(self) -&gt; bool:
@@ -950,24 +630,24 @@ class Interval:
         return self._degenerate
 
     @property
-    def width(self) -&gt; float:
+    def width(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Width of interval. Width is equal to maximum - minimum.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         return self._max - self._min
 
     @property
-    def mid_point(self) -&gt; float:
+    def mid_point(self) -&gt; Decimal:
         &#34;&#34;&#34;
         Middle point of `Interval`. Middle point is calculated as (minimum + maximum) / 2.
 
         Returns
         -------
-        float
+        Decimal
         &#34;&#34;&#34;
         if self.degenerate:
             return self._min
@@ -986,13 +666,14 @@ class Interval:
         return math.isnan(self.min) and math.isnan(self.max)
 
     def __contains__(self, item) -&gt; bool:
-        if isinstance(item, (int, float)):
+        if isinstance(item, (int, float, Decimal)):
             return self.min &lt;= item &lt;= self.max
         elif isinstance(item, Interval):
             return self.min &lt;= item.min and item.max &lt;= self.max
         else:
-            raise TypeError(&#34;Cannot test if object of type `{0}` is in Interval. Only implemented for `float`, &#34;
-                            &#34;`int` and `Interval`.&#34;.format(type(item).__name__))
+            raise TypeError(
+                f&#34;Cannot test if object of type `{type(item).__name__}` is in Interval. Only implemented for `float`, `int` and `Interval`.&#34;
+            )
 
     def intersects(self, other: Interval) -&gt; bool:
         &#34;&#34;&#34;
@@ -1034,8 +715,9 @@ class Interval:
         if self.intersects(other):
             return Interval(max(self.min, other.min), min(self.max, other.max))
         else:
-            raise ArithmeticError(&#34;Intervals `{0}` and `{1}` do not intersect, &#34;
-                                  &#34;cannot construct intersection.&#34;.format(self, other))
+            raise ArithmeticError(
+                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct intersection.&#34;.format(self, other)
+            )
 
     def union(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -1057,8 +739,9 @@ class Interval:
         if self.intersects(other):
             return Interval(min(self.min, other.min), max(self.max, other.max))
         else:
-            raise ArithmeticError(&#34;Intervals `{0}` and `{1}` do not intersect, &#34;
-                                  &#34;cannot construct valid union.&#34;.format(self, other))
+            raise ArithmeticError(
+                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct valid union.&#34;.format(self, other)
+            )
 
     def union_hull(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -1124,12 +807,9 @@ class Interval:
         &#34;&#34;&#34;
         return 0 &lt;= self.mid_point
 
-    def apply_function(self,
-                       function: Callable,
-                       *args,
-                       monotone: bool = False,
-                       number_elements: float = 1000,
-                       **kwargs) -&gt; Interval:
+    def apply_function(
+        self, function: Callable, *args, monotone: bool = False, number_elements: Union[float, Decimal] = 1000, **kwargs
+    ) -&gt; Interval:
         &#34;&#34;&#34;
         Apply mathematical function to interval.
 
@@ -1157,39 +837,34 @@ class Interval:
         &#34;&#34;&#34;
 
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
-            raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;
-                            .format(type(function).__name__))
+            raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;.format(type(function).__name__))
 
         if self.degenerate:
             elements = [self.min]
         elif monotone:
             elements = [self.min, self.max]
         else:
-            step = (self.max - self.min) / number_elements
+            step = (self.max - self.min) / Decimal(number_elements)
 
-            elements = np.arange(self.min,
-                                 self.max + 0.1 * step,
-                                 step=step).tolist()
-
-            elements = [round(x, self.precision) for x in elements]
+            elements = np.arange(self.min, self.max + (Decimal(0.1) * step), step=step).tolist()
 
         function_signature = signature(function)
 
         results = [0] * len(elements)
 
-        for i in range(0, len(elements)):
-            bound_params: BoundArguments = function_signature.bind(elements[i], *args, **kwargs)
+        for i, element in enumerate(elements):
+            bound_params: BoundArguments = function_signature.bind(element, *args, **kwargs)
             bound_params.apply_defaults()
 
             results[i] = function(*bound_params.args, **bound_params.kwargs)
 
-        return Interval(min(results), max(results), precision=self.precision)
+        return Interval(min(results), max(results))
 
     def __add__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            return Interval(self.min + other, self.max + other, precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(self.min + Decimal(other), self.max + Decimal(other))
         elif isinstance(other, Interval):
-            return Interval(self.min + other.min, self.max + other.max, precision=min(self.precision, other.precision))
+            return Interval(self.min + other.min, self.max + other.max)
         else:
             return NotImplemented
 
@@ -1197,113 +872,97 @@ class Interval:
         return self + other
 
     def __sub__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            return Interval(self.min - other, self.max - other, precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(self.min - Decimal(other), self.max - Decimal(other))
         elif isinstance(other, Interval):
-            return Interval(self.min - other.max, self.max - other.min, precision=min(self.precision, other.precision))
+            return Interval(self.min - other.max, self.max - other.min)
         else:
             return NotImplemented
 
     def __rsub__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            return Interval(other - self.min, other - self.max, precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(Decimal(other) - self.min, Decimal(other) - self.max)
         else:
             return NotImplemented
 
     def __mul__(self, other) -&gt; Interval:
-        if isinstance(other, (float, int)):
-            values = [self.min * other,
-                      self.min * other,
-                      self.max * other,
-                      self.max * other]
-            return Interval(min(values), max(values), precision=self.precision)
+        if isinstance(other, (float, int, Decimal)):
+            values = [
+                self.min * Decimal(other),
+                self.min * Decimal(other),
+                self.max * Decimal(other),
+                self.max * Decimal(other),
+            ]
+            return Interval(min(values), max(values))
         elif isinstance(other, Interval):
-            values = [self.min * other.min,
-                      self.min * other.max,
-                      self.max * other.min,
-                      self.max * other.max]
-            return Interval(min(values), max(values), precision=min(self.precision, other.precision))
+            values = [self.min * other.min, self.min * other.max, self.max * other.min, self.max * other.max]
+            return Interval(min(values), max(values))
         else:
             return NotImplemented
 
     def __rmul__(self, other) -&gt; Interval:
-
         return self * other
 
     def __truediv__(self, other) -&gt; Interval:
-
-        if isinstance(other, (float, int)):
-
+        if isinstance(other, (float, int, Decimal)):
             if other == 0:
                 raise ArithmeticError(&#34;Cannot divide by 0.&#34;)
 
-            values = [self.min / other,
-                      self.min / other,
-                      self.max / other,
-                      self.max / other]
+            values = [
+                self.min / Decimal(other),
+                self.min / Decimal(other),
+                self.max / Decimal(other),
+                self.max / Decimal(other),
+            ]
 
-            return Interval(min(values), max(values), precision=self.precision)
+            return Interval(min(values), max(values))
 
         elif isinstance(other, Interval):
-
             if 0 in other:
+                raise ArithmeticError(f&#34;Cannot divide by interval that contains `0`. The interval is `{other}`.&#34;)
 
-                raise ArithmeticError(&#34;Cannot divide by interval that contains `0`. &#34;
-                                      &#34;The interval is `{0}`.&#34;.format(other))
+            values = [self.min / other.min, self.min / other.max, self.max / other.min, self.max / other.max]
 
-            values = [self.min / other.min,
-                      self.min / other.max,
-                      self.max / other.min,
-                      self.max / other.max]
-
-            return Interval(min(values), max(values), precision=min(self.precision, other.precision))
+            return Interval(min(values), max(values))
 
         else:
-
             return NotImplemented
 
     def __rtruediv__(self, other) -&gt; Interval:
+        if isinstance(other, (float, int, Decimal)):
+            values = [
+                Decimal(other) / self.min,
+                Decimal(other) / self.min,
+                Decimal(other) / self.max,
+                Decimal(other) / self.max,
+            ]
 
-        if isinstance(other, (float, int)):
-
-            values = [other / self.min,
-                      other / self.min,
-                      other / self.max,
-                      other / self.max]
-
-            return Interval(min(values), max(values), precision=self.precision)
+            return Interval(min(values), max(values))
 
         else:
-
             return NotImplemented
 
     def __pow__(self, power) -&gt; Interval:
-
         if isinstance(power, int):
-
-            min_power = self.min ** power
-            max_power = self.max ** power
+            min_power = self.min ** Decimal(power)
+            max_power = self.max ** Decimal(power)
 
             if (power % 2) == 0:
-
                 if self.min &lt;= 0 &lt;= self.max:
-                    min_res = min(0, max(min_power, max_power))
-                    max_res = max(0, max(min_power, max_power))
+                    min_res = min(Decimal(0), max(min_power, max_power))
+                    max_res = max(Decimal(0), min_power, max_power)
 
                 else:
-
                     min_res = min(min_power, max_power)
                     max_res = max(min_power, max_power)
 
             else:
-
                 min_res = min(min_power, max_power)
                 max_res = max(min_power, max_power)
 
-            return Interval(min_res, max_res, precision=self.precision)
+            return Interval(min_res, max_res)
 
         else:
-
             return NotImplemented
 
     # def __abs__(self):
@@ -1311,286 +970,24 @@ class Interval:
     #                                math.fabs(self.max), precision=self.precision)
 
     def __neg__(self) -&gt; Interval:
-
-        return Interval(self.min * (-1), self.max * (-1), precision=self.precision)
+        return Interval(self.min * (-1), self.max * (-1))
 
     def __eq__(self, other) -&gt; bool:
-
         if isinstance(other, Interval):
-
-            return self.min == other.min and \
-                self.max == other.max and \
-                self.precision == other.precision
+            return self.min == other.min and self.max == other.max
 
         else:
-
             return NotImplemented
 
     def __lt__(self, other) -&gt; bool:
-
         return self.max &lt; other.min
 
     def __gt__(self, other) -&gt; bool:
-
         return self.min &gt; other.max
 
     def __hash__(self) -&gt; int:
-
-        return hash((self.min, self.max, self.precision))</code></pre>
+        return hash((self.min, self.max))</code></pre>
 </details>
-<h3>Static methods</h3>
-<dl>
-<dt id="FuzzyMath.class_interval.Interval.empty"><code class="name flex">
-<span>def <span class="ident">empty</span></span>(<span>) ‑> <a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Creates empty interval, which has no values.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def empty(cls) -&gt; Interval:
-    &#34;&#34;&#34;
-    Creates empty interval, which has no values.
-
-    Returns
-    -------
-    Interval
-    &#34;&#34;&#34;
-    warnings.warn(
-        &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-        DeprecationWarning)
-
-    from .class_factories import IntervalFactory
-    return IntervalFactory.empty()</code></pre>
-</details>
-</dd>
-<dt id="FuzzyMath.class_interval.Interval.infimum_supremum"><code class="name flex">
-<span>def <span class="ident">infimum_supremum</span></span>(<span>minimum: float, maximum: float, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Interval defined by minimum and maximum.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>minimum</code></strong> :&ensp;<code>float</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>maximum</code></strong> :&ensp;<code>float</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Precision of the interval, default value is <code>None</code>. If <code>None</code> then package wide default value is used.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>ValueError</code></dt>
-<dd>If <code>minimum &gt; maximum</code> which is not valid interval for this definition.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def infimum_supremum(cls, minimum: float, maximum: float, precision: int = None) -&gt; Interval:
-    &#34;&#34;&#34;
-    Interval defined by minimum and maximum.
-
-    Parameters
-    ----------
-    minimum: float
-
-    maximum: float
-
-    precision: int
-        Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-    Returns
-    -------
-    Interval
-
-    Raises
-    -------
-    ValueError
-        If `minimum &gt; maximum` which is not valid interval for this definition.
-    &#34;&#34;&#34;
-
-    warnings.warn(
-        &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-        DeprecationWarning)
-
-    from .class_factories import IntervalFactory
-    return IntervalFactory.infimum_supremum(minimum, maximum, precision=precision)</code></pre>
-</details>
-</dd>
-<dt id="FuzzyMath.class_interval.Interval.midpoint_width"><code class="name flex">
-<span>def <span class="ident">midpoint_width</span></span>(<span>midpoint: float, width: float, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>midpoint</code></strong> :&ensp;<code>float</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>width</code></strong> :&ensp;<code>float</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Precision of the interval, default value is <code>None</code>. If <code>None</code> then package wide default value is used.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>ArithmeticError</code></dt>
-<dd>If <code>width &lt; 0</code> which is not valid width definition.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def midpoint_width(cls, midpoint: float, width: float, precision: int = None) -&gt; Interval:
-    &#34;&#34;&#34;
-    Interval defined by midpoint and width. The interval is [midpoint - width, midpoint + width].
-
-    Parameters
-    ----------
-    midpoint: float
-
-    width: float
-
-    precision: int
-        Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-    Returns
-    -------
-    Interval
-
-    Raises
-    -------
-    ArithmeticError
-        If `width &lt; 0` which is not valid width definition.
-    &#34;&#34;&#34;
-
-    warnings.warn(
-        &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-        DeprecationWarning)
-
-    from .class_factories import IntervalFactory
-    return IntervalFactory.midpoint_width(midpoint, width, precision=precision)</code></pre>
-</details>
-</dd>
-<dt id="FuzzyMath.class_interval.Interval.parse_string"><code class="name flex">
-<span>def <span class="ident">parse_string</span></span>(<span>string: str, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Creates <code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code> based on input string. The input string should be output of <code>__repr__()</code> function of
-<code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code>.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def parse_string(cls,
-                 string: str,
-                 precision: int = None) -&gt; Interval:
-    &#34;&#34;&#34;
-    Creates `Interval` based on input string. The input string should be output of `__repr__()` function of
-    `Interval`.
-
-    Parameters
-    ----------
-    string: str
-
-    precision: int
-
-    Returns
-    -------
-    Interval
-    &#34;&#34;&#34;
-
-    warnings.warn(
-        &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-        DeprecationWarning)
-
-    from .class_factories import IntervalFactory
-    return IntervalFactory.parse_string(string, precision=precision)</code></pre>
-</details>
-</dd>
-<dt id="FuzzyMath.class_interval.Interval.two_values"><code class="name flex">
-<span>def <span class="ident">two_values</span></span>(<span>a: float, b: float, precision: int = None) ‑> <a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Interval defined by two values.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>precision</code></strong> :&ensp;<code>int</code></dt>
-<dd>Precision of the interval, default value is <code>None</code>. If <code>None</code> then package wide default value is used.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def two_values(cls, a: float, b: float, precision: int = None) -&gt; Interval:
-    &#34;&#34;&#34;
-    Interval defined by two values.
-
-    Parameters
-    ----------
-    a: float
-
-    b: float
-
-    precision: int
-        Precision of the interval, default value is `None`. If `None` then package wide default value is used.
-
-    Returns
-    -------
-    Interval
-    &#34;&#34;&#34;
-
-    warnings.warn(
-        &#34;The function is deprecated since version 0.5, use the function from `IntervalFactory` instead. The function will be removed in future version.&#34;,
-        DeprecationWarning)
-
-    from .class_factories import IntervalFactory
-    return IntervalFactory.two_values(a, b, precision=precision)</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Instance variables</h3>
 <dl>
 <dt id="FuzzyMath.class_interval.Interval.degenerate"><code class="name">var <span class="ident">degenerate</span> : bool</code></dt>
@@ -1641,12 +1038,12 @@ def is_empty(self) -&gt; bool:
     return math.isnan(self.min) and math.isnan(self.max)</code></pre>
 </details>
 </dd>
-<dt id="FuzzyMath.class_interval.Interval.max"><code class="name">var <span class="ident">max</span> : float</code></dt>
+<dt id="FuzzyMath.class_interval.Interval.max"><code class="name">var <span class="ident">max</span> : decimal.Decimal</code></dt>
 <dd>
 <div class="desc"><p>Maximal value of <code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code>.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>float</code></dt>
+<dt><code>Decimal</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -1654,23 +1051,23 @@ def is_empty(self) -&gt; bool:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def max(self) -&gt; float:
+def max(self) -&gt; Decimal:
     &#34;&#34;&#34;
     Maximal value of `Interval`.
 
     Returns
     -------
-    float
+    Decimal
     &#34;&#34;&#34;
     return self._max</code></pre>
 </details>
 </dd>
-<dt id="FuzzyMath.class_interval.Interval.mid_point"><code class="name">var <span class="ident">mid_point</span> : float</code></dt>
+<dt id="FuzzyMath.class_interval.Interval.mid_point"><code class="name">var <span class="ident">mid_point</span> : decimal.Decimal</code></dt>
 <dd>
 <div class="desc"><p>Middle point of <code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code>. Middle point is calculated as (minimum + maximum) / 2.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>float</code></dt>
+<dt><code>Decimal</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -1678,13 +1075,13 @@ def max(self) -&gt; float:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def mid_point(self) -&gt; float:
+def mid_point(self) -&gt; Decimal:
     &#34;&#34;&#34;
     Middle point of `Interval`. Middle point is calculated as (minimum + maximum) / 2.
 
     Returns
     -------
-    float
+    Decimal
     &#34;&#34;&#34;
     if self.degenerate:
         return self._min
@@ -1692,12 +1089,12 @@ def mid_point(self) -&gt; float:
         return (self._min + self.max) / 2</code></pre>
 </details>
 </dd>
-<dt id="FuzzyMath.class_interval.Interval.min"><code class="name">var <span class="ident">min</span> : float</code></dt>
+<dt id="FuzzyMath.class_interval.Interval.min"><code class="name">var <span class="ident">min</span> : decimal.Decimal</code></dt>
 <dd>
 <div class="desc"><p>Minimal value of <code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code>.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>float</code></dt>
+<dt><code>Decimal</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -1705,47 +1102,23 @@ def mid_point(self) -&gt; float:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def min(self) -&gt; float:
+def min(self) -&gt; Decimal:
     &#34;&#34;&#34;
     Minimal value of `Interval`.
 
     Returns
     -------
-    float
+    Decimal
     &#34;&#34;&#34;
     return self._min</code></pre>
 </details>
 </dd>
-<dt id="FuzzyMath.class_interval.Interval.precision"><code class="name">var <span class="ident">precision</span> : int</code></dt>
-<dd>
-<div class="desc"><p>Returns precision used in this <code><a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></code>.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>int</code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def precision(self) -&gt; int:
-    &#34;&#34;&#34;
-    Returns precision used in this `Interval`.
-
-    Returns
-    -------
-    int
-    &#34;&#34;&#34;
-    return int(self._precision)</code></pre>
-</details>
-</dd>
-<dt id="FuzzyMath.class_interval.Interval.width"><code class="name">var <span class="ident">width</span> : float</code></dt>
+<dt id="FuzzyMath.class_interval.Interval.width"><code class="name">var <span class="ident">width</span> : decimal.Decimal</code></dt>
 <dd>
 <div class="desc"><p>Width of interval. Width is equal to maximum - minimum.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>float</code></dt>
+<dt><code>Decimal</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -1753,13 +1126,13 @@ def precision(self) -&gt; int:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def width(self) -&gt; float:
+def width(self) -&gt; Decimal:
     &#34;&#34;&#34;
     Width of interval. Width is equal to maximum - minimum.
 
     Returns
     -------
-    float
+    Decimal
     &#34;&#34;&#34;
     return self._max - self._min</code></pre>
 </details>
@@ -1768,7 +1141,7 @@ def width(self) -&gt; float:
 <h3>Methods</h3>
 <dl>
 <dt id="FuzzyMath.class_interval.Interval.apply_function"><code class="name flex">
-<span>def <span class="ident">apply_function</span></span>(<span>self, function: Callable, *args, monotone: bool = False, number_elements: float = 1000, **kwargs) ‑> <a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></span>
+<span>def <span class="ident">apply_function</span></span>(<span>self, function: Callable, *args, monotone: bool = False, number_elements: Union[float, Decimal] = 1000, **kwargs) ‑> <a title="FuzzyMath.class_interval.Interval" href="#FuzzyMath.class_interval.Interval">Interval</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Apply mathematical function to interval.</p>
@@ -1794,12 +1167,9 @@ def width(self) -&gt; float:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def apply_function(self,
-                   function: Callable,
-                   *args,
-                   monotone: bool = False,
-                   number_elements: float = 1000,
-                   **kwargs) -&gt; Interval:
+<pre><code class="python">def apply_function(
+    self, function: Callable, *args, monotone: bool = False, number_elements: Union[float, Decimal] = 1000, **kwargs
+) -&gt; Interval:
     &#34;&#34;&#34;
     Apply mathematical function to interval.
 
@@ -1827,33 +1197,28 @@ def width(self) -&gt; float:
     &#34;&#34;&#34;
 
     if not isinstance(function, (FunctionType, BuiltinFunctionType)):
-        raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;
-                        .format(type(function).__name__))
+        raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;.format(type(function).__name__))
 
     if self.degenerate:
         elements = [self.min]
     elif monotone:
         elements = [self.min, self.max]
     else:
-        step = (self.max - self.min) / number_elements
+        step = (self.max - self.min) / Decimal(number_elements)
 
-        elements = np.arange(self.min,
-                             self.max + 0.1 * step,
-                             step=step).tolist()
-
-        elements = [round(x, self.precision) for x in elements]
+        elements = np.arange(self.min, self.max + (Decimal(0.1) * step), step=step).tolist()
 
     function_signature = signature(function)
 
     results = [0] * len(elements)
 
-    for i in range(0, len(elements)):
-        bound_params: BoundArguments = function_signature.bind(elements[i], *args, **kwargs)
+    for i, element in enumerate(elements):
+        bound_params: BoundArguments = function_signature.bind(element, *args, **kwargs)
         bound_params.apply_defaults()
 
         results[i] = function(*bound_params.args, **bound_params.kwargs)
 
-    return Interval(min(results), max(results), precision=self.precision)</code></pre>
+    return Interval(min(results), max(results))</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_interval.Interval.intersection"><code class="name flex">
@@ -1900,8 +1265,9 @@ def width(self) -&gt; float:
     if self.intersects(other):
         return Interval(max(self.min, other.min), min(self.max, other.max))
     else:
-        raise ArithmeticError(&#34;Intervals `{0}` and `{1}` do not intersect, &#34;
-                              &#34;cannot construct intersection.&#34;.format(self, other))</code></pre>
+        raise ArithmeticError(
+            &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct intersection.&#34;.format(self, other)
+        )</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_interval.Interval.intersects"><code class="name flex">
@@ -2113,8 +1479,9 @@ def width(self) -&gt; float:
     if self.intersects(other):
         return Interval(min(self.min, other.min), max(self.max, other.max))
     else:
-        raise ArithmeticError(&#34;Intervals `{0}` and `{1}` do not intersect, &#34;
-                              &#34;cannot construct valid union.&#34;.format(self, other))</code></pre>
+        raise ArithmeticError(
+            &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct valid union.&#34;.format(self, other)
+        )</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_interval.Interval.union_hull"><code class="name flex">
@@ -2174,8 +1541,6 @@ def width(self) -&gt; float:
 <ul class="two-column">
 <li><code><a title="FuzzyMath.class_interval.Interval.apply_function" href="#FuzzyMath.class_interval.Interval.apply_function">apply_function</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.degenerate" href="#FuzzyMath.class_interval.Interval.degenerate">degenerate</a></code></li>
-<li><code><a title="FuzzyMath.class_interval.Interval.empty" href="#FuzzyMath.class_interval.Interval.empty">empty</a></code></li>
-<li><code><a title="FuzzyMath.class_interval.Interval.infimum_supremum" href="#FuzzyMath.class_interval.Interval.infimum_supremum">infimum_supremum</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.intersection" href="#FuzzyMath.class_interval.Interval.intersection">intersection</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.intersects" href="#FuzzyMath.class_interval.Interval.intersects">intersects</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.is_empty" href="#FuzzyMath.class_interval.Interval.is_empty">is_empty</a></code></li>
@@ -2186,11 +1551,7 @@ def width(self) -&gt; float:
 <li><code><a title="FuzzyMath.class_interval.Interval.is_positive" href="#FuzzyMath.class_interval.Interval.is_positive">is_positive</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.max" href="#FuzzyMath.class_interval.Interval.max">max</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.mid_point" href="#FuzzyMath.class_interval.Interval.mid_point">mid_point</a></code></li>
-<li><code><a title="FuzzyMath.class_interval.Interval.midpoint_width" href="#FuzzyMath.class_interval.Interval.midpoint_width">midpoint_width</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.min" href="#FuzzyMath.class_interval.Interval.min">min</a></code></li>
-<li><code><a title="FuzzyMath.class_interval.Interval.parse_string" href="#FuzzyMath.class_interval.Interval.parse_string">parse_string</a></code></li>
-<li><code><a title="FuzzyMath.class_interval.Interval.precision" href="#FuzzyMath.class_interval.Interval.precision">precision</a></code></li>
-<li><code><a title="FuzzyMath.class_interval.Interval.two_values" href="#FuzzyMath.class_interval.Interval.two_values">two_values</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.union" href="#FuzzyMath.class_interval.Interval.union">union</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.union_hull" href="#FuzzyMath.class_interval.Interval.union_hull">union_hull</a></code></li>
 <li><code><a title="FuzzyMath.class_interval.Interval.width" href="#FuzzyMath.class_interval.Interval.width">width</a></code></li>

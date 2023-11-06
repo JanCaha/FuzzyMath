@@ -35,26 +35,26 @@ Python package `FuzzyMath` is a small lightweight library for Python (version &g
 Interval and Fuzzy Arithmetic.
 &#34;&#34;&#34;
 
-from .class_interval import Interval
-from .class_fuzzy_number import FuzzyNumber
 from .class_factories import FuzzyNumberFactory, IntervalFactory
-from .class_memberships import PossibilisticMembership, FuzzyMembership
+from .class_fuzzy_number import FuzzyNumber
+from .class_interval import Interval
 from .class_membership_operations import FuzzyAnd, FuzzyOr, PossibilisticAnd, PossibilisticOr
-
-from .fuzzynumber_comparisons import (possibility_exceedance,
-                                      possibility_strict_exceedance,
-                                      necessity_exceedance,
-                                      necessity_strict_exceedance,
-                                      possibility_undervaluation,
-                                      necessity_undervaluation,
-                                      possibility_strict_undervaluation,
-                                      necessity_strict_undervaluation,
-                                      exceedance,
-                                      strict_exceedance,
-                                      undervaluation,
-                                      strict_undervaluation)
-
-from .fuzzymath_utils import set_precision, get_precision</code></pre>
+from .class_memberships import FuzzyMembership, PossibilisticMembership
+from .class_precision import FuzzyMathPrecision, FuzzyMathPrecisionContext
+from .fuzzynumber_comparisons import (
+    exceedance,
+    necessity_exceedance,
+    necessity_strict_exceedance,
+    necessity_strict_undervaluation,
+    necessity_undervaluation,
+    possibility_exceedance,
+    possibility_strict_exceedance,
+    possibility_strict_undervaluation,
+    possibility_undervaluation,
+    strict_exceedance,
+    strict_undervaluation,
+    undervaluation,
+)</code></pre>
 </details>
 </section>
 <section>
@@ -80,11 +80,7 @@ from .fuzzymath_utils import set_precision, get_precision</code></pre>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="FuzzyMath.config" href="config.html">FuzzyMath.config</a></code></dt>
-<dd>
-<div class="desc"><p>Storing configuration for the package …</p></div>
-</dd>
-<dt><code class="name"><a title="FuzzyMath.fuzzymath_utils" href="fuzzymath_utils.html">FuzzyMath.fuzzymath_utils</a></code></dt>
+<dt><code class="name"><a title="FuzzyMath.class_precision" href="class_precision.html">FuzzyMath.class_precision</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -114,8 +110,7 @@ from .fuzzymath_utils import set_precision, get_precision</code></pre>
 <li><code><a title="FuzzyMath.class_interval" href="class_interval.html">FuzzyMath.class_interval</a></code></li>
 <li><code><a title="FuzzyMath.class_membership_operations" href="class_membership_operations.html">FuzzyMath.class_membership_operations</a></code></li>
 <li><code><a title="FuzzyMath.class_memberships" href="class_memberships.html">FuzzyMath.class_memberships</a></code></li>
-<li><code><a title="FuzzyMath.config" href="config.html">FuzzyMath.config</a></code></li>
-<li><code><a title="FuzzyMath.fuzzymath_utils" href="fuzzymath_utils.html">FuzzyMath.fuzzymath_utils</a></code></li>
+<li><code><a title="FuzzyMath.class_precision" href="class_precision.html">FuzzyMath.class_precision</a></code></li>
 <li><code><a title="FuzzyMath.fuzzynumber_comparisons" href="fuzzynumber_comparisons.html">FuzzyMath.fuzzynumber_comparisons</a></code></li>
 </ul>
 </li>
