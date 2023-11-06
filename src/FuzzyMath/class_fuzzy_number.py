@@ -216,13 +216,13 @@ class FuzzyNumber:
 
         return alpha
 
-    def _calculate_alpha_cut(self, alpha: float) -> Interval:
+    def _calculate_alpha_cut(self, alpha: Union[Decimal, float]) -> Interval:
         """
         Calculates alpha cut for given alpha.
 
         Parameters
         ----------
-        alpha: float
+        alpha: Union[float, Decimal]
             Alpha to calculate the alpha cut for.
 
         Returns
