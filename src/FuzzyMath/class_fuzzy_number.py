@@ -7,6 +7,7 @@ from typing import Callable, List, Tuple, Union
 
 from .class_interval import Interval
 from .class_memberships import FuzzyMembership, PossibilisticMembership
+from .class_precision import FuzzyMathPrecision
 
 
 class FuzzyNumber:
@@ -207,7 +208,7 @@ class FuzzyNumber:
 
         if not isinstance(alpha, Decimal):
             try:
-                alpha = Decimal(alpha)
+                alpha = FuzzyMathPrecision.prepare_alpha(Decimal(alpha))
             except InvalidOperation as e:
                 raise InvalidOperation(f"Cannot convert alpha value `{alpha}` to number.") from e
 
