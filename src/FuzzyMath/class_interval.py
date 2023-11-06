@@ -428,7 +428,7 @@ class Interval:
             if (power % 2) == 0:
                 if self.min <= 0 <= self.max:
                     min_res = min(Decimal(0), max(min_power, max_power))
-                    max_res = max(Decimal(0), max(min_power, max_power))
+                    max_res = max(Decimal(0), min_power, max_power)
 
                 else:
                     min_res = min(min_power, max_power)
