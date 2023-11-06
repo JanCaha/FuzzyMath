@@ -5,6 +5,7 @@ import pytest
 
 from FuzzyMath.class_factories import IntervalFactory
 from FuzzyMath.class_interval import Interval
+from FuzzyMath.class_precision import FuzzyMathPrecision
 
 
 def test_creation_errors():
@@ -28,6 +29,27 @@ def test_creation_errors():
 
     with pytest.raises(ValueError, match="Cannot parse Interval from this definition"):
         IntervalFactory.parse_string('["aa", "b"]')
+
+
+def test_creation_with_precision():
+    FuzzyMathPrecision.set_numeric_precision(2)
+
+    interval = IntervalFactory.infimum_supremum("1.12345", "2.987")
+
+    assert interval.min == Decimal("1.12")
+    assert interval.max == Decimal("2.99")
+
+    interval = IntervalFactory.infimum_supremum("1.1", "2.9")
+    new_interval = interval + Decimal("0.001")
+
+    assert new_interval == interval
+
+    interval = IntervalFactory.infimum_supremum("1.1", "2.9")
+    new_interval = interval + Decimal("0.09")
+
+    assert new_interval == IntervalFactory.infimum_supremum("1.19", "2.99")
+
+    FuzzyMathPrecision.unset_numeric_precision()
 
 
 def test_creation():
@@ -121,6 +143,8 @@ def test_add(i_a: Interval, i_b: Interval, i_e: Interval):
     assert i_a + 1 == IntervalFactory.two_values(i_a.min + 1, i_a.max + 1)
 
     assert i_a + 1.5 == IntervalFactory.two_values(i_a.min + Decimal(1.5), i_a.max + Decimal(1.5))
+
+    assert i_a + Decimal(1.5) == IntervalFactory.two_values(i_a.min + Decimal(1.5), i_a.max + Decimal(1.5))
 
     assert 1 + i_a == IntervalFactory.two_values(i_a.min + 1, i_a.max + 1)
 
