@@ -83,13 +83,13 @@ class FuzzyNumber:
             )
 
     @property
-    def alpha_levels(self) -> List[float]:
+    def alpha_levels(self) -> List[Decimal]:
         """
         Alpha levels for this fuzzy number.
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         """
         return self._alphas
 
@@ -105,24 +105,24 @@ class FuzzyNumber:
         return list(self._alpha_cuts.values())
 
     @property
-    def min(self) -> float:
+    def min(self) -> Decimal:
         """
         Minimal value of this fuzzy number.
 
         Returns
         -------
-        float
+        Decimal
         """
         return self.get_alpha_cut(0).min
 
     @property
-    def max(self) -> float:
+    def max(self) -> Decimal:
         """
         Maximal value of this fuzzy number.
 
         Returns
         -------
-        float
+        Decimal
         """
         return self.get_alpha_cut(0).max
 
@@ -138,24 +138,24 @@ class FuzzyNumber:
         return self.get_alpha_cut(1)
 
     @property
-    def kernel_min(self) -> float:
+    def kernel_min(self) -> Decimal:
         """
         Minimal kernel value of this fuzzy number.
 
         Returns
         -------
-        float
+        Decimal
         """
         return self.kernel.min
 
     @property
-    def kernel_max(self) -> float:
+    def kernel_max(self) -> Decimal:
         """
         Maximal kernel value of this fuzzy number.
 
         Returns
         -------
-        float
+        Decimal
         """
         return self.kernel.max
 
