@@ -150,8 +150,7 @@ class Interval:
             return self.min <= item.min and item.max <= self.max
         else:
             raise TypeError(
-                "Cannot test if object of type `{0}` is in Interval. Only implemented for `float`, "
-                "`int` and `Interval`.".format(type(item).__name__)
+                f"Cannot test if object of type `{type(item).__name__}` is in Interval. Only implemented for `float`, `int` and `Interval`."
             )
 
     def intersects(self, other: Interval) -> bool:
@@ -398,9 +397,7 @@ class Interval:
 
         elif isinstance(other, Interval):
             if 0 in other:
-                raise ArithmeticError(
-                    "Cannot divide by interval that contains `0`. " "The interval is `{0}`.".format(other)
-                )
+                raise ArithmeticError(f"Cannot divide by interval that contains `0`. The interval is `{other}`.")
 
             values = [self.min / other.min, self.min / other.max, self.max / other.min, self.max / other.max]
 
