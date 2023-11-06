@@ -5,7 +5,10 @@ on:
     paths:
       - src/**
       - .github/workflows/document.yaml
-
+    branches:
+      - 'main'
+      - 'master'
+  
 jobs:
 
   document: 

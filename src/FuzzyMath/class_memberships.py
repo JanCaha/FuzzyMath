@@ -1,6 +1,5 @@
+from decimal import Decimal, InvalidOperation
 from typing import Union
-
-from .fuzzymath_utils import get_precision
 
 
 class PossibilisticMembership:
@@ -9,96 +8,104 @@ class PossibilisticMembership:
     ...
     Attributes
     ----------
-    _possibility: float
+    _possibility: Decimal
 
-    _necessity: float
+    _necessity: Decimal
     """
 
     __slots__ = ("_possibility", "_necessity")
 
-    def __init__(self, possibility: Union[float, int], necessity: Union[float, int]) -> None:
+    def __init__(
+        self, possibility: Union[str, int, float, Decimal], necessity: Union[str, int, float, Decimal]
+    ) -> None:
         """
         Basic creator for the class.
 
         Parameters
         ----------
-        possibility : Union[float, int]
+        possibility : Union[str, int, float, Decimal]
 
-        necessity : Union[float, int]
+        necessity : Union[str, int, float, Decimal]
 
         Raises
         ------
         TypeError
-            If either input variable is not `int` or `float`.
+            If either input variable is not `int`, `float`, `str` or `Decimal`.
         ValueError
             If value of either variable is not from interval [0, 1]. Necessity must be smaller or equal to possibility.
         """
 
-        self._possibility = 0.0
-        self._necessity = 0.0
+        self._possibility = Decimal(0.0)
+        self._necessity = Decimal(0.0)
 
-        if not isinstance(possibility, (int, float)):
+        if not isinstance(possibility, (int, float, str, Decimal)):
             raise TypeError(
-                f"Possibility value must be a `int` or `float`, it can not be `{type(possibility).__name__}`"
+                f"Possibility value must be `int`, `float`, `str` or `Decimal` it can not be `{type(possibility).__name__}`"
             )
 
-        if not isinstance(necessity, (int, float)):
+        if not isinstance(necessity, (int, float, str, Decimal)):
             raise TypeError(
-                f"Necessity value must be a `int` or `float`, it can not be `{type(necessity).__name__}`"
+                f"Necessity value must be `int`, `float`, `str` or `Decimal` it can not be `{type(necessity).__name__}`"
             )
 
-        if possibility < 0 or 1 < possibility:
-            raise ValueError(
-                f"Possibility value must be from range [0, 1], it is `{possibility}`.")
+        self._possibility = self._possibility.normalize()
+        self._necessity = self._necessity.normalize()
 
-        if necessity < 0 or 1 < necessity:
+        try:
+            self._possibility = Decimal(possibility)
+        except InvalidOperation as e:
+            raise InvalidOperation(f"Cannot convert `possibility` value ({possibility}) to number.") from e
+
+        try:
+            self._necessity = Decimal(necessity)
+        except InvalidOperation as e:
+            raise InvalidOperation(f"Cannot convert `necessity` value ({necessity}) to number.") from e
+
+        if self._possibility < 0 or 1 < self._possibility:
+            raise ValueError(f"Possibility value must be from range [0, 1], it is `{possibility}`.")
+
+        if self._necessity < 0 or 1 < self._necessity:
             raise ValueError(f"Necessity value must be from range [0, 1], it is `{necessity}`.")
 
-        if possibility < necessity:
+        if self._possibility < self._necessity:
             raise ValueError(
                 f"Possibility value must be equal or larger then necessity. "
                 f"Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`."
             )
 
-        self._possibility = round(float(possibility), get_precision())
-        self._necessity = round(float(necessity), get_precision())
-
     @property
-    def possibility(self) -> float:
+    def possibility(self) -> Decimal:
         """
         Property getter for the value.
 
         Returns
         -------
-        float
+        Decimal
         """
 
         return self._possibility
 
     @property
-    def necessity(self) -> float:
+    def necessity(self) -> Decimal:
         """
         Property getter for the value.
 
         Returns
         -------
-        float
+        Decimal
         """
 
         return self._necessity
 
     def __repr__(self) -> str:
-        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(
-            self._possibility, self._necessity)
+        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(self._possibility, self._necessity)
 
     def __eq__(self, __o: object) -> bool:
-
         if not isinstance(__o, PossibilisticMembership):
             return NotImplemented
 
         else:
-
-            return (self.possibility == __o.possibility and self.necessity == __o.necessity)
+            return self.possibility == __o.possibility and self.necessity == __o.necessity
 
 
 class FuzzyMembership:
@@ -107,47 +114,52 @@ class FuzzyMembership:
     ...
     Attributes
     ----------
-    _membership: float
+    _membership: Decimal
     """
 
-    __slots__ = ("_membership")
+    __slots__ = "_membership"
 
-    def __init__(self, membership: Union[float, int]) -> None:
+    def __init__(self, membership: Union[str, int, float, Decimal]) -> None:
         """
         Basic creator for the class.
 
         Parameters
         ----------
-        membership : Union[float, int]
+        membership : Union[str, int, float, Decimal]
 
         Raises
         ------
         TypeError
-            If either input variable is not `int` or `float`.
+            If either input variable is not `int`, `float`, `str` or `Decimal`.
         ValueError
             If value of either variable is not from interval [0, 1].
         """
 
-        self._membership = 0.0
+        self._membership = Decimal(0)
 
-        if not isinstance(membership, (int, float)):
+        if not isinstance(membership, (int, float, str, Decimal)):
             raise TypeError(
-                f"Membership value must be a `int` or `float`, it can not be `{type(membership).__name__}`"
+                f"Membership value must be a `int`, `float`, `str` or `Decimal` it can not be `{type(membership).__name__}`"
             )
 
-        if membership < 0 or 1 < membership:
+        try:
+            self._membership = Decimal(membership)
+        except InvalidOperation as e:
+            raise InvalidOperation(f"Cannot convert `membershiship` value ({membership}) to number.") from e
+
+        self._membership = self._membership.normalize()
+
+        if self._membership < 0 or 1 < self._membership:
             raise ValueError(f"Membership value must be from range [0, 1], it is `{membership}`.")
 
-        self._membership = round(float(membership), get_precision())
-
     @property
-    def membership(self) -> float:
+    def membership(self) -> Decimal:
         """
         Property getter for the value.
 
         Returns
         -------
-        float
+        Decimal
         """
 
         return self._membership
@@ -156,12 +168,14 @@ class FuzzyMembership:
         return "FuzzyMembership({0})".format(self._membership)
 
     def __eq__(self, __o: object) -> bool:
-
-        if not isinstance(__o, (int, float, FuzzyMembership)):
+        if not isinstance(__o, (int, float, FuzzyMembership, Decimal)):
             return NotImplemented
 
-        if isinstance(__o, (int, float)):
+        if isinstance(__o, Decimal):
             return self.membership == __o
+
+        if isinstance(__o, (int, float)):
+            return self.membership == Decimal(__o)
 
         if isinstance(__o, FuzzyMembership):
             return self.membership == __o.membership
