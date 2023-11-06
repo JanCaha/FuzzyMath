@@ -340,7 +340,7 @@ class FuzzyNumber:
         if not isinstance(number_of_parts, int) or number_of_parts <= 1:
             raise ValueError(
                 "`number_of_cuts` has to be integer and higher than 1. "
-                "It is of type `{0}` and value `{1}`.".format(type(number_of_parts).__name__, number_of_parts)
+                f"It is of type `{type(number_of_parts).__name__}` and value `{number_of_parts}`."
             )
 
         number_of_parts = int(number_of_parts)
