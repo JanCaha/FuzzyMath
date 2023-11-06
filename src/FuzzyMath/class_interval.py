@@ -330,8 +330,8 @@ class Interval:
 
         results = [0] * len(elements)
 
-        for i in range(0, len(elements)):
-            bound_params: BoundArguments = function_signature.bind(elements[i], *args, **kwargs)
+        for i, element in enumerate(elements):
+            bound_params: BoundArguments = function_signature.bind(element, *args, **kwargs)
             bound_params.apply_defaults()
 
             results[i] = function(*bound_params.args, **bound_params.kwargs)
