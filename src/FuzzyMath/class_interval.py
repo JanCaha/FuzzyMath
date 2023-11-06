@@ -286,7 +286,7 @@ class Interval:
         return 0 <= self.mid_point
 
     def apply_function(
-        self, function: Callable, *args, monotone: bool = False, number_elements: float = 1000, **kwargs
+        self, function: Callable, *args, monotone: bool = False, number_elements: Union[float, Decimal] = 1000, **kwargs
     ) -> Interval:
         """
         Apply mathematical function to interval.
