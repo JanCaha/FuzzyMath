@@ -58,6 +58,11 @@ class FuzzyMathPrecision(object):
             return value.quantize(fuzzy_precision.numeric_precision)
 
     @staticmethod
+    def reset() -> None:
+        FuzzyMathPrecision().alpha_precision = None
+        FuzzyMathPrecision().numeric_precision = None
+
+    @staticmethod
     def prepare_alpha(value: Decimal) -> Decimal:
         """Prepare alpha value according to current settings of FuzzyMathPrecision.
 
