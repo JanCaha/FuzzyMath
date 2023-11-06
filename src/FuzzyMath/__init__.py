@@ -9,6 +9,7 @@ from .class_fuzzy_number import FuzzyNumber
 from .class_interval import Interval
 from .class_membership_operations import FuzzyAnd, FuzzyOr, PossibilisticAnd, PossibilisticOr
 from .class_memberships import FuzzyMembership, PossibilisticMembership
+from .class_precision import FuzzyMathPrecision
 from .fuzzynumber_comparisons import (
     exceedance,
     necessity_exceedance,
