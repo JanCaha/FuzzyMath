@@ -350,7 +350,7 @@ class FuzzyNumber:
 
         i = 0
         while i <= number_of_parts - 1:
-            values[i] = Decimal(i) / (Decimal(number_of_parts) - Decimal(1))
+            values[i] = FuzzyMathPrecision.prepare_alpha(Decimal(i) / (Decimal(number_of_parts) - Decimal(1)))
             i += 1
 
         return values
