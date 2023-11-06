@@ -120,6 +120,8 @@ def test_union_hull(i_a: Interval, i_c: Interval):
 def test_add(i_a: Interval, i_b: Interval, i_e: Interval):
     assert i_a + 1 == IntervalFactory.two_values(i_a.min + 1, i_a.max + 1)
 
+    assert i_a + 1.5 == IntervalFactory.two_values(i_a.min + Decimal(1.5), i_a.max + Decimal(1.5))
+
     assert 1 + i_a == IntervalFactory.two_values(i_a.min + 1, i_a.max + 1)
 
     assert i_a + i_b == IntervalFactory.two_values(i_a.min + i_b.min, i_a.max + i_b.max)
@@ -133,6 +135,8 @@ def test_add(i_a: Interval, i_b: Interval, i_e: Interval):
 
 def test_sub(i_a: Interval, i_b: Interval):
     assert i_a - 1 == IntervalFactory.two_values(i_a.min - 1, i_a.max - 1)
+
+    assert i_a - 1.75 == IntervalFactory.two_values(i_a.min - Decimal(1.75), i_a.max - Decimal(1.75))
 
     assert 1 - i_a == IntervalFactory.two_values(1 - i_a.min, 1 - i_a.max)
 

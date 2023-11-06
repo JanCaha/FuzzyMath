@@ -323,7 +323,7 @@ class Interval:
         elif monotone:
             elements = [self.min, self.max]
         else:
-            step = (self.max - self.min) / number_elements
+            step = (self.max - self.min) / Decimal(number_elements)
 
             elements = np.arange(self.min, self.max + (Decimal(0.1) * step), step=step).tolist()
 
@@ -340,8 +340,8 @@ class Interval:
         return Interval(min(results), max(results))
 
     def __add__(self, other) -> Interval:
-        if isinstance(other, (float, int)):
-            return Interval(self.min + other, self.max + other)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(self.min + Decimal(other), self.max + Decimal(other))
         elif isinstance(other, Interval):
             return Interval(self.min + other.min, self.max + other.max)
         else:
@@ -351,22 +351,27 @@ class Interval:
         return self + other
 
     def __sub__(self, other) -> Interval:
-        if isinstance(other, (float, int)):
-            return Interval(self.min - other, self.max - other)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(self.min - Decimal(other), self.max - Decimal(other))
         elif isinstance(other, Interval):
             return Interval(self.min - other.max, self.max - other.min)
         else:
             return NotImplemented
 
     def __rsub__(self, other) -> Interval:
-        if isinstance(other, (float, int)):
-            return Interval(other - self.min, other - self.max)
+        if isinstance(other, (float, int, Decimal)):
+            return Interval(Decimal(other) - self.min, Decimal(other) - self.max)
         else:
             return NotImplemented
 
     def __mul__(self, other) -> Interval:
-        if isinstance(other, (float, int)):
-            values = [self.min * other, self.min * other, self.max * other, self.max * other]
+        if isinstance(other, (float, int, Decimal)):
+            values = [
+                self.min * Decimal(other),
+                self.min * Decimal(other),
+                self.max * Decimal(other),
+                self.max * Decimal(other),
+            ]
             return Interval(min(values), max(values))
         elif isinstance(other, Interval):
             values = [self.min * other.min, self.min * other.max, self.max * other.min, self.max * other.max]
@@ -378,11 +383,16 @@ class Interval:
         return self * other
 
     def __truediv__(self, other) -> Interval:
-        if isinstance(other, (float, int)):
+        if isinstance(other, (float, int, Decimal)):
             if other == 0:
                 raise ArithmeticError("Cannot divide by 0.")
 
-            values = [self.min / other, self.min / other, self.max / other, self.max / other]
+            values = [
+                self.min / Decimal(other),
+                self.min / Decimal(other),
+                self.max / Decimal(other),
+                self.max / Decimal(other),
+            ]
 
             return Interval(min(values), max(values))
 
@@ -400,8 +410,13 @@ class Interval:
             return NotImplemented
 
     def __rtruediv__(self, other) -> Interval:
-        if isinstance(other, (float, int)):
-            values = [other / self.min, other / self.min, other / self.max, other / self.max]
+        if isinstance(other, (float, int, Decimal)):
+            values = [
+                Decimal(other) / self.min,
+                Decimal(other) / self.min,
+                Decimal(other) / self.max,
+                Decimal(other) / self.max,
+            ]
 
             return Interval(min(values), max(values))
 
@@ -410,13 +425,13 @@ class Interval:
 
     def __pow__(self, power) -> Interval:
         if isinstance(power, int):
-            min_power = self.min**power
-            max_power = self.max**power
+            min_power = self.min ** Decimal(power)
+            max_power = self.max ** Decimal(power)
 
             if (power % 2) == 0:
                 if self.min <= 0 <= self.max:
-                    min_res = min(0, max(min_power, max_power))
-                    max_res = max(0, max(min_power, max_power))
+                    min_res = min(Decimal(0), max(min_power, max_power))
+                    max_res = max(Decimal(0), max(min_power, max_power))
 
                 else:
                     min_res = min(min_power, max_power)
