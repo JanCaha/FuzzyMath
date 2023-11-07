@@ -28,8 +28,8 @@ class FuzzyNumber:
     def __init__(self, alphas: List[Decimal], alpha_cuts: List[Interval]):
         """
         Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
-        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or `FuzzyNumberFactory.parse_string()` instead of this
-        function.
+        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or
+        `FuzzyNumberFactory.parse_string()` instead of this function.
 
         Parameters
         ----------
