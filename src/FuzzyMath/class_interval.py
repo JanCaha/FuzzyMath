@@ -296,7 +296,7 @@ class Interval:
             Function to apply to fuzzy number.
 
         args
-            Postional arguments for the `function`.
+            Positional arguments for the `function`.
 
         monotone: bool
             Is the function monotone? Default `False`. If `True` can significantly speed up calculation.
