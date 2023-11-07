@@ -271,9 +271,7 @@ class FuzzyNumber:
         string = ""
 
         for alpha in self._alphas:
-            string = string + "({0};{1},{2})".format(
-                alpha, self.get_alpha_cut(alpha).min, self.get_alpha_cut(alpha).max
-            )
+            string = string + f"({alpha};{self.get_alpha_cut(alpha).min},{self.get_alpha_cut(alpha).max})"
 
         return string
 
@@ -286,9 +284,7 @@ class FuzzyNumber:
         str
         """
 
-        string = "Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.".format(
-            self.min, self.max, self.kernel.min, self.kernel.max, len(self.alpha_levels) - 2
-        )
+        string = f"Fuzzy number with support ({self.min},{self.max}), kernel ({self.kernel_min}, {self.kernel_max}) and {len(self.alpha_levels) - 2} more alpha-cuts."
 
         return string
 
@@ -302,8 +298,8 @@ class FuzzyNumber:
             return interval.min <= item.get_alpha_cut(0).min and item.get_alpha_cut(0).max <= interval.max
         else:
             raise TypeError(
-                "Cannot test if object of type `{0}` is in FuzzyNumber. Only implemented for `float`, "
-                "`int`, `Interval` and `FuzzyNumber`.".format(type(item).__name__)
+                f"Cannot test if object of type `{type(item).__name__}` is in FuzzyNumber. Only implemented for "
+                "`float`, `int`, `Interval` and `FuzzyNumber`."
             )
 
     def __lt__(self, other):
