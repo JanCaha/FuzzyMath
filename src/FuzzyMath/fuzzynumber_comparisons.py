@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List
+from typing import Sequence, Union
 
 from .class_fuzzy_number import FuzzyNumber
 from .class_memberships import PossibilisticMembership
@@ -116,7 +116,11 @@ def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Dec
 
 
 def __value_intersection_y(
-    fn_a_values: List[float], fn_b_values: List[float], alphas: List[float], index: int, index_change: int
+    fn_a_values: Sequence[Union[float, Decimal]],
+    fn_b_values: Sequence[Union[float, Decimal]],
+    alphas: Sequence[Union[float, Decimal]],
+    index: int,
+    index_change: int,
 ):
     return __intersection_y(
         fn_a_values[index],
