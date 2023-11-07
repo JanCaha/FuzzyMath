@@ -25,7 +25,7 @@ class FuzzyNumber:
 
     __slots__ = ("_alpha_cuts", "_alphas")
 
-    def __init__(self, alphas: List[Union[float, Decimal]], alpha_cuts: List[Interval]):
+    def __init__(self, alphas: List[Decimal], alpha_cuts: List[Interval]):
         """
         Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
         `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or `FuzzyNumberFactory.parse_string()` instead of this
@@ -346,7 +346,7 @@ class FuzzyNumber:
 
         number_of_parts = int(number_of_parts)
 
-        values = [0.0] * number_of_parts
+        values = [Decimal(0)] * number_of_parts
 
         i = 0
         while i <= number_of_parts - 1:
@@ -407,7 +407,7 @@ class FuzzyNumber:
         return self._iterate_alphas_one_value(self, Interval.__pow__, power)
 
     def __hash__(self) -> int:
-        list_values = [0.0] * (len(self.alpha_levels) * 2)
+        list_values = [Decimal(0)] * (len(self.alpha_levels) * 2)
         i = 0
         for alpha in self.alpha_levels:
             interval = self.get_alpha_cut(alpha)
@@ -611,7 +611,7 @@ class FuzzyNumber:
         else:
             alphas.sort()
 
-        values = [0.0] * len(alphas)
+        values = [Decimal(0)] * len(alphas)
 
         for i in range(len(alphas)):
             if value_type == "min":
@@ -625,13 +625,17 @@ class FuzzyNumber:
 
         return values
 
-    def get_alpha_cuts_mins(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -> List[float]:
+    def get_alpha_cuts_mins(
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+    ) -> List[Decimal]:
         """
         Extract minimimal values of provided alpha cuts as list.
 
         Parameters
         ----------
-        alphas: List[float]
+        alphas: List[Decimal]
             Alphas to extract values for.
 
         order_by_alphas_from_one: bool
@@ -640,19 +644,23 @@ class FuzzyNumber:
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         """
         return self.__get_cuts_values(
             alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type="min"
         )
 
-    def get_alpha_cuts_maxs(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -> List[float]:
+    def get_alpha_cuts_maxs(
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+    ) -> List[Decimal]:
         """
         Extract maximal values of provided alpha cuts as list.
 
         Parameters
         ----------
-        alphas: List[float]
+        alphas: List[Decimal]
             Alphas to extract values for.
 
         order_by_alphas_from_one: bool
@@ -661,44 +669,45 @@ class FuzzyNumber:
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         """
         return self.__get_cuts_values(
             alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type="max"
         )
 
     @staticmethod
-    def _prepare_alphas(alpha_levels1: List[float], alpha_levels2: List[float]) -> List[float]:
+    def _prepare_alphas(alpha_levels1: List[Decimal], alpha_levels2: List[Decimal]) -> List[Decimal]:
         """
         Prepares list of alphas based on two input lists of alphas by selecting only distinct alpha values.
 
         Parameters
         ----------
-        alpha_levels1: List[float]
-        alpha_levels2: List[float]
+        alpha_levels1: List[Decimal]
+        alpha_levels2: List[Decimal]
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         """
         alphas = sorted(list(set.union(set(alpha_levels1), set(alpha_levels2))))
         return alphas
 
     @staticmethod
     def __prepare_alphas_intervals(
-        alpha_levels1: List[float], alpha_levels2: List[float] = None
-    ) -> Tuple[List[float], List[Interval]]:
+        alpha_levels1: List[Decimal],
+        alpha_levels2: List[Decimal] = None,  # type: ignore [assignment]
+    ) -> Tuple[List[Decimal], List[Interval]]:
         """
         Prepares list of alphas and list of empty `Interval`s for provided alpha levels.
 
         Parameters
         ----------
-        alpha_levels1: List[float]
-        alpha_levels2: List[float]
+        alpha_levels1: List[Decimal]
+        alpha_levels2: List[Decimal]
 
         Returns
         -------
-        (List[float], List[Interval])
+        (List[Decimal], List[Interval])
             List of alpha values and list of empty intervals prepared for further use.
         """
 
