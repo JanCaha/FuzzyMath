@@ -259,7 +259,7 @@ class FuzzyNumberFactory(FactoryBase):
             numbers = [Decimal(x) for x in numbers]
 
             try:
-                FuzzyNumber._validate_alpha(numbers[0])
+                FuzzyNumber._validate_alpha(numbers[0])  # pylint: disable=W0212
             except ValueError as err:
                 raise ValueError("`{}` element of Fuzzy Number is incorrectly defined. {}".format(a_cut_def, err))
 
