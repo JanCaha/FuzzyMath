@@ -1,3 +1,4 @@
+"""Classes for memberships"""
 from decimal import Decimal, InvalidOperation
 from typing import Union
 
