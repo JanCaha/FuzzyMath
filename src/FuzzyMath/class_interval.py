@@ -74,7 +74,7 @@ class Interval:
         -------
         str
         """
-        return "[{0}, {1}]".format(self.min, self.max)
+        return f"[{self.min}, {self.max}]"
 
     @property
     def min(self) -> Decimal:
@@ -152,7 +152,8 @@ class Interval:
             return self.min <= item.min and item.max <= self.max
         else:
             raise TypeError(
-                f"Cannot test if object of type `{type(item).__name__}` is in Interval. Only implemented for `float`, `int` and `Interval`."
+                f"Cannot test if object of type `{type(item).__name__}` is in Interval. "
+                "Only implemented for `float`, `int` and `Interval`."
             )
 
     def intersects(self, other: Interval) -> bool:
@@ -195,9 +196,7 @@ class Interval:
         if self.intersects(other):
             return Interval(max(self.min, other.min), min(self.max, other.max))
         else:
-            raise ArithmeticError(
-                "Intervals `{0}` and `{1}` do not intersect, " "cannot construct intersection.".format(self, other)
-            )
+            raise ArithmeticError(f"Intervals `{self}` and `{other}` do not intersect, cannot construct intersection.")
 
     def union(self, other) -> Interval:
         """
@@ -219,9 +218,7 @@ class Interval:
         if self.intersects(other):
             return Interval(min(self.min, other.min), max(self.max, other.max))
         else:
-            raise ArithmeticError(
-                "Intervals `{0}` and `{1}` do not intersect, " "cannot construct valid union.".format(self, other)
-            )
+            raise ArithmeticError(f"Intervals `{self}` and `{other}` do not intersect, cannot construct valid union.")
 
     def union_hull(self, other) -> Interval:
         """
@@ -317,7 +314,7 @@ class Interval:
         """
 
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
-            raise TypeError("`function` needs to be a function. It is `{0}`.".format(type(function).__name__))
+            raise TypeError(f"`function` needs to be a function. It is `{type(function).__name__}`.")
 
         if self.degenerate:
             elements = [self.min]
