@@ -13,7 +13,7 @@ def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
@@ -38,7 +38,7 @@ def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas)
@@ -61,7 +61,7 @@ def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decim
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
@@ -84,7 +84,7 @@ def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
