@@ -3,12 +3,18 @@ from __future__ import annotations
 
 from bisect import bisect_left
 from decimal import Decimal, InvalidOperation
+from enum import Enum, auto
 from types import BuiltinFunctionType, FunctionType
 from typing import Callable, List, Tuple, Union
 
 from .class_interval import Interval
 from .class_memberships import FuzzyMembership, PossibilisticMembership
 from .class_precision import FuzzyMathPrecision
+
+
+class AlphaCutSide(Enum):
+    MIN = auto()
+    MAX = auto()
 
 
 class FuzzyNumber:
@@ -607,7 +613,7 @@ class FuzzyNumber:
         self,
         alphas: List[Decimal] = None,  # type: ignore [assignment]
         order_by_alphas_from_one: bool = False,
-        value_type: str = "min",
+        value_type: AlphaCutSide = AlphaCutSide.MIN,
     ) -> List[Decimal]:
         if alphas is None:
             alphas = self.alpha_levels
@@ -617,10 +623,10 @@ class FuzzyNumber:
         values = [Decimal(0)] * len(alphas)
 
         for i in range(len(alphas)):
-            if value_type == "min":
+            if value_type == AlphaCutSide.MIN:
                 values[i] = self.get_alpha_cut(alphas[i]).min
 
-            elif value_type == "max":
+            elif value_type == AlphaCutSide.MAX:
                 values[i] = self.get_alpha_cut(alphas[i]).max
 
         if order_by_alphas_from_one:
@@ -650,7 +656,9 @@ class FuzzyNumber:
         List[Decimal]
         """
         return self.__get_cuts_values(
-            alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type="min"
+            alphas=alphas,
+            order_by_alphas_from_one=order_by_alphas_from_one,
+            value_type=AlphaCutSide.MIN,
         )
 
     def get_alpha_cuts_maxs(
