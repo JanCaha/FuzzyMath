@@ -120,7 +120,7 @@ class FuzzyMembership:
     _membership: Decimal
     """
 
-    __slots__ = "_membership"
+    __slots__ = ["_membership"]
 
     def __init__(self, membership: Union[str, int, float, Decimal]) -> None:
         """
