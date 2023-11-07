@@ -622,12 +622,12 @@ class FuzzyNumber:
 
         values = [Decimal(0)] * len(alphas)
 
-        for i in range(len(alphas)):
+        for i, alpha in enumerate(alphas):
             if value_type == AlphaCutSide.MIN:
-                values[i] = self.get_alpha_cut(alphas[i]).min
+                values[i] = self.get_alpha_cut(alpha).min
 
             elif value_type == AlphaCutSide.MAX:
-                values[i] = self.get_alpha_cut(alphas[i]).max
+                values[i] = self.get_alpha_cut(alpha).max
 
         if order_by_alphas_from_one:
             values.reverse()
