@@ -40,12 +40,14 @@ class PossibilisticMembership:
 
         if not isinstance(possibility, (int, float, str, Decimal)):
             raise TypeError(
-                f"Possibility value must be `int`, `float`, `str` or `Decimal` it can not be `{type(possibility).__name__}`"
+                f"Possibility value must be `int`, `float`, `str` or `Decimal`"
+                f"it can not be `{type(possibility).__name__}`"
             )
 
         if not isinstance(necessity, (int, float, str, Decimal)):
             raise TypeError(
-                f"Necessity value must be `int`, `float`, `str` or `Decimal` it can not be `{type(necessity).__name__}`"
+                f"Necessity value must be `int`, `float`, `str` or `Decimal`"
+                f"it can not be `{type(necessity).__name__}`"
             )
 
         self._possibility = self._possibility.normalize()
@@ -70,7 +72,8 @@ class PossibilisticMembership:
         if self._possibility < self._necessity:
             raise ValueError(
                 f"Possibility value must be equal or larger then necessity. "
-                f"Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`."
+                f"Currently this does not hold for for values possibility values "
+                f"`{possibility}` and necessity `{necessity}`."
             )
 
     @property
@@ -98,7 +101,7 @@ class PossibilisticMembership:
         return self._necessity
 
     def __repr__(self) -> str:
-        return "PossibilisticMembership(possibility: {0}, necessity: {1})".format(self._possibility, self._necessity)
+        return "PossibilisticMembership(possibility: {self._possibility}, necessity: {self._necessity})"
 
     def __eq__(self, __o: object) -> bool:
         if not isinstance(__o, PossibilisticMembership):
@@ -139,13 +142,14 @@ class FuzzyMembership:
 
         if not isinstance(membership, (int, float, str, Decimal)):
             raise TypeError(
-                f"Membership value must be a `int`, `float`, `str` or `Decimal` it can not be `{type(membership).__name__}`"
+                f"Membership value must be a `int`, `float`, `str` or `Decimal`"
+                f" it can not be `{type(membership).__name__}`"
             )
 
         try:
             self._membership = Decimal(membership)
         except InvalidOperation as e:
-            raise InvalidOperation(f"Cannot convert `membershiship` value ({membership}) to number.") from e
+            raise InvalidOperation(f"Cannot convert `membership` value ({membership}) to number.") from e
 
         self._membership = self._membership.normalize()
 
@@ -165,7 +169,7 @@ class FuzzyMembership:
         return self._membership
 
     def __repr__(self) -> str:
-        return "FuzzyMembership({0})".format(self._membership)
+        return f"FuzzyMembership({self._membership})"
 
     def __eq__(self, __o: object) -> bool:
         if not isinstance(__o, (int, float, FuzzyMembership, Decimal)):
