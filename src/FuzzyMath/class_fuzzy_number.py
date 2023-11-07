@@ -683,7 +683,9 @@ class FuzzyNumber:
         List[Decimal]
         """
         return self.__get_cuts_values(
-            alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type="max"
+            alphas=alphas,
+            order_by_alphas_from_one=order_by_alphas_from_one,
+            value_type=AlphaCutSide.MAX,
         )
 
     @staticmethod
