@@ -10,5 +10,17 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true,
         "**/.mypy_cache": true
-    }
+    },
+    "cSpell.words": [
+        "arange",
+        "exceedance",
+        "fuzzynumber",
+        "Hamacher",
+        "infimum",
+        "Lukasiewicz",
+        "maxs",
+        "Nilpotent",
+        "Possibilistic",
+        "supremum"
+    ]
 }
