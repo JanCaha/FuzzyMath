@@ -13,6 +13,9 @@ jobs:
   release: 
 
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
 
     name: "Release package to PiPy"
 
@@ -39,8 +42,9 @@ jobs:
 
       - name: Release
         run: |
-          python3 setup.py sdist bdist_wheel
-          twine upload dist/* --username ${{ secrets.TWINE_USERNAME }} --password "${{ secrets.TWINE_PASSWORD }}"
+      
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
     
       - name: Upload WHL file as artifact
         uses: actions/upload-artifact@v3
