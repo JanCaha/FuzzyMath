@@ -1,7 +1,7 @@
 import re
 from abc import ABC
 from decimal import Decimal, InvalidOperation
-from typing import List, Union
+from typing import List, Optional, Union
 
 from .class_fuzzy_number import FuzzyNumber
 from .class_interval import Interval
@@ -61,7 +61,7 @@ class FuzzyNumberFactory(FactoryBase):
         minimum: Union[str, int, float, Decimal],
         kernel: Union[str, int, float, Decimal],
         maximum: Union[str, int, float, Decimal],
-        number_of_cuts: int = None,
+        number_of_cuts: Optional[int] = None,
     ) -> FuzzyNumber:
         """
         Creates triangular `FuzzyNumber` based on input parameters.
@@ -131,7 +131,7 @@ class FuzzyNumberFactory(FactoryBase):
         kernel_minimum: Union[str, int, float, Decimal],
         kernel_maximum: Union[str, int, float, Decimal],
         maximum: Union[str, int, float, Decimal],
-        number_of_cuts: int = None,
+        number_of_cuts: Optional[int] = None,
     ) -> FuzzyNumber:
         """
         Creates trapezoidal `FuzzyNumber` based on input parameters.
