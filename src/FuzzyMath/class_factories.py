@@ -242,7 +242,7 @@ class FuzzyNumberFactory(FactoryBase):
 
         elements = re_a_cuts.findall(string)
 
-        alphas: List[Decimal] = [0] * len(elements)
+        alphas: List[Decimal] = [Decimal(0)] * len(elements)
         alpha_cuts: List[Interval] = [IntervalFactory.empty()] * len(elements)
 
         i: int = 0
