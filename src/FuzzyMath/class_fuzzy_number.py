@@ -285,7 +285,10 @@ class FuzzyNumber:
         str
         """
 
-        string = f"Fuzzy number with support ({self.min},{self.max}), kernel ({self.kernel_min}, {self.kernel_max}) and {len(self.alpha_levels) - 2} more alpha-cuts."
+        string = (
+            f"Fuzzy number with support ({self.min},{self.max}), kernel ({self.kernel_min}, {self.kernel_max}) "
+            f"and {len(self.alpha_levels) - 2} more alpha-cuts."
+        )
 
         return string
 
