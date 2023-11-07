@@ -212,7 +212,7 @@ class FuzzyNumber:
             except InvalidOperation as e:
                 raise InvalidOperation(f"Cannot convert alpha value `{alpha}` to number.") from e
 
-        if not (0 <= alpha <= 1):
+        if not 0 <= alpha <= 1:
             raise ValueError("`alpha` must be from range [0,1].")
 
         return alpha
