@@ -465,7 +465,7 @@ class FuzzyNumber:
         return strict_exceedance(self, fn_other)
 
     def possibility_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import possibility_undervaluation
+        from .fuzzynumber_comparisons import possibility_undervaluation  # pylint: disable=C0415
 
         return possibility_undervaluation(self, fn_other)
 
