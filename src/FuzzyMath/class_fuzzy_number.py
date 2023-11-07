@@ -69,7 +69,7 @@ class FuzzyNumber:
 
         for alpha in self.alpha_levels:
             if not previous_interval.is_empty:
-                if not self.get_alpha_cut(alpha) in previous_interval:
+                if self.get_alpha_cut(alpha) not in previous_interval:
                     raise ValueError(
                         "Interval on lower alpha level has to contain the higher level alpha cuts."
                         f"This does not hold for {previous_interval} and {self.get_alpha_cut(alpha)}."
