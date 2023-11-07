@@ -95,9 +95,7 @@ class FuzzyNumberFactory(FactoryBase):
         if not minimum <= kernel <= maximum:
             raise ValueError(
                 "The fuzzy number is invalid. The structure needs to be `minimum` <= `kernel` "
-                "<= `maximum`. Currently it is `{0}` <= `{1}` <= `{2}`, which does not hold.".format(
-                    minimum, kernel, maximum
-                )
+                f"<= `maximum`. Currently it is `{minimum}` <= `{kernel}` <= `{maximum}`, which does not hold."
             )
 
         if number_of_cuts is None or number_of_cuts <= 2:
@@ -170,9 +168,8 @@ class FuzzyNumberFactory(FactoryBase):
             raise ValueError(
                 "The fuzzy number is invalid. The structure needs to be "
                 "`minimum` <= `kernel_minimum` <= `kernel_maximum` <= `maximum`. "
-                "Currently it is `{0}` <= `{1}` <= `{2}` <= `{3}`, which does not hold.".format(
-                    minimum, kernel_minimum, kernel_maximum, maximum
-                )
+                f"Currently it is `{minimum}` <= `{kernel_minimum}` <= `{kernel_maximum}` <= `{maximum}`"
+                ", which does not hold."
             )
 
         if number_of_cuts is None or number_of_cuts <= 2:
@@ -323,7 +320,7 @@ class IntervalFactory:
         if minimum > maximum:
             raise ValueError(
                 "The interval is invalid. `minimum` must be lower or equal to"
-                " `maximum`. Currently it is `{0}` <= `{1}`, which does not hold.".format(minimum, maximum)
+                f" `maximum`. Currently it is `{minimum}` <= `{maximum}`, which does not hold."
             )
 
         return Interval(minimum, maximum)
@@ -371,7 +368,7 @@ class IntervalFactory:
         if width < 0:
             raise ArithmeticError(
                 "`width` of interval must number higher or at least equal to 0. "
-                "The value `{0}` does not fulfill this.".format(width)
+                f"The value `{width}` does not fulfill this."
             )
 
         a = midpoint - (width / Decimal(2))
