@@ -2,8 +2,6 @@ name: Release package to PiPy
 
 on:
   push:
-    tags:
-      - v*
     branches:
       - 'main'
       - 'master'
