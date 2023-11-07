@@ -13,6 +13,8 @@ from .class_precision import FuzzyMathPrecision
 
 
 class AlphaCutSide(Enum):
+    """Simple Enum that determines if alpha cut side is minimum or maximum."""
+
     MIN = auto()
     MAX = auto()
 
@@ -733,8 +735,28 @@ class FuzzyNumber:
 
         return alphas, intervals
 
-    def membership(self, value: Union[float, int]) -> FuzzyMembership:
-        if not isinstance(value, (int, float)):
+    def membership(self, value: Union[float, int, Decimal]) -> FuzzyMembership:
+        """
+        Get membership of value to this fuzzy number.
+
+        Parameters
+        ----------
+        value: Union[float, int, Decimal]
+            Value to determine membership for.
+
+        Args:
+            value (Union[float, int, Decimal]): Value to determine membership for.
+
+        Raises
+        -------
+        TypeError
+            If value is not integer, float or Decimal.
+
+        Returns
+        -------
+        FuzzyMembership
+        """
+        if not isinstance(value, (int, float, Decimal)):
             raise TypeError(
                 f"Cannot get membership of `{type(value).__name__}` in FuzzyNumber. Only implemented for "
                 "`float`, `int`."
