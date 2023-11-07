@@ -102,7 +102,7 @@ class PossibilisticMembership:
         return self._necessity
 
     def __repr__(self) -> str:
-        return "PossibilisticMembership(possibility: {self._possibility}, necessity: {self._necessity})"
+        return f"PossibilisticMembership(possibility: {self._possibility}, necessity: {self._necessity})"
 
     def __eq__(self, __o: object) -> bool:
         if not isinstance(__o, PossibilisticMembership):
