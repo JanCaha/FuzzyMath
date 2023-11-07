@@ -1,3 +1,4 @@
+"""Factory classes"""
 import re
 from abc import ABC
 from decimal import Decimal, InvalidOperation
@@ -8,6 +9,8 @@ from .class_interval import Interval
 
 
 class FactoryBase(ABC):
+    """Base class for factories"""
+
     @staticmethod
     def validate_variable(variable: Union[float, int, str, Decimal], variable_name: str) -> Decimal:
         """Checks that input variable can be converted to valid Decimal.
