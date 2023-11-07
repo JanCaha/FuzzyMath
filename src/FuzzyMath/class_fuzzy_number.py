@@ -520,17 +520,17 @@ class FuzzyNumber:
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
             raise ValueError(
                 "`function` must be either `FunctionType` or `BuiltinFunctionType`. `function` currently "
-                "is `{}`.".format(type(function))
+                f"is `{type(function)}`."
             )
 
         if not isinstance(number_elements, (int, float)):
             raise ValueError(
                 "`number_elements` must be either `int` or `float`. `number_elements` is currently "
-                "`{}`.".format(type(number_elements))
+                f"`{type(number_elements)}`."
             )
 
         if not isinstance(monotone, bool):
-            raise ValueError("`monotone` must be `bool`. `monotone` is currently `{}`.".format(monotone))
+            raise ValueError(f"`monotone` must be `bool`. `monotone` is currently `{monotone}`.")
 
         intervals: List[Interval] = []
 
@@ -562,7 +562,7 @@ class FuzzyNumber:
     @staticmethod
     def _iterate_alphas_one_value(x: FuzzyNumber, operation: Callable, *args) -> FuzzyNumber:
         if not callable(operation):
-            raise TypeError("`operation` needs to be a function. It is `{0}`.".format(type(operation).__name__))
+            raise TypeError(f"`operation` needs to be a function. It is `{type(operation).__name__}`.")
 
         alphas, intervals = FuzzyNumber.__prepare_alphas_intervals(x.alpha_levels)
 
@@ -577,7 +577,7 @@ class FuzzyNumber:
     @staticmethod
     def _iterate_alphas_two_values(x, y, operation: Callable) -> FuzzyNumber:
         if not isinstance(operation, FunctionType):
-            raise TypeError("`operation` needs to be a function. It is `{0}`.".format(type(operation).__name__))
+            raise TypeError(f"`operation` needs to be a function. It is `{type(operation).__name__}`.")
 
         fuzzy_x = isinstance(x, FuzzyNumber)
         fuzzy_y = isinstance(y, FuzzyNumber)
@@ -726,8 +726,8 @@ class FuzzyNumber:
     def membership(self, value: Union[float, int]) -> FuzzyMembership:
         if not isinstance(value, (int, float)):
             raise TypeError(
-                "Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, "
-                "`int`.".format(type(value).__name__)
+                f"Cannot get membership of `{type(value).__name__}` in FuzzyNumber. Only implemented for "
+                "`float`, `int`."
             )
 
         if value not in self:
