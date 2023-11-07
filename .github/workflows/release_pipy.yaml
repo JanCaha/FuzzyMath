@@ -42,6 +42,7 @@ jobs:
 
       - name: Release
         run: |
+          python3 -m build
       
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
