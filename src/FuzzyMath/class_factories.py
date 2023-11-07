@@ -261,18 +261,14 @@ class FuzzyNumberFactory(FactoryBase):
             try:
                 FuzzyNumber._validate_alpha(numbers[0])  # pylint: disable=W0212
             except ValueError as err:
-                raise ValueError(
-                    "`{}` element of Fuzzy Number is incorrectly defined. {}".format(a_cut_def, err)
-                ) from err
+                raise ValueError(f"`{a_cut_def}` element of Fuzzy Number is incorrectly defined.") from err
 
             alphas[i] = Decimal(numbers[0])
 
             try:
                 alpha_cuts[i] = IntervalFactory.infimum_supremum(numbers[1], numbers[2])
             except ValueError as err:
-                raise ValueError(
-                    "`{}` element of Fuzzy Number is incorrectly defined. {}".format(a_cut_def, err)
-                ) from err
+                raise ValueError(f"`{a_cut_def}` element of Fuzzy Number is incorrectly defined.") from err
 
             i += 1
 
