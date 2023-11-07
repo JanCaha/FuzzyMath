@@ -2,8 +2,6 @@ name: Release package to PiPy
 
 on:
   push:
-    tags:
-      - v*
     branches:
       - 'main'
       - 'master'
@@ -13,6 +11,9 @@ jobs:
   release: 
 
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
 
     name: "Release package to PiPy"
 
@@ -26,7 +27,7 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.10'
           architecture: 'x64'
 
       - name: Python install required packages
@@ -39,8 +40,10 @@ jobs:
 
       - name: Release
         run: |
-          python3 setup.py sdist bdist_wheel
-          twine upload dist/* --username ${{ secrets.TWINE_USERNAME }} --password "${{ secrets.TWINE_PASSWORD }}"
+          python3 -m build
+      
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
     
       - name: Upload WHL file as artifact
         uses: actions/upload-artifact@v3
