@@ -37,6 +37,8 @@ jobs:
       - name: Translate Readme.md to rst
         run: |
           pandoc --to=rst -o Readme.rst Readme.md
+          echo "-----"
+          cat Readme.rst
 
       - name: Release
         run: |
