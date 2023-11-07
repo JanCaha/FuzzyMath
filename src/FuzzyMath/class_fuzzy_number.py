@@ -429,32 +429,32 @@ class FuzzyNumber:
         return len(self.alpha_cuts)
 
     def possibility_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import possibility_exceedance
+        from .fuzzynumber_comparisons import possibility_exceedance  # pylint: disable=C0415
 
         return possibility_exceedance(self, fn_other)
 
     def necessity_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import necessity_exceedance
+        from .fuzzynumber_comparisons import necessity_exceedance  # pylint: disable=C0415
 
         return necessity_exceedance(self, fn_other)
 
     def exceedance(self, fn_other: FuzzyNumber) -> PossibilisticMembership:
-        from .fuzzynumber_comparisons import exceedance
+        from .fuzzynumber_comparisons import exceedance  # pylint: disable=C0415
 
         return exceedance(self, fn_other)
 
     def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import possibility_strict_exceedance
+        from .fuzzynumber_comparisons import possibility_strict_exceedance  # pylint: disable=C0415
 
         return possibility_strict_exceedance(self, fn_other)
 
     def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import necessity_strict_exceedance
+        from .fuzzynumber_comparisons import necessity_strict_exceedance  # pylint: disable=C0415
 
         return necessity_strict_exceedance(self, fn_other)
 
     def strict_exceedance(self, fn_other: FuzzyNumber) -> PossibilisticMembership:
-        from .fuzzynumber_comparisons import strict_exceedance
+        from .fuzzynumber_comparisons import strict_exceedance  # pylint: disable=C0415
 
         return strict_exceedance(self, fn_other)
 
@@ -464,27 +464,27 @@ class FuzzyNumber:
         return possibility_undervaluation(self, fn_other)
 
     def necessity_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import necessity_undervaluation
+        from .fuzzynumber_comparisons import necessity_undervaluation  # pylint: disable=C0415
 
         return necessity_undervaluation(self, fn_other)
 
     def undervaluation(self, fn_other: FuzzyNumber) -> PossibilisticMembership:
-        from .fuzzynumber_comparisons import undervaluation
+        from .fuzzynumber_comparisons import undervaluation  # pylint: disable=C0415
 
         return undervaluation(self, fn_other)
 
     def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import possibility_strict_undervaluation
+        from .fuzzynumber_comparisons import possibility_strict_undervaluation  # pylint: disable=C0415
 
         return possibility_strict_undervaluation(self, fn_other)
 
     def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -> Decimal:
-        from .fuzzynumber_comparisons import necessity_strict_undervaluation
+        from .fuzzynumber_comparisons import necessity_strict_undervaluation  # pylint: disable=C0415
 
         return necessity_strict_undervaluation(self, fn_other)
 
     def strict_undervaluation(self, fn_other: FuzzyNumber) -> PossibilisticMembership:
-        from .fuzzynumber_comparisons import strict_undervaluation
+        from .fuzzynumber_comparisons import strict_undervaluation  # pylint: disable=C0415
 
         return strict_undervaluation(self, fn_other)
 
