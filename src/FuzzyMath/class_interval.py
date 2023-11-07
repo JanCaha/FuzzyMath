@@ -1,3 +1,4 @@
+"""Class Interval"""
 from __future__ import annotations
 
 import math
@@ -33,8 +34,9 @@ class Interval:
 
     def __init__(self, a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]):
         """
-        Default constructor of interval. But generally it is more useful to use functions `IntervalFactory.infimum_supremum()`,
-        `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
+        Default constructor of interval. But generally it is more useful to use functions
+        `IntervalFactory.infimum_supremum()`, `IntervalFactory.empty()`, `IntervalFactory.two_values()`
+        and `IntervalFactory.midpoint_width()` instead of this function.
 
         Parameters
         ----------
