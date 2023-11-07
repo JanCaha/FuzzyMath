@@ -177,7 +177,7 @@ class FuzzyNumber:
         alpha = self._validate_alpha(alpha)
 
         if alpha in self.alpha_levels:
-            return self._alpha_cuts.get(alpha)
+            return self._alpha_cuts.get(alpha)  # type: ignore [return-value]
         else:
             return self._calculate_alpha_cut(alpha)
 
@@ -233,9 +233,9 @@ class FuzzyNumber:
 
         position = bisect_left(self._alphas, alpha)
 
-        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).min
+        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).min  # type: ignore [union-attr]
         y1 = self.alpha_levels[position - 1]
-        x2 = self._alpha_cuts.get(self.alpha_levels[position]).min
+        x2 = self._alpha_cuts.get(self.alpha_levels[position]).min  # type: ignore [union-attr]
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
@@ -245,9 +245,9 @@ class FuzzyNumber:
             q = y1 - k * x1
             a = (Decimal(alpha) - q) / k
 
-        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).max
+        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).max  # type: ignore [union-attr]
         y1 = self.alpha_levels[position - 1]
-        x2 = self._alpha_cuts.get(self.alpha_levels[position]).max
+        x2 = self._alpha_cuts.get(self.alpha_levels[position]).max  # type: ignore [union-attr]
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
@@ -604,7 +604,10 @@ class FuzzyNumber:
         return FuzzyNumber(alphas, intervals)
 
     def __get_cuts_values(
-        self, alphas: List[Decimal] = None, order_by_alphas_from_one: bool = False, value_type: str = "min"
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+        value_type: str = "min",
     ) -> List[Decimal]:
         if alphas is None:
             alphas = self.alpha_levels
