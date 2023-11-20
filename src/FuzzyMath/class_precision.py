@@ -1,9 +1,10 @@
+"""Classes handling precision"""
 import typing
 from decimal import Decimal
 
 
 class FuzzyMathPrecision(object):
-    """Object represeting precision of FuzzyMath. Used in Interval and FuzzyNumber representation."""
+    """Object representing precision of FuzzyMath. Used in Interval and FuzzyNumber representation."""
 
     numeric_precision: typing.Optional[Decimal] = None
     alpha_precision: typing.Optional[Decimal] = None
@@ -59,6 +60,9 @@ class FuzzyMathPrecision(object):
 
     @staticmethod
     def reset() -> None:
+        """
+        Reset values of both numeric and alpha precision.
+        """
         FuzzyMathPrecision().alpha_precision = None
         FuzzyMathPrecision().numeric_precision = None
 
@@ -80,6 +84,10 @@ class FuzzyMathPrecision(object):
 
 
 class FuzzyMathPrecisionContext:
+    """
+    Context for quickly and simply changing precision of FuzzyNumbers and Intervals.
+    """
+
     def __init__(
         self, numeric_precision: typing.Optional[int] = None, alpha_precision: typing.Optional[int] = None
     ) -> None:

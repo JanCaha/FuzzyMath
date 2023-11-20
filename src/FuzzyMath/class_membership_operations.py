@@ -1,10 +1,10 @@
-import inspect
+from decimal import Decimal
 from typing import Literal, Tuple
 
 from .class_memberships import FuzzyMembership, PossibilisticMembership
 
-fuzzyAnds = Literal["min", "product", "drastic", "Lukasiewicz", "Nilpotent", "Hamacher"]
-fuzzyOrs = Literal["max", "product", "drastic", "Lukasiewicz", "Nilpotent", "Hamacher"]
+fuzzy_and_names = Literal["min", "product", "drastic", "Lukasiewicz", "Nilpotent", "Hamacher"]  # pylint: disable=C0103
+fuzzy_or_names = Literal["max", "product", "drastic", "Lukasiewicz", "Nilpotent", "Hamacher"]  # pylint: disable=C0103
 
 FUZZY_AND_NAMES = ["min", "product", "drastic", "Lukasiewicz", "Nilpotent", "Hamacher"]
 FUZZY_OR_NAMES = ["max", "product", "drastic", "Lukasiewicz", "Nilpotent", "Hamacher"]
@@ -41,18 +41,18 @@ class FuzzyAnd:
             return FuzzyMembership(0)
 
     @staticmethod
-    def Lukasiewicz(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:
-        return FuzzyMembership(max(0, a.membership + b.membership - 1))
+    def Lukasiewicz(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:  # pylint: disable=C0103
+        return FuzzyMembership(max(Decimal(0), a.membership + b.membership - Decimal(1)))
 
     @staticmethod
-    def Nilpotent(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:
+    def Nilpotent(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:  # pylint: disable=C0103
         if (a.membership + b.membership) > 1:
             return FuzzyMembership(min(a.membership, b.membership))
         else:
             return FuzzyMembership(0)
 
     @staticmethod
-    def Hamacher(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:
+    def Hamacher(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:  # pylint: disable=C0103
         if a.membership == 0 and b.membership == 0:
             return FuzzyMembership(0)
         else:
@@ -61,63 +61,49 @@ class FuzzyAnd:
             )
 
     @staticmethod
-    def fuzzyAnd(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyAnds):
-        if type not in FUZZY_AND_NAMES:
+    def fuzzy_and(a: FuzzyMembership, b: FuzzyMembership, and_type: fuzzy_and_names):
+        if and_type not in FUZZY_AND_NAMES:
             raise ValueError(
-                "Unknown value `{}` for `fuzzy and`. Known types are `{}`.".format(type, ", ".join(FUZZY_AND_NAMES))
+                f"Unknown value `{and_type}` for `fuzzy and`. Known types are `{', '.join(FUZZY_AND_NAMES)}`."
             )
 
-        method_to_call = getattr(FuzzyAnd, type)
+        method_to_call = getattr(FuzzyAnd, and_type)
         return method_to_call(a, b)
 
 
 class PossibilisticAnd(PossibilisticOperation):
     @staticmethod
     def min(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticAnd.possibilisticAnd(a, b, type)
+        return PossibilisticAnd.possibilistic_and(a, b, "min")
 
     @staticmethod
     def product(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticAnd.possibilisticAnd(a, b, type)
+        return PossibilisticAnd.possibilistic_and(a, b, "product")
 
     @staticmethod
     def drastic(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticAnd.possibilisticAnd(a, b, type)
+        return PossibilisticAnd.possibilistic_and(a, b, "drastic")
 
     @staticmethod
-    def Lukasiewicz(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticAnd.possibilisticAnd(a, b, type)
+    def Lukasiewicz(a: PossibilisticMembership, b: PossibilisticMembership):  # pylint: disable=C0103
+        return PossibilisticAnd.possibilistic_and(a, b, "Lukasiewicz")
 
     @staticmethod
-    def Nilpotent(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticAnd.possibilisticAnd(a, b, type)
+    def Nilpotent(a: PossibilisticMembership, b: PossibilisticMembership):  # pylint: disable=C0103
+        return PossibilisticAnd.possibilistic_and(a, b, "Nilpotent")
 
     @staticmethod
-    def Hamacher(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticAnd.possibilisticAnd(a, b, type)
+    def Hamacher(a: PossibilisticMembership, b: PossibilisticMembership):  # pylint: disable=C0103
+        return PossibilisticAnd.possibilistic_and(a, b, "Hamacher")
 
     @staticmethod
-    def possibilisticAnd(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyAnds):
-        if type not in FUZZY_AND_NAMES:
+    def possibilistic_and(a: PossibilisticMembership, b: PossibilisticMembership, and_type: fuzzy_and_names):
+        if and_type not in FUZZY_AND_NAMES:
             raise ValueError(
-                "Unknown value `{}` for `possibilistic and`. Known types are `{}`.".format(
-                    type, ", ".join(FUZZY_AND_NAMES)
-                )
+                f"Unknown value `{and_type}` for `possibilistic and`. Known types are `{', '.join(FUZZY_OR_NAMES)}`."
             )
 
-        method_to_call = getattr(FuzzyAnd, type)
+        method_to_call = getattr(FuzzyAnd, and_type)
 
         a_poss, b_poss = PossibilisticAnd._possibilities(a, b)
 
@@ -147,78 +133,64 @@ class FuzzyOr:
             return FuzzyMembership(0)
 
     @staticmethod
-    def Lukasiewicz(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:
-        return FuzzyMembership(min(1, a.membership + b.membership))
+    def Lukasiewicz(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:  # pylint: disable=C0103
+        return FuzzyMembership(min(Decimal(1), a.membership + b.membership))
 
     @staticmethod
-    def Nilpotent(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:
+    def Nilpotent(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:  # pylint: disable=C0103
         if (a.membership + b.membership) < 1:
             return FuzzyMembership(max(a.membership, b.membership))
         else:
             return FuzzyMembership(1)
 
     @staticmethod
-    def Hamacher(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:
+    def Hamacher(a: FuzzyMembership, b: FuzzyMembership) -> FuzzyMembership:  # pylint: disable=C0103
         return FuzzyMembership((a.membership + b.membership) / (1 + (a.membership * b.membership)))
 
     @staticmethod
-    def fuzzyOr(a: FuzzyMembership, b: FuzzyMembership, type: fuzzyOrs):
-        if type not in FUZZY_OR_NAMES:
+    def fuzzy_or(a: FuzzyMembership, b: FuzzyMembership, or_type: fuzzy_or_names):
+        if or_type not in FUZZY_OR_NAMES:
             raise ValueError(
-                "Unknown value `{}` for `fuzzy or`. Known types are `{}`.".format(type, ", ".join(FUZZY_OR_NAMES))
+                f"Unknown value `{or_type}` for `fuzzy or`. Known types are `{', '.join(FUZZY_OR_NAMES)}`."
             )
 
-        method_to_call = getattr(FuzzyOr, type)
+        method_to_call = getattr(FuzzyOr, or_type)
         return method_to_call(a, b)
 
 
 class PossibilisticOr(PossibilisticOperation):
     @staticmethod
     def max(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticOr.possibilisticOr(a, b, type)
+        return PossibilisticOr.possibilistic_or(a, b, "max")
 
     @staticmethod
     def product(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticOr.possibilisticOr(a, b, type)
+        return PossibilisticOr.possibilistic_or(a, b, "product")
 
     @staticmethod
     def drastic(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticOr.possibilisticOr(a, b, type)
+        return PossibilisticOr.possibilistic_or(a, b, "drastic")
 
     @staticmethod
-    def Lukasiewicz(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticOr.possibilisticOr(a, b, type)
+    def Lukasiewicz(a: PossibilisticMembership, b: PossibilisticMembership):  # pylint: disable=C0103
+        return PossibilisticOr.possibilistic_or(a, b, "Lukasiewicz")
 
     @staticmethod
-    def Nilpotent(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticOr.possibilisticOr(a, b, type)
+    def Nilpotent(a: PossibilisticMembership, b: PossibilisticMembership):  # pylint: disable=C0103
+        return PossibilisticOr.possibilistic_or(a, b, "Nilpotent")
 
     @staticmethod
-    def Hamacher(a: PossibilisticMembership, b: PossibilisticMembership):
-        type = inspect.currentframe().f_code.co_name
-
-        return PossibilisticOr.possibilisticOr(a, b, type)
+    def Hamacher(a: PossibilisticMembership, b: PossibilisticMembership):  # pylint: disable=C0103
+        return PossibilisticOr.possibilistic_or(a, b, "Hamacher")
 
     @staticmethod
-    def possibilisticOr(a: PossibilisticMembership, b: PossibilisticMembership, type: fuzzyOrs):
-        if type not in FUZZY_OR_NAMES:
+    def possibilistic_or(a: PossibilisticMembership, b: PossibilisticMembership, or_type: fuzzy_or_names):
+        if or_type not in FUZZY_OR_NAMES:
             raise ValueError(
-                "Unknown value `{}` for `possibilistic or`. Known types are `{}`.".format(
-                    type, ", ".join(FUZZY_OR_NAMES)
-                )
+                f"Unknown value `{or_type}` for `possibilistic or`. Known types are `{', '.join(FUZZY_OR_NAMES)}`."
             )
 
-        method_to_call = getattr(FuzzyOr, type)
+        method_to_call = getattr(FuzzyOr, or_type)
 
         a_poss, b_poss = PossibilisticOr._possibilities(a, b)
 

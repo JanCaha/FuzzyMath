@@ -5,7 +5,7 @@ Interval and Fuzzy Arithmetic.
 """
 
 from .class_factories import FuzzyNumberFactory, IntervalFactory
-from .class_fuzzy_number import FuzzyNumber
+from .class_fuzzy_number import AlphaCutSide, FuzzyNumber
 from .class_interval import Interval
 from .class_membership_operations import FuzzyAnd, FuzzyOr, PossibilisticAnd, PossibilisticOr
 from .class_memberships import FuzzyMembership, PossibilisticMembership

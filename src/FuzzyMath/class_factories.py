@@ -1,13 +1,16 @@
+"""Factory classes"""
 import re
 from abc import ABC
 from decimal import Decimal, InvalidOperation
-from typing import List, Union
+from typing import List, Optional, Union
 
 from .class_fuzzy_number import FuzzyNumber
 from .class_interval import Interval
 
 
 class FactoryBase(ABC):
+    """Base class for factories"""
+
     @staticmethod
     def validate_variable(variable: Union[float, int, str, Decimal], variable_name: str) -> Decimal:
         """Checks that input variable can be converted to valid Decimal.
@@ -61,7 +64,7 @@ class FuzzyNumberFactory(FactoryBase):
         minimum: Union[str, int, float, Decimal],
         kernel: Union[str, int, float, Decimal],
         maximum: Union[str, int, float, Decimal],
-        number_of_cuts: int = None,
+        number_of_cuts: Optional[int] = None,
     ) -> FuzzyNumber:
         """
         Creates triangular `FuzzyNumber` based on input parameters.
@@ -92,9 +95,7 @@ class FuzzyNumberFactory(FactoryBase):
         if not minimum <= kernel <= maximum:
             raise ValueError(
                 "The fuzzy number is invalid. The structure needs to be `minimum` <= `kernel` "
-                "<= `maximum`. Currently it is `{0}` <= `{1}` <= `{2}`, which does not hold.".format(
-                    minimum, kernel, maximum
-                )
+                f"<= `maximum`. Currently it is `{minimum}` <= `{kernel}` <= `{maximum}`, which does not hold."
             )
 
         if number_of_cuts is None or number_of_cuts <= 2:
@@ -131,7 +132,7 @@ class FuzzyNumberFactory(FactoryBase):
         kernel_minimum: Union[str, int, float, Decimal],
         kernel_maximum: Union[str, int, float, Decimal],
         maximum: Union[str, int, float, Decimal],
-        number_of_cuts: int = None,
+        number_of_cuts: Optional[int] = None,
     ) -> FuzzyNumber:
         """
         Creates trapezoidal `FuzzyNumber` based on input parameters.
@@ -167,9 +168,8 @@ class FuzzyNumberFactory(FactoryBase):
             raise ValueError(
                 "The fuzzy number is invalid. The structure needs to be "
                 "`minimum` <= `kernel_minimum` <= `kernel_maximum` <= `maximum`. "
-                "Currently it is `{0}` <= `{1}` <= `{2}` <= `{3}`, which does not hold.".format(
-                    minimum, kernel_minimum, kernel_maximum, maximum
-                )
+                f"Currently it is `{minimum}` <= `{kernel_minimum}` <= `{kernel_maximum}` <= `{maximum}`"
+                ", which does not hold."
             )
 
         if number_of_cuts is None or number_of_cuts <= 2:
@@ -242,7 +242,7 @@ class FuzzyNumberFactory(FactoryBase):
 
         elements = re_a_cuts.findall(string)
 
-        alphas: List[Decimal] = [0] * len(elements)
+        alphas: List[Decimal] = [Decimal(0)] * len(elements)
         alpha_cuts: List[Interval] = [IntervalFactory.empty()] * len(elements)
 
         i: int = 0
@@ -259,16 +259,16 @@ class FuzzyNumberFactory(FactoryBase):
             numbers = [Decimal(x) for x in numbers]
 
             try:
-                FuzzyNumber._validate_alpha(numbers[0])
+                FuzzyNumber._validate_alpha(numbers[0])  # pylint: disable=W0212
             except ValueError as err:
-                raise ValueError("`{}` element of Fuzzy Number is incorrectly defined. {}".format(a_cut_def, err))
+                raise ValueError(f"`{a_cut_def}` element of Fuzzy Number is incorrectly defined.") from err
 
             alphas[i] = Decimal(numbers[0])
 
             try:
                 alpha_cuts[i] = IntervalFactory.infimum_supremum(numbers[1], numbers[2])
             except ValueError as err:
-                raise ValueError("`{}` element of Fuzzy Number is incorrectly defined. {}".format(a_cut_def, err))
+                raise ValueError(f"`{a_cut_def}` element of Fuzzy Number is incorrectly defined.") from err
 
             i += 1
 
@@ -320,7 +320,7 @@ class IntervalFactory:
         if minimum > maximum:
             raise ValueError(
                 "The interval is invalid. `minimum` must be lower or equal to"
-                " `maximum`. Currently it is `{0}` <= `{1}`, which does not hold.".format(minimum, maximum)
+                f" `maximum`. Currently it is `{minimum}` <= `{maximum}`, which does not hold."
             )
 
         return Interval(minimum, maximum)
@@ -368,7 +368,7 @@ class IntervalFactory:
         if width < 0:
             raise ArithmeticError(
                 "`width` of interval must number higher or at least equal to 0. "
-                "The value `{0}` does not fulfill this.".format(width)
+                f"The value `{width}` does not fulfill this."
             )
 
         a = midpoint - (width / Decimal(2))

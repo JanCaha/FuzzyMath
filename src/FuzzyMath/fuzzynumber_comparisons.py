@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List
+from typing import Sequence, Union
 
 from .class_fuzzy_number import FuzzyNumber
 from .class_memberships import PossibilisticMembership
@@ -13,7 +13,7 @@ def possibility_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
@@ -38,7 +38,7 @@ def necessity_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal:
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_mins(alphas)
@@ -61,7 +61,7 @@ def possibility_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decim
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_maxs(alphas)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
@@ -84,7 +84,7 @@ def necessity_strict_exceedance(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Decimal
         return Decimal(1)
 
     else:
-        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)
+        alphas = FuzzyNumber._prepare_alphas(fn_a.alpha_levels, fn_b.alpha_levels)  # pylint: disable=W0212
 
         fn_a_values = fn_a.get_alpha_cuts_mins(alphas, order_by_alphas_from_one=True)
         fn_b_values = fn_b.get_alpha_cuts_maxs(alphas, order_by_alphas_from_one=True)
@@ -116,7 +116,11 @@ def necessity_strict_undervaluation(fn_a: FuzzyNumber, fn_b: FuzzyNumber) -> Dec
 
 
 def __value_intersection_y(
-    fn_a_values: List[float], fn_b_values: List[float], alphas: List[float], index: int, index_change: int
+    fn_a_values: Sequence[Union[float, Decimal]],
+    fn_b_values: Sequence[Union[float, Decimal]],
+    alphas: Sequence[Union[float, Decimal]],
+    index: int,
+    index_change: int,
 ):
     return __intersection_y(
         fn_a_values[index],
