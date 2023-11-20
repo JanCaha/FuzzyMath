@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>FuzzyMath.class_precision API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Classes handling precision" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,16 +22,18 @@
 <h1 class="title">Module <code>FuzzyMath.class_precision</code></h1>
 </header>
 <section id="section-intro">
+<p>Classes handling precision</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import typing
+<pre><code class="python">&#34;&#34;&#34;Classes handling precision&#34;&#34;&#34;
+import typing
 from decimal import Decimal
 
 
 class FuzzyMathPrecision(object):
-    &#34;&#34;&#34;Object represeting precision of FuzzyMath. Used in Interval and FuzzyNumber representation.&#34;&#34;&#34;
+    &#34;&#34;&#34;Object representing precision of FuzzyMath. Used in Interval and FuzzyNumber representation.&#34;&#34;&#34;
 
     numeric_precision: typing.Optional[Decimal] = None
     alpha_precision: typing.Optional[Decimal] = None
@@ -87,6 +89,9 @@ class FuzzyMathPrecision(object):
 
     @staticmethod
     def reset() -&gt; None:
+        &#34;&#34;&#34;
+        Reset values of both numeric and alpha precision.
+        &#34;&#34;&#34;
         FuzzyMathPrecision().alpha_precision = None
         FuzzyMathPrecision().numeric_precision = None
 
@@ -108,6 +113,10 @@ class FuzzyMathPrecision(object):
 
 
 class FuzzyMathPrecisionContext:
+    &#34;&#34;&#34;
+    Context for quickly and simply changing precision of FuzzyNumbers and Intervals.
+    &#34;&#34;&#34;
+
     def __init__(
         self, numeric_precision: typing.Optional[int] = None, alpha_precision: typing.Optional[int] = None
     ) -&gt; None:
@@ -149,13 +158,13 @@ class FuzzyMathPrecisionContext:
 <span>class <span class="ident">FuzzyMathPrecision</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Object represeting precision of FuzzyMath. Used in Interval and FuzzyNumber representation.</p></div>
+<div class="desc"><p>Object representing precision of FuzzyMath. Used in Interval and FuzzyNumber representation.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FuzzyMathPrecision(object):
-    &#34;&#34;&#34;Object represeting precision of FuzzyMath. Used in Interval and FuzzyNumber representation.&#34;&#34;&#34;
+    &#34;&#34;&#34;Object representing precision of FuzzyMath. Used in Interval and FuzzyNumber representation.&#34;&#34;&#34;
 
     numeric_precision: typing.Optional[Decimal] = None
     alpha_precision: typing.Optional[Decimal] = None
@@ -211,6 +220,9 @@ class FuzzyMathPrecisionContext:
 
     @staticmethod
     def reset() -&gt; None:
+        &#34;&#34;&#34;
+        Reset values of both numeric and alpha precision.
+        &#34;&#34;&#34;
         FuzzyMathPrecision().alpha_precision = None
         FuzzyMathPrecision().numeric_precision = None
 
@@ -313,13 +325,16 @@ def prepare_number(value: Decimal) -&gt; Decimal:
 <span>def <span class="ident">reset</span></span>(<span>) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Reset values of both numeric and alpha precision.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def reset() -&gt; None:
+    &#34;&#34;&#34;
+    Reset values of both numeric and alpha precision.
+    &#34;&#34;&#34;
     FuzzyMathPrecision().alpha_precision = None
     FuzzyMathPrecision().numeric_precision = None</code></pre>
 </details>
@@ -410,12 +425,16 @@ def unset_numeric_precision() -&gt; None:
 <span>(</span><span>numeric_precision: Optional[int] = None, alpha_precision: Optional[int] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Context for quickly and simply changing precision of FuzzyNumbers and Intervals.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FuzzyMathPrecisionContext:
+    &#34;&#34;&#34;
+    Context for quickly and simply changing precision of FuzzyNumbers and Intervals.
+    &#34;&#34;&#34;
+
     def __init__(
         self, numeric_precision: typing.Optional[int] = None, alpha_precision: typing.Optional[int] = None
     ) -&gt; None:

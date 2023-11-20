@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>FuzzyMath.class_interval API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Class Interval" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,13 @@
 <h1 class="title">Module <code>FuzzyMath.class_interval</code></h1>
 </header>
 <section id="section-intro">
+<p>Class Interval</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from __future__ import annotations
+<pre><code class="python">&#34;&#34;&#34;Class Interval&#34;&#34;&#34;
+from __future__ import annotations
 
 import math
 from decimal import Decimal, InvalidOperation
@@ -61,8 +63,9 @@ class Interval:
 
     def __init__(self, a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]):
         &#34;&#34;&#34;
-        Default constructor of interval. But generally it is more useful to use functions `IntervalFactory.infimum_supremum()`,
-        `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
+        Default constructor of interval. But generally it is more useful to use functions
+        `IntervalFactory.infimum_supremum()`, `IntervalFactory.empty()`, `IntervalFactory.two_values()`
+        and `IntervalFactory.midpoint_width()` instead of this function.
 
         Parameters
         ----------
@@ -100,7 +103,7 @@ class Interval:
         -------
         str
         &#34;&#34;&#34;
-        return &#34;[{0}, {1}]&#34;.format(self.min, self.max)
+        return f&#34;[{self.min}, {self.max}]&#34;
 
     @property
     def min(self) -&gt; Decimal:
@@ -178,7 +181,8 @@ class Interval:
             return self.min &lt;= item.min and item.max &lt;= self.max
         else:
             raise TypeError(
-                f&#34;Cannot test if object of type `{type(item).__name__}` is in Interval. Only implemented for `float`, `int` and `Interval`.&#34;
+                f&#34;Cannot test if object of type `{type(item).__name__}` is in Interval. &#34;
+                &#34;Only implemented for `float`, `int` and `Interval`.&#34;
             )
 
     def intersects(self, other: Interval) -&gt; bool:
@@ -221,9 +225,7 @@ class Interval:
         if self.intersects(other):
             return Interval(max(self.min, other.min), min(self.max, other.max))
         else:
-            raise ArithmeticError(
-                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct intersection.&#34;.format(self, other)
-            )
+            raise ArithmeticError(f&#34;Intervals `{self}` and `{other}` do not intersect, cannot construct intersection.&#34;)
 
     def union(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -245,9 +247,7 @@ class Interval:
         if self.intersects(other):
             return Interval(min(self.min, other.min), max(self.max, other.max))
         else:
-            raise ArithmeticError(
-                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct valid union.&#34;.format(self, other)
-            )
+            raise ArithmeticError(f&#34;Intervals `{self}` and `{other}` do not intersect, cannot construct valid union.&#34;)
 
     def union_hull(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -325,7 +325,7 @@ class Interval:
             Function to apply to fuzzy number.
 
         args
-            Postional arguments for the `function`.
+            Positional arguments for the `function`.
 
         monotone: bool
             Is the function monotone? Default `False`. If `True` can significantly speed up calculation.
@@ -343,7 +343,7 @@ class Interval:
         &#34;&#34;&#34;
 
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
-            raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;.format(type(function).__name__))
+            raise TypeError(f&#34;`function` needs to be a function. It is `{type(function).__name__}`.&#34;)
 
         if self.degenerate:
             elements = [self.min]
@@ -520,8 +520,9 @@ class Interval:
 <dt><strong><code>_degenerate</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Is the interval degenerate? Degenerate interval have _min == _max.</dd>
 </dl>
-<p>Default constructor of interval. But generally it is more useful to use functions <code>IntervalFactory.infimum_supremum()</code>,
-<code>IntervalFactory.empty()</code>, <code>IntervalFactory.two_values()</code> and <code>IntervalFactory.midpoint_width()</code> instead of this function.</p>
+<p>Default constructor of interval. But generally it is more useful to use functions
+<code>IntervalFactory.infimum_supremum()</code>, <code>IntervalFactory.empty()</code>, <code>IntervalFactory.two_values()</code>
+and <code>IntervalFactory.midpoint_width()</code> instead of this function.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>a</code></strong> :&ensp;<code>Union[str, int, float, Decimal]</code></dt>
@@ -555,8 +556,9 @@ class Interval:
 
     def __init__(self, a: Union[str, int, float, Decimal], b: Union[str, int, float, Decimal]):
         &#34;&#34;&#34;
-        Default constructor of interval. But generally it is more useful to use functions `IntervalFactory.infimum_supremum()`,
-        `IntervalFactory.empty()`, `IntervalFactory.two_values()` and `IntervalFactory.midpoint_width()` instead of this function.
+        Default constructor of interval. But generally it is more useful to use functions
+        `IntervalFactory.infimum_supremum()`, `IntervalFactory.empty()`, `IntervalFactory.two_values()`
+        and `IntervalFactory.midpoint_width()` instead of this function.
 
         Parameters
         ----------
@@ -594,7 +596,7 @@ class Interval:
         -------
         str
         &#34;&#34;&#34;
-        return &#34;[{0}, {1}]&#34;.format(self.min, self.max)
+        return f&#34;[{self.min}, {self.max}]&#34;
 
     @property
     def min(self) -&gt; Decimal:
@@ -672,7 +674,8 @@ class Interval:
             return self.min &lt;= item.min and item.max &lt;= self.max
         else:
             raise TypeError(
-                f&#34;Cannot test if object of type `{type(item).__name__}` is in Interval. Only implemented for `float`, `int` and `Interval`.&#34;
+                f&#34;Cannot test if object of type `{type(item).__name__}` is in Interval. &#34;
+                &#34;Only implemented for `float`, `int` and `Interval`.&#34;
             )
 
     def intersects(self, other: Interval) -&gt; bool:
@@ -715,9 +718,7 @@ class Interval:
         if self.intersects(other):
             return Interval(max(self.min, other.min), min(self.max, other.max))
         else:
-            raise ArithmeticError(
-                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct intersection.&#34;.format(self, other)
-            )
+            raise ArithmeticError(f&#34;Intervals `{self}` and `{other}` do not intersect, cannot construct intersection.&#34;)
 
     def union(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -739,9 +740,7 @@ class Interval:
         if self.intersects(other):
             return Interval(min(self.min, other.min), max(self.max, other.max))
         else:
-            raise ArithmeticError(
-                &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct valid union.&#34;.format(self, other)
-            )
+            raise ArithmeticError(f&#34;Intervals `{self}` and `{other}` do not intersect, cannot construct valid union.&#34;)
 
     def union_hull(self, other) -&gt; Interval:
         &#34;&#34;&#34;
@@ -819,7 +818,7 @@ class Interval:
             Function to apply to fuzzy number.
 
         args
-            Postional arguments for the `function`.
+            Positional arguments for the `function`.
 
         monotone: bool
             Is the function monotone? Default `False`. If `True` can significantly speed up calculation.
@@ -837,7 +836,7 @@ class Interval:
         &#34;&#34;&#34;
 
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
-            raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;.format(type(function).__name__))
+            raise TypeError(f&#34;`function` needs to be a function. It is `{type(function).__name__}`.&#34;)
 
         if self.degenerate:
             elements = [self.min]
@@ -1150,7 +1149,7 @@ def width(self) -&gt; Decimal:
 <dt><strong><code>function</code></strong> :&ensp;<code>(FunctionType, BuiltinFunctionType)</code></dt>
 <dd>Function to apply to fuzzy number.</dd>
 <dt><strong><code>args</code></strong></dt>
-<dd>Postional arguments for the <code>function</code>.</dd>
+<dd>Positional arguments for the <code>function</code>.</dd>
 <dt><strong><code>monotone</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Is the function monotone? Default <code>False</code>. If <code>True</code> can significantly speed up calculation.</dd>
 <dt><strong><code>number_elements</code></strong> :&ensp;<code>int</code></dt>
@@ -1179,7 +1178,7 @@ def width(self) -&gt; Decimal:
         Function to apply to fuzzy number.
 
     args
-        Postional arguments for the `function`.
+        Positional arguments for the `function`.
 
     monotone: bool
         Is the function monotone? Default `False`. If `True` can significantly speed up calculation.
@@ -1197,7 +1196,7 @@ def width(self) -&gt; Decimal:
     &#34;&#34;&#34;
 
     if not isinstance(function, (FunctionType, BuiltinFunctionType)):
-        raise TypeError(&#34;`function` needs to be a function. It is `{0}`.&#34;.format(type(function).__name__))
+        raise TypeError(f&#34;`function` needs to be a function. It is `{type(function).__name__}`.&#34;)
 
     if self.degenerate:
         elements = [self.min]
@@ -1265,9 +1264,7 @@ def width(self) -&gt; Decimal:
     if self.intersects(other):
         return Interval(max(self.min, other.min), min(self.max, other.max))
     else:
-        raise ArithmeticError(
-            &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct intersection.&#34;.format(self, other)
-        )</code></pre>
+        raise ArithmeticError(f&#34;Intervals `{self}` and `{other}` do not intersect, cannot construct intersection.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_interval.Interval.intersects"><code class="name flex">
@@ -1479,9 +1476,7 @@ def width(self) -&gt; Decimal:
     if self.intersects(other):
         return Interval(min(self.min, other.min), max(self.max, other.max))
     else:
-        raise ArithmeticError(
-            &#34;Intervals `{0}` and `{1}` do not intersect, &#34; &#34;cannot construct valid union.&#34;.format(self, other)
-        )</code></pre>
+        raise ArithmeticError(f&#34;Intervals `{self}` and `{other}` do not intersect, cannot construct valid union.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_interval.Interval.union_hull"><code class="name flex">

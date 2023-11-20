@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>FuzzyMath.class_memberships API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Classes for memberships" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,13 @@
 <h1 class="title">Module <code>FuzzyMath.class_memberships</code></h1>
 </header>
 <section id="section-intro">
+<p>Classes for memberships</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from decimal import Decimal, InvalidOperation
+<pre><code class="python">&#34;&#34;&#34;Classes for memberships&#34;&#34;&#34;
+from decimal import Decimal, InvalidOperation
 from typing import Union
 
 
@@ -68,12 +70,14 @@ class PossibilisticMembership:
 
         if not isinstance(possibility, (int, float, str, Decimal)):
             raise TypeError(
-                f&#34;Possibility value must be `int`, `float`, `str` or `Decimal` it can not be `{type(possibility).__name__}`&#34;
+                f&#34;Possibility value must be `int`, `float`, `str` or `Decimal`&#34;
+                f&#34;it can not be `{type(possibility).__name__}`&#34;
             )
 
         if not isinstance(necessity, (int, float, str, Decimal)):
             raise TypeError(
-                f&#34;Necessity value must be `int`, `float`, `str` or `Decimal` it can not be `{type(necessity).__name__}`&#34;
+                f&#34;Necessity value must be `int`, `float`, `str` or `Decimal`&#34;
+                f&#34;it can not be `{type(necessity).__name__}`&#34;
             )
 
         self._possibility = self._possibility.normalize()
@@ -98,7 +102,8 @@ class PossibilisticMembership:
         if self._possibility &lt; self._necessity:
             raise ValueError(
                 f&#34;Possibility value must be equal or larger then necessity. &#34;
-                f&#34;Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`.&#34;
+                f&#34;Currently this does not hold for for values possibility values &#34;
+                f&#34;`{possibility}` and necessity `{necessity}`.&#34;
             )
 
     @property
@@ -126,7 +131,7 @@ class PossibilisticMembership:
         return self._necessity
 
     def __repr__(self) -&gt; str:
-        return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(self._possibility, self._necessity)
+        return f&#34;PossibilisticMembership(possibility: {self._possibility}, necessity: {self._necessity})&#34;
 
     def __eq__(self, __o: object) -&gt; bool:
         if not isinstance(__o, PossibilisticMembership):
@@ -145,7 +150,7 @@ class FuzzyMembership:
     _membership: Decimal
     &#34;&#34;&#34;
 
-    __slots__ = &#34;_membership&#34;
+    __slots__ = [&#34;_membership&#34;]
 
     def __init__(self, membership: Union[str, int, float, Decimal]) -&gt; None:
         &#34;&#34;&#34;
@@ -167,13 +172,14 @@ class FuzzyMembership:
 
         if not isinstance(membership, (int, float, str, Decimal)):
             raise TypeError(
-                f&#34;Membership value must be a `int`, `float`, `str` or `Decimal` it can not be `{type(membership).__name__}`&#34;
+                f&#34;Membership value must be a `int`, `float`, `str` or `Decimal`&#34;
+                f&#34; it can not be `{type(membership).__name__}`&#34;
             )
 
         try:
             self._membership = Decimal(membership)
         except InvalidOperation as e:
-            raise InvalidOperation(f&#34;Cannot convert `membershiship` value ({membership}) to number.&#34;) from e
+            raise InvalidOperation(f&#34;Cannot convert `membership` value ({membership}) to number.&#34;) from e
 
         self._membership = self._membership.normalize()
 
@@ -193,7 +199,7 @@ class FuzzyMembership:
         return self._membership
 
     def __repr__(self) -&gt; str:
-        return &#34;FuzzyMembership({0})&#34;.format(self._membership)
+        return f&#34;FuzzyMembership({self._membership})&#34;
 
     def __eq__(self, __o: object) -&gt; bool:
         if not isinstance(__o, (int, float, FuzzyMembership, Decimal)):
@@ -260,7 +266,7 @@ Attributes</p>
     _membership: Decimal
     &#34;&#34;&#34;
 
-    __slots__ = &#34;_membership&#34;
+    __slots__ = [&#34;_membership&#34;]
 
     def __init__(self, membership: Union[str, int, float, Decimal]) -&gt; None:
         &#34;&#34;&#34;
@@ -282,13 +288,14 @@ Attributes</p>
 
         if not isinstance(membership, (int, float, str, Decimal)):
             raise TypeError(
-                f&#34;Membership value must be a `int`, `float`, `str` or `Decimal` it can not be `{type(membership).__name__}`&#34;
+                f&#34;Membership value must be a `int`, `float`, `str` or `Decimal`&#34;
+                f&#34; it can not be `{type(membership).__name__}`&#34;
             )
 
         try:
             self._membership = Decimal(membership)
         except InvalidOperation as e:
-            raise InvalidOperation(f&#34;Cannot convert `membershiship` value ({membership}) to number.&#34;) from e
+            raise InvalidOperation(f&#34;Cannot convert `membership` value ({membership}) to number.&#34;) from e
 
         self._membership = self._membership.normalize()
 
@@ -308,7 +315,7 @@ Attributes</p>
         return self._membership
 
     def __repr__(self) -&gt; str:
-        return &#34;FuzzyMembership({0})&#34;.format(self._membership)
+        return f&#34;FuzzyMembership({self._membership})&#34;
 
     def __eq__(self, __o: object) -&gt; bool:
         if not isinstance(__o, (int, float, FuzzyMembership, Decimal)):
@@ -427,12 +434,14 @@ Attributes</p>
 
         if not isinstance(possibility, (int, float, str, Decimal)):
             raise TypeError(
-                f&#34;Possibility value must be `int`, `float`, `str` or `Decimal` it can not be `{type(possibility).__name__}`&#34;
+                f&#34;Possibility value must be `int`, `float`, `str` or `Decimal`&#34;
+                f&#34;it can not be `{type(possibility).__name__}`&#34;
             )
 
         if not isinstance(necessity, (int, float, str, Decimal)):
             raise TypeError(
-                f&#34;Necessity value must be `int`, `float`, `str` or `Decimal` it can not be `{type(necessity).__name__}`&#34;
+                f&#34;Necessity value must be `int`, `float`, `str` or `Decimal`&#34;
+                f&#34;it can not be `{type(necessity).__name__}`&#34;
             )
 
         self._possibility = self._possibility.normalize()
@@ -457,7 +466,8 @@ Attributes</p>
         if self._possibility &lt; self._necessity:
             raise ValueError(
                 f&#34;Possibility value must be equal or larger then necessity. &#34;
-                f&#34;Currently this does not hold for for values possibility values `{possibility}` and necessity `{necessity}`.&#34;
+                f&#34;Currently this does not hold for for values possibility values &#34;
+                f&#34;`{possibility}` and necessity `{necessity}`.&#34;
             )
 
     @property
@@ -485,7 +495,7 @@ Attributes</p>
         return self._necessity
 
     def __repr__(self) -&gt; str:
-        return &#34;PossibilisticMembership(possibility: {0}, necessity: {1})&#34;.format(self._possibility, self._necessity)
+        return f&#34;PossibilisticMembership(possibility: {self._possibility}, necessity: {self._necessity})&#34;
 
     def __eq__(self, __o: object) -&gt; bool:
         if not isinstance(__o, PossibilisticMembership):

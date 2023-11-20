@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>FuzzyMath.class_fuzzy_number API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Fuzzy number class" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,20 +22,30 @@
 <h1 class="title">Module <code>FuzzyMath.class_fuzzy_number</code></h1>
 </header>
 <section id="section-intro">
+<p>Fuzzy number class</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from __future__ import annotations
+<pre><code class="python">&#34;&#34;&#34;Fuzzy number class&#34;&#34;&#34;
+from __future__ import annotations
 
 from bisect import bisect_left
 from decimal import Decimal, InvalidOperation
+from enum import Enum, auto
 from types import BuiltinFunctionType, FunctionType
 from typing import Callable, List, Tuple, Union
 
 from .class_interval import Interval
 from .class_memberships import FuzzyMembership, PossibilisticMembership
 from .class_precision import FuzzyMathPrecision
+
+
+class AlphaCutSide(Enum):
+    &#34;&#34;&#34;Simple Enum that determines if alpha cut side is minimum or maximum.&#34;&#34;&#34;
+
+    MIN = auto()
+    MAX = auto()
 
 
 class FuzzyNumber:
@@ -53,11 +63,11 @@ class FuzzyNumber:
 
     __slots__ = (&#34;_alpha_cuts&#34;, &#34;_alphas&#34;)
 
-    def __init__(self, alphas: List[Union[float, Decimal]], alpha_cuts: List[Interval]):
+    def __init__(self, alphas: List[Decimal], alpha_cuts: List[Interval]):
         &#34;&#34;&#34;
         Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
-        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or `FuzzyNumberFactory.parse_string()` instead of this
-        function.
+        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or
+        `FuzzyNumberFactory.parse_string()` instead of this function.
 
         Parameters
         ----------
@@ -97,7 +107,7 @@ class FuzzyNumber:
 
         for alpha in self.alpha_levels:
             if not previous_interval.is_empty:
-                if not self.get_alpha_cut(alpha) in previous_interval:
+                if self.get_alpha_cut(alpha) not in previous_interval:
                     raise ValueError(
                         &#34;Interval on lower alpha level has to contain the higher level alpha cuts.&#34;
                         f&#34;This does not hold for {previous_interval} and {self.get_alpha_cut(alpha)}.&#34;
@@ -205,7 +215,7 @@ class FuzzyNumber:
         alpha = self._validate_alpha(alpha)
 
         if alpha in self.alpha_levels:
-            return self._alpha_cuts.get(alpha)
+            return self._alpha_cuts.get(alpha)  # type: ignore [return-value]
         else:
             return self._calculate_alpha_cut(alpha)
 
@@ -240,7 +250,7 @@ class FuzzyNumber:
             except InvalidOperation as e:
                 raise InvalidOperation(f&#34;Cannot convert alpha value `{alpha}` to number.&#34;) from e
 
-        if not (0 &lt;= alpha &lt;= 1):
+        if not 0 &lt;= alpha &lt;= 1:
             raise ValueError(&#34;`alpha` must be from range [0,1].&#34;)
 
         return alpha
@@ -261,9 +271,9 @@ class FuzzyNumber:
 
         position = bisect_left(self._alphas, alpha)
 
-        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).min
+        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).min  # type: ignore [union-attr]
         y1 = self.alpha_levels[position - 1]
-        x2 = self._alpha_cuts.get(self.alpha_levels[position]).min
+        x2 = self._alpha_cuts.get(self.alpha_levels[position]).min  # type: ignore [union-attr]
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
@@ -273,9 +283,9 @@ class FuzzyNumber:
             q = y1 - k * x1
             a = (Decimal(alpha) - q) / k
 
-        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).max
+        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).max  # type: ignore [union-attr]
         y1 = self.alpha_levels[position - 1]
-        x2 = self._alpha_cuts.get(self.alpha_levels[position]).max
+        x2 = self._alpha_cuts.get(self.alpha_levels[position]).max  # type: ignore [union-attr]
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
@@ -299,9 +309,7 @@ class FuzzyNumber:
         string = &#34;&#34;
 
         for alpha in self._alphas:
-            string = string + &#34;({0};{1},{2})&#34;.format(
-                alpha, self.get_alpha_cut(alpha).min, self.get_alpha_cut(alpha).max
-            )
+            string = string + f&#34;({alpha};{self.get_alpha_cut(alpha).min},{self.get_alpha_cut(alpha).max})&#34;
 
         return string
 
@@ -314,8 +322,9 @@ class FuzzyNumber:
         str
         &#34;&#34;&#34;
 
-        string = &#34;Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.&#34;.format(
-            self.min, self.max, self.kernel.min, self.kernel.max, len(self.alpha_levels) - 2
+        string = (
+            f&#34;Fuzzy number with support ({self.min},{self.max}), kernel ({self.kernel_min}, {self.kernel_max}) &#34;
+            f&#34;and {len(self.alpha_levels) - 2} more alpha-cuts.&#34;
         )
 
         return string
@@ -330,8 +339,8 @@ class FuzzyNumber:
             return interval.min &lt;= item.get_alpha_cut(0).min and item.get_alpha_cut(0).max &lt;= interval.max
         else:
             raise TypeError(
-                &#34;Cannot test if object of type `{0}` is in FuzzyNumber. Only implemented for `float`, &#34;
-                &#34;`int`, `Interval` and `FuzzyNumber`.&#34;.format(type(item).__name__)
+                f&#34;Cannot test if object of type `{type(item).__name__}` is in FuzzyNumber. Only implemented for &#34;
+                &#34;`float`, `int`, `Interval` and `FuzzyNumber`.&#34;
             )
 
     def __lt__(self, other):
@@ -374,7 +383,7 @@ class FuzzyNumber:
 
         number_of_parts = int(number_of_parts)
 
-        values = [0.0] * number_of_parts
+        values = [Decimal(0)] * number_of_parts
 
         i = 0
         while i &lt;= number_of_parts - 1:
@@ -435,7 +444,7 @@ class FuzzyNumber:
         return self._iterate_alphas_one_value(self, Interval.__pow__, power)
 
     def __hash__(self) -&gt; int:
-        list_values = [0.0] * (len(self.alpha_levels) * 2)
+        list_values = [Decimal(0)] * (len(self.alpha_levels) * 2)
         i = 0
         for alpha in self.alpha_levels:
             interval = self.get_alpha_cut(alpha)
@@ -456,63 +465,63 @@ class FuzzyNumber:
     def __len__(self) -&gt; int:
         return len(self.alpha_cuts)
 
-    def possibility_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_exceedance
+    def possibility_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_exceedance  # pylint: disable=C0415
 
         return possibility_exceedance(self, fn_other)
 
-    def necessity_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_exceedance
+    def necessity_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_exceedance  # pylint: disable=C0415
 
         return necessity_exceedance(self, fn_other)
 
-    def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import exceedance
+    def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import exceedance  # pylint: disable=C0415
 
         return exceedance(self, fn_other)
 
-    def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_strict_exceedance
+    def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_strict_exceedance  # pylint: disable=C0415
 
         return possibility_strict_exceedance(self, fn_other)
 
-    def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_strict_exceedance
+    def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_strict_exceedance  # pylint: disable=C0415
 
         return necessity_strict_exceedance(self, fn_other)
 
-    def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import strict_exceedance
+    def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import strict_exceedance  # pylint: disable=C0415
 
         return strict_exceedance(self, fn_other)
 
-    def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_undervaluation
+    def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_undervaluation  # pylint: disable=C0415
 
         return possibility_undervaluation(self, fn_other)
 
-    def necessity_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_undervaluation
+    def necessity_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_undervaluation  # pylint: disable=C0415
 
         return necessity_undervaluation(self, fn_other)
 
-    def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import undervaluation
+    def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import undervaluation  # pylint: disable=C0415
 
         return undervaluation(self, fn_other)
 
-    def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_strict_undervaluation
+    def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_strict_undervaluation  # pylint: disable=C0415
 
         return possibility_strict_undervaluation(self, fn_other)
 
-    def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_strict_undervaluation
+    def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_strict_undervaluation  # pylint: disable=C0415
 
         return necessity_strict_undervaluation(self, fn_other)
 
-    def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import strict_undervaluation
+    def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import strict_undervaluation  # pylint: disable=C0415
 
         return strict_undervaluation(self, fn_other)
 
@@ -528,7 +537,7 @@ class FuzzyNumber:
             Function to apply to fuzzy number.
 
         args
-            Postional arguments for the `function`.
+            Positional arguments for the `function`.
 
         monotone: bool
             Is the function monotone? Default `False`. If `True` can significantly speed up calculation.
@@ -548,17 +557,17 @@ class FuzzyNumber:
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
             raise ValueError(
                 &#34;`function` must be either `FunctionType` or `BuiltinFunctionType`. `function` currently &#34;
-                &#34;is `{}`.&#34;.format(type(function))
+                f&#34;is `{type(function)}`.&#34;
             )
 
         if not isinstance(number_elements, (int, float)):
             raise ValueError(
                 &#34;`number_elements` must be either `int` or `float`. `number_elements` is currently &#34;
-                &#34;`{}`.&#34;.format(type(number_elements))
+                f&#34;`{type(number_elements)}`.&#34;
             )
 
         if not isinstance(monotone, bool):
-            raise ValueError(&#34;`monotone` must be `bool`. `monotone` is currently `{}`.&#34;.format(monotone))
+            raise ValueError(f&#34;`monotone` must be `bool`. `monotone` is currently `{monotone}`.&#34;)
 
         intervals: List[Interval] = []
 
@@ -590,7 +599,7 @@ class FuzzyNumber:
     @staticmethod
     def _iterate_alphas_one_value(x: FuzzyNumber, operation: Callable, *args) -&gt; FuzzyNumber:
         if not callable(operation):
-            raise TypeError(&#34;`operation` needs to be a function. It is `{0}`.&#34;.format(type(operation).__name__))
+            raise TypeError(f&#34;`operation` needs to be a function. It is `{type(operation).__name__}`.&#34;)
 
         alphas, intervals = FuzzyNumber.__prepare_alphas_intervals(x.alpha_levels)
 
@@ -605,7 +614,7 @@ class FuzzyNumber:
     @staticmethod
     def _iterate_alphas_two_values(x, y, operation: Callable) -&gt; FuzzyNumber:
         if not isinstance(operation, FunctionType):
-            raise TypeError(&#34;`operation` needs to be a function. It is `{0}`.&#34;.format(type(operation).__name__))
+            raise TypeError(f&#34;`operation` needs to be a function. It is `{type(operation).__name__}`.&#34;)
 
         fuzzy_x = isinstance(x, FuzzyNumber)
         fuzzy_y = isinstance(y, FuzzyNumber)
@@ -632,34 +641,41 @@ class FuzzyNumber:
         return FuzzyNumber(alphas, intervals)
 
     def __get_cuts_values(
-        self, alphas: List[Decimal] = None, order_by_alphas_from_one: bool = False, value_type: str = &#34;min&#34;
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+        value_type: AlphaCutSide = AlphaCutSide.MIN,
     ) -&gt; List[Decimal]:
         if alphas is None:
             alphas = self.alpha_levels
         else:
             alphas.sort()
 
-        values = [0.0] * len(alphas)
+        values = [Decimal(0)] * len(alphas)
 
-        for i in range(len(alphas)):
-            if value_type == &#34;min&#34;:
-                values[i] = self.get_alpha_cut(alphas[i]).min
+        for i, alpha in enumerate(alphas):
+            if value_type == AlphaCutSide.MIN:
+                values[i] = self.get_alpha_cut(alpha).min
 
-            elif value_type == &#34;max&#34;:
-                values[i] = self.get_alpha_cut(alphas[i]).max
+            elif value_type == AlphaCutSide.MAX:
+                values[i] = self.get_alpha_cut(alpha).max
 
         if order_by_alphas_from_one:
             values.reverse()
 
         return values
 
-    def get_alpha_cuts_mins(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -&gt; List[float]:
+    def get_alpha_cuts_mins(
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+    ) -&gt; List[Decimal]:
         &#34;&#34;&#34;
-        Extract minimimal values of provided alpha cuts as list.
+        Extract minimal values of provided alpha cuts as list.
 
         Parameters
         ----------
-        alphas: List[float]
+        alphas: List[Decimal]
             Alphas to extract values for.
 
         order_by_alphas_from_one: bool
@@ -668,19 +684,25 @@ class FuzzyNumber:
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         &#34;&#34;&#34;
         return self.__get_cuts_values(
-            alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type=&#34;min&#34;
+            alphas=alphas,
+            order_by_alphas_from_one=order_by_alphas_from_one,
+            value_type=AlphaCutSide.MIN,
         )
 
-    def get_alpha_cuts_maxs(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -&gt; List[float]:
+    def get_alpha_cuts_maxs(
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+    ) -&gt; List[Decimal]:
         &#34;&#34;&#34;
         Extract maximal values of provided alpha cuts as list.
 
         Parameters
         ----------
-        alphas: List[float]
+        alphas: List[Decimal]
             Alphas to extract values for.
 
         order_by_alphas_from_one: bool
@@ -689,44 +711,47 @@ class FuzzyNumber:
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         &#34;&#34;&#34;
         return self.__get_cuts_values(
-            alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type=&#34;max&#34;
+            alphas=alphas,
+            order_by_alphas_from_one=order_by_alphas_from_one,
+            value_type=AlphaCutSide.MAX,
         )
 
     @staticmethod
-    def _prepare_alphas(alpha_levels1: List[float], alpha_levels2: List[float]) -&gt; List[float]:
+    def _prepare_alphas(alpha_levels1: List[Decimal], alpha_levels2: List[Decimal]) -&gt; List[Decimal]:
         &#34;&#34;&#34;
         Prepares list of alphas based on two input lists of alphas by selecting only distinct alpha values.
 
         Parameters
         ----------
-        alpha_levels1: List[float]
-        alpha_levels2: List[float]
+        alpha_levels1: List[Decimal]
+        alpha_levels2: List[Decimal]
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         &#34;&#34;&#34;
         alphas = sorted(list(set.union(set(alpha_levels1), set(alpha_levels2))))
         return alphas
 
     @staticmethod
     def __prepare_alphas_intervals(
-        alpha_levels1: List[float], alpha_levels2: List[float] = None
-    ) -&gt; Tuple[List[float], List[Interval]]:
+        alpha_levels1: List[Decimal],
+        alpha_levels2: List[Decimal] = None,  # type: ignore [assignment]
+    ) -&gt; Tuple[List[Decimal], List[Interval]]:
         &#34;&#34;&#34;
         Prepares list of alphas and list of empty `Interval`s for provided alpha levels.
 
         Parameters
         ----------
-        alpha_levels1: List[float]
-        alpha_levels2: List[float]
+        alpha_levels1: List[Decimal]
+        alpha_levels2: List[Decimal]
 
         Returns
         -------
-        (List[float], List[Interval])
+        (List[Decimal], List[Interval])
             List of alpha values and list of empty intervals prepared for further use.
         &#34;&#34;&#34;
 
@@ -739,11 +764,31 @@ class FuzzyNumber:
 
         return alphas, intervals
 
-    def membership(self, value: Union[float, int]) -&gt; FuzzyMembership:
-        if not isinstance(value, (int, float)):
+    def membership(self, value: Union[float, int, Decimal]) -&gt; FuzzyMembership:
+        &#34;&#34;&#34;
+        Get membership of value to this fuzzy number.
+
+        Parameters
+        ----------
+        value: Union[float, int, Decimal]
+            Value to determine membership for.
+
+        Args:
+            value (Union[float, int, Decimal]): Value to determine membership for.
+
+        Raises
+        -------
+        TypeError
+            If value is not integer, float or Decimal.
+
+        Returns
+        -------
+        FuzzyMembership
+        &#34;&#34;&#34;
+        if not isinstance(value, (int, float, Decimal)):
             raise TypeError(
-                &#34;Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, &#34;
-                &#34;`int`.&#34;.format(type(value).__name__)
+                f&#34;Cannot get membership of `{type(value).__name__}` in FuzzyNumber. Only implemented for &#34;
+                &#34;`float`, `int`.&#34;
             )
 
         if value not in self:
@@ -790,9 +835,41 @@ class FuzzyNumber:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="FuzzyMath.class_fuzzy_number.AlphaCutSide"><code class="flex name class">
+<span>class <span class="ident">AlphaCutSide</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple Enum that determines if alpha cut side is minimum or maximum.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AlphaCutSide(Enum):
+    &#34;&#34;&#34;Simple Enum that determines if alpha cut side is minimum or maximum.&#34;&#34;&#34;
+
+    MIN = auto()
+    MAX = auto()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="FuzzyMath.class_fuzzy_number.AlphaCutSide.MAX"><code class="name">var <span class="ident">MAX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="FuzzyMath.class_fuzzy_number.AlphaCutSide.MIN"><code class="name">var <span class="ident">MIN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber"><code class="flex name class">
 <span>class <span class="ident">FuzzyNumber</span></span>
-<span>(</span><span>alphas: List[Union[float, Decimal]], alpha_cuts: List[Interval])</span>
+<span>(</span><span>alphas: List[Decimal], alpha_cuts: List[Interval])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Fuzzy number representation.
@@ -806,8 +883,8 @@ Attributes</p>
 <dd>List of alpha values.</dd>
 </dl>
 <p>Basic creator for the class. But generally it is more useful to use functions <code>FuzzyNumberFactory.triangular()</code>,
-<code>FuzzyNumberFactory.trapezoidal()</code>, <code>FuzzyNumberFactory.crisp_number()</code> or <code>FuzzyNumberFactory.parse_string()</code> instead of this
-function.</p>
+<code>FuzzyNumberFactory.trapezoidal()</code>, <code>FuzzyNumberFactory.crisp_number()</code> or
+<code>FuzzyNumberFactory.parse_string()</code> instead of this function.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>alphas</code></strong> :&ensp;<code>List[Decimal]</code></dt>
@@ -834,11 +911,11 @@ function.</p>
 
     __slots__ = (&#34;_alpha_cuts&#34;, &#34;_alphas&#34;)
 
-    def __init__(self, alphas: List[Union[float, Decimal]], alpha_cuts: List[Interval]):
+    def __init__(self, alphas: List[Decimal], alpha_cuts: List[Interval]):
         &#34;&#34;&#34;
         Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
-        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or `FuzzyNumberFactory.parse_string()` instead of this
-        function.
+        `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or
+        `FuzzyNumberFactory.parse_string()` instead of this function.
 
         Parameters
         ----------
@@ -878,7 +955,7 @@ function.</p>
 
         for alpha in self.alpha_levels:
             if not previous_interval.is_empty:
-                if not self.get_alpha_cut(alpha) in previous_interval:
+                if self.get_alpha_cut(alpha) not in previous_interval:
                     raise ValueError(
                         &#34;Interval on lower alpha level has to contain the higher level alpha cuts.&#34;
                         f&#34;This does not hold for {previous_interval} and {self.get_alpha_cut(alpha)}.&#34;
@@ -986,7 +1063,7 @@ function.</p>
         alpha = self._validate_alpha(alpha)
 
         if alpha in self.alpha_levels:
-            return self._alpha_cuts.get(alpha)
+            return self._alpha_cuts.get(alpha)  # type: ignore [return-value]
         else:
             return self._calculate_alpha_cut(alpha)
 
@@ -1021,7 +1098,7 @@ function.</p>
             except InvalidOperation as e:
                 raise InvalidOperation(f&#34;Cannot convert alpha value `{alpha}` to number.&#34;) from e
 
-        if not (0 &lt;= alpha &lt;= 1):
+        if not 0 &lt;= alpha &lt;= 1:
             raise ValueError(&#34;`alpha` must be from range [0,1].&#34;)
 
         return alpha
@@ -1042,9 +1119,9 @@ function.</p>
 
         position = bisect_left(self._alphas, alpha)
 
-        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).min
+        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).min  # type: ignore [union-attr]
         y1 = self.alpha_levels[position - 1]
-        x2 = self._alpha_cuts.get(self.alpha_levels[position]).min
+        x2 = self._alpha_cuts.get(self.alpha_levels[position]).min  # type: ignore [union-attr]
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
@@ -1054,9 +1131,9 @@ function.</p>
             q = y1 - k * x1
             a = (Decimal(alpha) - q) / k
 
-        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).max
+        x1 = self._alpha_cuts.get(self.alpha_levels[position - 1]).max  # type: ignore [union-attr]
         y1 = self.alpha_levels[position - 1]
-        x2 = self._alpha_cuts.get(self.alpha_levels[position]).max
+        x2 = self._alpha_cuts.get(self.alpha_levels[position]).max  # type: ignore [union-attr]
         y2 = self.alpha_levels[position]
 
         if x1 == x2:
@@ -1080,9 +1157,7 @@ function.</p>
         string = &#34;&#34;
 
         for alpha in self._alphas:
-            string = string + &#34;({0};{1},{2})&#34;.format(
-                alpha, self.get_alpha_cut(alpha).min, self.get_alpha_cut(alpha).max
-            )
+            string = string + f&#34;({alpha};{self.get_alpha_cut(alpha).min},{self.get_alpha_cut(alpha).max})&#34;
 
         return string
 
@@ -1095,8 +1170,9 @@ function.</p>
         str
         &#34;&#34;&#34;
 
-        string = &#34;Fuzzy number with support ({},{}), kernel ({}, {}) and {} more alpha-cuts.&#34;.format(
-            self.min, self.max, self.kernel.min, self.kernel.max, len(self.alpha_levels) - 2
+        string = (
+            f&#34;Fuzzy number with support ({self.min},{self.max}), kernel ({self.kernel_min}, {self.kernel_max}) &#34;
+            f&#34;and {len(self.alpha_levels) - 2} more alpha-cuts.&#34;
         )
 
         return string
@@ -1111,8 +1187,8 @@ function.</p>
             return interval.min &lt;= item.get_alpha_cut(0).min and item.get_alpha_cut(0).max &lt;= interval.max
         else:
             raise TypeError(
-                &#34;Cannot test if object of type `{0}` is in FuzzyNumber. Only implemented for `float`, &#34;
-                &#34;`int`, `Interval` and `FuzzyNumber`.&#34;.format(type(item).__name__)
+                f&#34;Cannot test if object of type `{type(item).__name__}` is in FuzzyNumber. Only implemented for &#34;
+                &#34;`float`, `int`, `Interval` and `FuzzyNumber`.&#34;
             )
 
     def __lt__(self, other):
@@ -1155,7 +1231,7 @@ function.</p>
 
         number_of_parts = int(number_of_parts)
 
-        values = [0.0] * number_of_parts
+        values = [Decimal(0)] * number_of_parts
 
         i = 0
         while i &lt;= number_of_parts - 1:
@@ -1216,7 +1292,7 @@ function.</p>
         return self._iterate_alphas_one_value(self, Interval.__pow__, power)
 
     def __hash__(self) -&gt; int:
-        list_values = [0.0] * (len(self.alpha_levels) * 2)
+        list_values = [Decimal(0)] * (len(self.alpha_levels) * 2)
         i = 0
         for alpha in self.alpha_levels:
             interval = self.get_alpha_cut(alpha)
@@ -1237,63 +1313,63 @@ function.</p>
     def __len__(self) -&gt; int:
         return len(self.alpha_cuts)
 
-    def possibility_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_exceedance
+    def possibility_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_exceedance  # pylint: disable=C0415
 
         return possibility_exceedance(self, fn_other)
 
-    def necessity_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_exceedance
+    def necessity_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_exceedance  # pylint: disable=C0415
 
         return necessity_exceedance(self, fn_other)
 
-    def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import exceedance
+    def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import exceedance  # pylint: disable=C0415
 
         return exceedance(self, fn_other)
 
-    def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_strict_exceedance
+    def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_strict_exceedance  # pylint: disable=C0415
 
         return possibility_strict_exceedance(self, fn_other)
 
-    def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_strict_exceedance
+    def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_strict_exceedance  # pylint: disable=C0415
 
         return necessity_strict_exceedance(self, fn_other)
 
-    def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import strict_exceedance
+    def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import strict_exceedance  # pylint: disable=C0415
 
         return strict_exceedance(self, fn_other)
 
-    def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_undervaluation
+    def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_undervaluation  # pylint: disable=C0415
 
         return possibility_undervaluation(self, fn_other)
 
-    def necessity_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_undervaluation
+    def necessity_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_undervaluation  # pylint: disable=C0415
 
         return necessity_undervaluation(self, fn_other)
 
-    def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import undervaluation
+    def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import undervaluation  # pylint: disable=C0415
 
         return undervaluation(self, fn_other)
 
-    def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import possibility_strict_undervaluation
+    def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import possibility_strict_undervaluation  # pylint: disable=C0415
 
         return possibility_strict_undervaluation(self, fn_other)
 
-    def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-        from .fuzzynumber_comparisons import necessity_strict_undervaluation
+    def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import necessity_strict_undervaluation  # pylint: disable=C0415
 
         return necessity_strict_undervaluation(self, fn_other)
 
-    def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-        from .fuzzynumber_comparisons import strict_undervaluation
+    def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+        from .fuzzynumber_comparisons import strict_undervaluation  # pylint: disable=C0415
 
         return strict_undervaluation(self, fn_other)
 
@@ -1309,7 +1385,7 @@ function.</p>
             Function to apply to fuzzy number.
 
         args
-            Postional arguments for the `function`.
+            Positional arguments for the `function`.
 
         monotone: bool
             Is the function monotone? Default `False`. If `True` can significantly speed up calculation.
@@ -1329,17 +1405,17 @@ function.</p>
         if not isinstance(function, (FunctionType, BuiltinFunctionType)):
             raise ValueError(
                 &#34;`function` must be either `FunctionType` or `BuiltinFunctionType`. `function` currently &#34;
-                &#34;is `{}`.&#34;.format(type(function))
+                f&#34;is `{type(function)}`.&#34;
             )
 
         if not isinstance(number_elements, (int, float)):
             raise ValueError(
                 &#34;`number_elements` must be either `int` or `float`. `number_elements` is currently &#34;
-                &#34;`{}`.&#34;.format(type(number_elements))
+                f&#34;`{type(number_elements)}`.&#34;
             )
 
         if not isinstance(monotone, bool):
-            raise ValueError(&#34;`monotone` must be `bool`. `monotone` is currently `{}`.&#34;.format(monotone))
+            raise ValueError(f&#34;`monotone` must be `bool`. `monotone` is currently `{monotone}`.&#34;)
 
         intervals: List[Interval] = []
 
@@ -1371,7 +1447,7 @@ function.</p>
     @staticmethod
     def _iterate_alphas_one_value(x: FuzzyNumber, operation: Callable, *args) -&gt; FuzzyNumber:
         if not callable(operation):
-            raise TypeError(&#34;`operation` needs to be a function. It is `{0}`.&#34;.format(type(operation).__name__))
+            raise TypeError(f&#34;`operation` needs to be a function. It is `{type(operation).__name__}`.&#34;)
 
         alphas, intervals = FuzzyNumber.__prepare_alphas_intervals(x.alpha_levels)
 
@@ -1386,7 +1462,7 @@ function.</p>
     @staticmethod
     def _iterate_alphas_two_values(x, y, operation: Callable) -&gt; FuzzyNumber:
         if not isinstance(operation, FunctionType):
-            raise TypeError(&#34;`operation` needs to be a function. It is `{0}`.&#34;.format(type(operation).__name__))
+            raise TypeError(f&#34;`operation` needs to be a function. It is `{type(operation).__name__}`.&#34;)
 
         fuzzy_x = isinstance(x, FuzzyNumber)
         fuzzy_y = isinstance(y, FuzzyNumber)
@@ -1413,34 +1489,41 @@ function.</p>
         return FuzzyNumber(alphas, intervals)
 
     def __get_cuts_values(
-        self, alphas: List[Decimal] = None, order_by_alphas_from_one: bool = False, value_type: str = &#34;min&#34;
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+        value_type: AlphaCutSide = AlphaCutSide.MIN,
     ) -&gt; List[Decimal]:
         if alphas is None:
             alphas = self.alpha_levels
         else:
             alphas.sort()
 
-        values = [0.0] * len(alphas)
+        values = [Decimal(0)] * len(alphas)
 
-        for i in range(len(alphas)):
-            if value_type == &#34;min&#34;:
-                values[i] = self.get_alpha_cut(alphas[i]).min
+        for i, alpha in enumerate(alphas):
+            if value_type == AlphaCutSide.MIN:
+                values[i] = self.get_alpha_cut(alpha).min
 
-            elif value_type == &#34;max&#34;:
-                values[i] = self.get_alpha_cut(alphas[i]).max
+            elif value_type == AlphaCutSide.MAX:
+                values[i] = self.get_alpha_cut(alpha).max
 
         if order_by_alphas_from_one:
             values.reverse()
 
         return values
 
-    def get_alpha_cuts_mins(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -&gt; List[float]:
+    def get_alpha_cuts_mins(
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+    ) -&gt; List[Decimal]:
         &#34;&#34;&#34;
-        Extract minimimal values of provided alpha cuts as list.
+        Extract minimal values of provided alpha cuts as list.
 
         Parameters
         ----------
-        alphas: List[float]
+        alphas: List[Decimal]
             Alphas to extract values for.
 
         order_by_alphas_from_one: bool
@@ -1449,19 +1532,25 @@ function.</p>
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         &#34;&#34;&#34;
         return self.__get_cuts_values(
-            alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type=&#34;min&#34;
+            alphas=alphas,
+            order_by_alphas_from_one=order_by_alphas_from_one,
+            value_type=AlphaCutSide.MIN,
         )
 
-    def get_alpha_cuts_maxs(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -&gt; List[float]:
+    def get_alpha_cuts_maxs(
+        self,
+        alphas: List[Decimal] = None,  # type: ignore [assignment]
+        order_by_alphas_from_one: bool = False,
+    ) -&gt; List[Decimal]:
         &#34;&#34;&#34;
         Extract maximal values of provided alpha cuts as list.
 
         Parameters
         ----------
-        alphas: List[float]
+        alphas: List[Decimal]
             Alphas to extract values for.
 
         order_by_alphas_from_one: bool
@@ -1470,44 +1559,47 @@ function.</p>
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         &#34;&#34;&#34;
         return self.__get_cuts_values(
-            alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type=&#34;max&#34;
+            alphas=alphas,
+            order_by_alphas_from_one=order_by_alphas_from_one,
+            value_type=AlphaCutSide.MAX,
         )
 
     @staticmethod
-    def _prepare_alphas(alpha_levels1: List[float], alpha_levels2: List[float]) -&gt; List[float]:
+    def _prepare_alphas(alpha_levels1: List[Decimal], alpha_levels2: List[Decimal]) -&gt; List[Decimal]:
         &#34;&#34;&#34;
         Prepares list of alphas based on two input lists of alphas by selecting only distinct alpha values.
 
         Parameters
         ----------
-        alpha_levels1: List[float]
-        alpha_levels2: List[float]
+        alpha_levels1: List[Decimal]
+        alpha_levels2: List[Decimal]
 
         Returns
         -------
-        List[float]
+        List[Decimal]
         &#34;&#34;&#34;
         alphas = sorted(list(set.union(set(alpha_levels1), set(alpha_levels2))))
         return alphas
 
     @staticmethod
     def __prepare_alphas_intervals(
-        alpha_levels1: List[float], alpha_levels2: List[float] = None
-    ) -&gt; Tuple[List[float], List[Interval]]:
+        alpha_levels1: List[Decimal],
+        alpha_levels2: List[Decimal] = None,  # type: ignore [assignment]
+    ) -&gt; Tuple[List[Decimal], List[Interval]]:
         &#34;&#34;&#34;
         Prepares list of alphas and list of empty `Interval`s for provided alpha levels.
 
         Parameters
         ----------
-        alpha_levels1: List[float]
-        alpha_levels2: List[float]
+        alpha_levels1: List[Decimal]
+        alpha_levels2: List[Decimal]
 
         Returns
         -------
-        (List[float], List[Interval])
+        (List[Decimal], List[Interval])
             List of alpha values and list of empty intervals prepared for further use.
         &#34;&#34;&#34;
 
@@ -1520,11 +1612,31 @@ function.</p>
 
         return alphas, intervals
 
-    def membership(self, value: Union[float, int]) -&gt; FuzzyMembership:
-        if not isinstance(value, (int, float)):
+    def membership(self, value: Union[float, int, Decimal]) -&gt; FuzzyMembership:
+        &#34;&#34;&#34;
+        Get membership of value to this fuzzy number.
+
+        Parameters
+        ----------
+        value: Union[float, int, Decimal]
+            Value to determine membership for.
+
+        Args:
+            value (Union[float, int, Decimal]): Value to determine membership for.
+
+        Raises
+        -------
+        TypeError
+            If value is not integer, float or Decimal.
+
+        Returns
+        -------
+        FuzzyMembership
+        &#34;&#34;&#34;
+        if not isinstance(value, (int, float, Decimal)):
             raise TypeError(
-                &#34;Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, &#34;
-                &#34;`int`.&#34;.format(type(value).__name__)
+                f&#34;Cannot get membership of `{type(value).__name__}` in FuzzyNumber. Only implemented for &#34;
+                &#34;`float`, `int`.&#34;
             )
 
         if value not in self:
@@ -1606,7 +1718,7 @@ def get_alpha_cut_values(number_of_parts: int) -&gt; List[Decimal]:
 
     number_of_parts = int(number_of_parts)
 
-    values = [0.0] * number_of_parts
+    values = [Decimal(0)] * number_of_parts
 
     i = 0
     while i &lt;= number_of_parts - 1:
@@ -1800,7 +1912,7 @@ def min(self) -&gt; Decimal:
 <dt><strong><code>function</code></strong> :&ensp;<code>(FunctionType, BuiltinFunctionType)</code></dt>
 <dd>Function to apply to fuzzy number.</dd>
 <dt><strong><code>args</code></strong></dt>
-<dd>Postional arguments for the <code>function</code>.</dd>
+<dd>Positional arguments for the <code>function</code>.</dd>
 <dt><strong><code>monotone</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Is the function monotone? Default <code>False</code>. If <code>True</code> can significantly speed up calculation.</dd>
 <dt><strong><code>number_elements</code></strong> :&ensp;<code>int</code></dt>
@@ -1829,7 +1941,7 @@ def min(self) -&gt; Decimal:
         Function to apply to fuzzy number.
 
     args
-        Postional arguments for the `function`.
+        Positional arguments for the `function`.
 
     monotone: bool
         Is the function monotone? Default `False`. If `True` can significantly speed up calculation.
@@ -1849,17 +1961,17 @@ def min(self) -&gt; Decimal:
     if not isinstance(function, (FunctionType, BuiltinFunctionType)):
         raise ValueError(
             &#34;`function` must be either `FunctionType` or `BuiltinFunctionType`. `function` currently &#34;
-            &#34;is `{}`.&#34;.format(type(function))
+            f&#34;is `{type(function)}`.&#34;
         )
 
     if not isinstance(number_elements, (int, float)):
         raise ValueError(
             &#34;`number_elements` must be either `int` or `float`. `number_elements` is currently &#34;
-            &#34;`{}`.&#34;.format(type(number_elements))
+            f&#34;`{type(number_elements)}`.&#34;
         )
 
     if not isinstance(monotone, bool):
-        raise ValueError(&#34;`monotone` must be `bool`. `monotone` is currently `{}`.&#34;.format(monotone))
+        raise ValueError(f&#34;`monotone` must be `bool`. `monotone` is currently `{monotone}`.&#34;)
 
     intervals: List[Interval] = []
 
@@ -1898,8 +2010,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-    from .fuzzynumber_comparisons import exceedance
+<pre><code class="python">def exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import exceedance  # pylint: disable=C0415
 
     return exceedance(self, fn_other)</code></pre>
 </details>
@@ -1940,19 +2052,19 @@ def min(self) -&gt; Decimal:
     alpha = self._validate_alpha(alpha)
 
     if alpha in self.alpha_levels:
-        return self._alpha_cuts.get(alpha)
+        return self._alpha_cuts.get(alpha)  # type: ignore [return-value]
     else:
         return self._calculate_alpha_cut(alpha)</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cuts_maxs"><code class="name flex">
-<span>def <span class="ident">get_alpha_cuts_maxs</span></span>(<span>self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) ‑> List[float]</span>
+<span>def <span class="ident">get_alpha_cuts_maxs</span></span>(<span>self, alphas: List[Decimal] = None, order_by_alphas_from_one: bool = False) ‑> List[decimal.Decimal]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extract maximal values of provided alpha cuts as list.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>alphas</code></strong> :&ensp;<code>List[float]</code></dt>
+<dt><strong><code>alphas</code></strong> :&ensp;<code>List[Decimal]</code></dt>
 <dd>Alphas to extract values for.</dd>
 <dt><strong><code>order_by_alphas_from_one</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Order alphas from one (highest) to zero (lowest)? Default is <code>False</code>, which means that ordering is lowest
@@ -1960,20 +2072,24 @@ def min(self) -&gt; Decimal:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>List[float]</code></dt>
+<dt><code>List[Decimal]</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_alpha_cuts_maxs(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -&gt; List[float]:
+<pre><code class="python">def get_alpha_cuts_maxs(
+    self,
+    alphas: List[Decimal] = None,  # type: ignore [assignment]
+    order_by_alphas_from_one: bool = False,
+) -&gt; List[Decimal]:
     &#34;&#34;&#34;
     Extract maximal values of provided alpha cuts as list.
 
     Parameters
     ----------
-    alphas: List[float]
+    alphas: List[Decimal]
         Alphas to extract values for.
 
     order_by_alphas_from_one: bool
@@ -1982,21 +2098,23 @@ def min(self) -&gt; Decimal:
 
     Returns
     -------
-    List[float]
+    List[Decimal]
     &#34;&#34;&#34;
     return self.__get_cuts_values(
-        alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type=&#34;max&#34;
+        alphas=alphas,
+        order_by_alphas_from_one=order_by_alphas_from_one,
+        value_type=AlphaCutSide.MAX,
     )</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.get_alpha_cuts_mins"><code class="name flex">
-<span>def <span class="ident">get_alpha_cuts_mins</span></span>(<span>self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) ‑> List[float]</span>
+<span>def <span class="ident">get_alpha_cuts_mins</span></span>(<span>self, alphas: List[Decimal] = None, order_by_alphas_from_one: bool = False) ‑> List[decimal.Decimal]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Extract minimimal values of provided alpha cuts as list.</p>
+<div class="desc"><p>Extract minimal values of provided alpha cuts as list.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>alphas</code></strong> :&ensp;<code>List[float]</code></dt>
+<dt><strong><code>alphas</code></strong> :&ensp;<code>List[Decimal]</code></dt>
 <dd>Alphas to extract values for.</dd>
 <dt><strong><code>order_by_alphas_from_one</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Order alphas from one (highest) to zero (lowest)? Default is <code>False</code>, which means that ordering is lowest
@@ -2004,20 +2122,24 @@ def min(self) -&gt; Decimal:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>List[float]</code></dt>
+<dt><code>List[Decimal]</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_alpha_cuts_mins(self, alphas: List[float] = None, order_by_alphas_from_one: bool = False) -&gt; List[float]:
+<pre><code class="python">def get_alpha_cuts_mins(
+    self,
+    alphas: List[Decimal] = None,  # type: ignore [assignment]
+    order_by_alphas_from_one: bool = False,
+) -&gt; List[Decimal]:
     &#34;&#34;&#34;
-    Extract minimimal values of provided alpha cuts as list.
+    Extract minimal values of provided alpha cuts as list.
 
     Parameters
     ----------
-    alphas: List[float]
+    alphas: List[Decimal]
         Alphas to extract values for.
 
     order_by_alphas_from_one: bool
@@ -2026,27 +2148,69 @@ def min(self) -&gt; Decimal:
 
     Returns
     -------
-    List[float]
+    List[Decimal]
     &#34;&#34;&#34;
     return self.__get_cuts_values(
-        alphas=alphas, order_by_alphas_from_one=order_by_alphas_from_one, value_type=&#34;min&#34;
+        alphas=alphas,
+        order_by_alphas_from_one=order_by_alphas_from_one,
+        value_type=AlphaCutSide.MIN,
     )</code></pre>
 </details>
 </dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber.membership"><code class="name flex">
-<span>def <span class="ident">membership</span></span>(<span>self, value: Union[float, int]) ‑> <a title="FuzzyMath.class_memberships.FuzzyMembership" href="class_memberships.html#FuzzyMath.class_memberships.FuzzyMembership">FuzzyMembership</a></span>
+<span>def <span class="ident">membership</span></span>(<span>self, value: Union[float, int, Decimal]) ‑> <a title="FuzzyMath.class_memberships.FuzzyMembership" href="class_memberships.html#FuzzyMath.class_memberships.FuzzyMembership">FuzzyMembership</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get membership of value to this fuzzy number.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>Union[float, int, Decimal]</code></dt>
+<dd>Value to determine membership for.</dd>
+</dl>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>Union[float, int, Decimal]</code></dt>
+<dd>Value to determine membership for.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>TypeError</code></dt>
+<dd>If value is not integer, float or Decimal.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>FuzzyMembership</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def membership(self, value: Union[float, int]) -&gt; FuzzyMembership:
-    if not isinstance(value, (int, float)):
+<pre><code class="python">def membership(self, value: Union[float, int, Decimal]) -&gt; FuzzyMembership:
+    &#34;&#34;&#34;
+    Get membership of value to this fuzzy number.
+
+    Parameters
+    ----------
+    value: Union[float, int, Decimal]
+        Value to determine membership for.
+
+    Args:
+        value (Union[float, int, Decimal]): Value to determine membership for.
+
+    Raises
+    -------
+    TypeError
+        If value is not integer, float or Decimal.
+
+    Returns
+    -------
+    FuzzyMembership
+    &#34;&#34;&#34;
+    if not isinstance(value, (int, float, Decimal)):
         raise TypeError(
-            &#34;Cannot get membership of `{0}` in FuzzyNumber. Only implemented for `float`, &#34;
-            &#34;`int`.&#34;.format(type(value).__name__)
+            f&#34;Cannot get membership of `{type(value).__name__}` in FuzzyNumber. Only implemented for &#34;
+            &#34;`float`, `int`.&#34;
         )
 
     if value not in self:
@@ -2093,8 +2257,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import necessity_exceedance
+<pre><code class="python">def necessity_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import necessity_exceedance  # pylint: disable=C0415
 
     return necessity_exceedance(self, fn_other)</code></pre>
 </details>
@@ -2108,8 +2272,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import necessity_strict_exceedance
+<pre><code class="python">def necessity_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import necessity_strict_exceedance  # pylint: disable=C0415
 
     return necessity_strict_exceedance(self, fn_other)</code></pre>
 </details>
@@ -2123,8 +2287,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import necessity_strict_undervaluation
+<pre><code class="python">def necessity_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import necessity_strict_undervaluation  # pylint: disable=C0415
 
     return necessity_strict_undervaluation(self, fn_other)</code></pre>
 </details>
@@ -2138,8 +2302,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def necessity_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import necessity_undervaluation
+<pre><code class="python">def necessity_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import necessity_undervaluation  # pylint: disable=C0415
 
     return necessity_undervaluation(self, fn_other)</code></pre>
 </details>
@@ -2153,8 +2317,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import possibility_exceedance
+<pre><code class="python">def possibility_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import possibility_exceedance  # pylint: disable=C0415
 
     return possibility_exceedance(self, fn_other)</code></pre>
 </details>
@@ -2168,8 +2332,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import possibility_strict_exceedance
+<pre><code class="python">def possibility_strict_exceedance(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import possibility_strict_exceedance  # pylint: disable=C0415
 
     return possibility_strict_exceedance(self, fn_other)</code></pre>
 </details>
@@ -2183,8 +2347,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import possibility_strict_undervaluation
+<pre><code class="python">def possibility_strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import possibility_strict_undervaluation  # pylint: disable=C0415
 
     return possibility_strict_undervaluation(self, fn_other)</code></pre>
 </details>
@@ -2198,8 +2362,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:
-    from .fuzzynumber_comparisons import possibility_undervaluation
+<pre><code class="python">def possibility_undervaluation(self, fn_other: FuzzyNumber) -&gt; Decimal:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import possibility_undervaluation  # pylint: disable=C0415
 
     return possibility_undervaluation(self, fn_other)</code></pre>
 </details>
@@ -2213,8 +2377,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-    from .fuzzynumber_comparisons import strict_exceedance
+<pre><code class="python">def strict_exceedance(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import strict_exceedance  # pylint: disable=C0415
 
     return strict_exceedance(self, fn_other)</code></pre>
 </details>
@@ -2228,8 +2392,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-    from .fuzzynumber_comparisons import strict_undervaluation
+<pre><code class="python">def strict_undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import strict_undervaluation  # pylint: disable=C0415
 
     return strict_undervaluation(self, fn_other)</code></pre>
 </details>
@@ -2243,8 +2407,8 @@ def min(self) -&gt; Decimal:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:
-    from .fuzzynumber_comparisons import undervaluation
+<pre><code class="python">def undervaluation(self, fn_other: FuzzyNumber) -&gt; PossibilisticMembership:  # pylint: disable=C0116
+    from .fuzzynumber_comparisons import undervaluation  # pylint: disable=C0415
 
     return undervaluation(self, fn_other)</code></pre>
 </details>
@@ -2267,6 +2431,13 @@ def min(self) -&gt; Decimal:
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="FuzzyMath.class_fuzzy_number.AlphaCutSide" href="#FuzzyMath.class_fuzzy_number.AlphaCutSide">AlphaCutSide</a></code></h4>
+<ul class="">
+<li><code><a title="FuzzyMath.class_fuzzy_number.AlphaCutSide.MAX" href="#FuzzyMath.class_fuzzy_number.AlphaCutSide.MAX">MAX</a></code></li>
+<li><code><a title="FuzzyMath.class_fuzzy_number.AlphaCutSide.MIN" href="#FuzzyMath.class_fuzzy_number.AlphaCutSide.MIN">MIN</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="FuzzyMath.class_fuzzy_number.FuzzyNumber" href="#FuzzyMath.class_fuzzy_number.FuzzyNumber">FuzzyNumber</a></code></h4>
 <ul class="">
