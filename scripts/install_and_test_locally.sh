@@ -18,7 +18,7 @@ rm -rf build
 rm -rf dist
 
 pip uninstall FuzzyMath -y
-python3 setup.py install
+pip install .
 
 # run tests
 pytest -vv -s
