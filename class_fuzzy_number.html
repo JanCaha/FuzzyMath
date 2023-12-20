@@ -34,7 +34,7 @@ from bisect import bisect_left
 from decimal import Decimal, InvalidOperation
 from enum import Enum, auto
 from types import BuiltinFunctionType, FunctionType
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Sequence, Tuple, Union
 
 from .class_interval import Interval
 from .class_memberships import FuzzyMembership, PossibilisticMembership
@@ -57,13 +57,13 @@ class FuzzyNumber:
     _alpha_cuts: List[Interval]
         List of Intervals representing alpha cuts.
 
-    _alphas: List[Decimal]
+    _alphas: Sequence[Union[Decimal, float, str, int]]
         List of alpha values.
     &#34;&#34;&#34;
 
     __slots__ = (&#34;_alpha_cuts&#34;, &#34;_alphas&#34;)
 
-    def __init__(self, alphas: List[Decimal], alpha_cuts: List[Interval]):
+    def __init__(self, alphas: Sequence[Union[Decimal, float, str, int]], alpha_cuts: List[Interval]):
         &#34;&#34;&#34;
         Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
         `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or
@@ -823,6 +823,24 @@ class FuzzyNumber:
             k = (y2 - y1) / (x2 - x1)
             q = y1 - (k * x1)
 
+            return FuzzyMembership((k * Decimal(value)) + q)
+            y1 = self._alphas[last_alpha_containing]
+            y2 = self._alphas[last_alpha_containing + 1]
+
+            if (
+                self.alpha_cuts[last_alpha_containing].min &lt;= value
+                and value &lt;= self.alpha_cuts[last_alpha_containing + 1].min
+            ):
+                x1 = self.alpha_cuts[last_alpha_containing].min
+                x2 = self.alpha_cuts[last_alpha_containing + 1].min
+
+            else:
+                x1 = self.alpha_cuts[last_alpha_containing].max
+                x2 = self.alpha_cuts[last_alpha_containing + 1].max
+
+            k = (y2 - y1) / (x2 - x1)
+            q = y1 - (k * x1)
+
             return FuzzyMembership((k * Decimal(value)) + q)</code></pre>
 </details>
 </section>
@@ -869,7 +887,7 @@ class FuzzyNumber:
 </dd>
 <dt id="FuzzyMath.class_fuzzy_number.FuzzyNumber"><code class="flex name class">
 <span>class <span class="ident">FuzzyNumber</span></span>
-<span>(</span><span>alphas: List[Decimal], alpha_cuts: List[Interval])</span>
+<span>(</span><span>alphas: Sequence[Union[Decimal, float, str, int]], alpha_cuts: List[Interval])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Fuzzy number representation.
@@ -879,7 +897,7 @@ Attributes</p>
 <dl>
 <dt><strong><code>_alpha_cuts</code></strong> :&ensp;<code>List[Interval]</code></dt>
 <dd>List of Intervals representing alpha cuts.</dd>
-<dt><strong><code>_alphas</code></strong> :&ensp;<code>List[Decimal]</code></dt>
+<dt><strong><code>_alphas</code></strong> :&ensp;<code>Sequence[Union[Decimal, float, str, int]]</code></dt>
 <dd>List of alpha values.</dd>
 </dl>
 <p>Basic creator for the class. But generally it is more useful to use functions <code>FuzzyNumberFactory.triangular()</code>,
@@ -905,13 +923,13 @@ Attributes</p>
     _alpha_cuts: List[Interval]
         List of Intervals representing alpha cuts.
 
-    _alphas: List[Decimal]
+    _alphas: Sequence[Union[Decimal, float, str, int]]
         List of alpha values.
     &#34;&#34;&#34;
 
     __slots__ = (&#34;_alpha_cuts&#34;, &#34;_alphas&#34;)
 
-    def __init__(self, alphas: List[Decimal], alpha_cuts: List[Interval]):
+    def __init__(self, alphas: Sequence[Union[Decimal, float, str, int]], alpha_cuts: List[Interval]):
         &#34;&#34;&#34;
         Basic creator for the class. But generally it is more useful to use functions `FuzzyNumberFactory.triangular()`,
         `FuzzyNumberFactory.trapezoidal()`, `FuzzyNumberFactory.crisp_number()` or
@@ -1654,6 +1672,24 @@ Attributes</p>
                 else:
                     break
 
+            y1 = self._alphas[last_alpha_containing]
+            y2 = self._alphas[last_alpha_containing + 1]
+
+            if (
+                self.alpha_cuts[last_alpha_containing].min &lt;= value
+                and value &lt;= self.alpha_cuts[last_alpha_containing + 1].min
+            ):
+                x1 = self.alpha_cuts[last_alpha_containing].min
+                x2 = self.alpha_cuts[last_alpha_containing + 1].min
+
+            else:
+                x1 = self.alpha_cuts[last_alpha_containing].max
+                x2 = self.alpha_cuts[last_alpha_containing + 1].max
+
+            k = (y2 - y1) / (x2 - x1)
+            q = y1 - (k * x1)
+
+            return FuzzyMembership((k * Decimal(value)) + q)
             y1 = self._alphas[last_alpha_containing]
             y2 = self._alphas[last_alpha_containing + 1]
 
@@ -2228,6 +2264,24 @@ def min(self) -&gt; Decimal:
             else:
                 break
 
+        y1 = self._alphas[last_alpha_containing]
+        y2 = self._alphas[last_alpha_containing + 1]
+
+        if (
+            self.alpha_cuts[last_alpha_containing].min &lt;= value
+            and value &lt;= self.alpha_cuts[last_alpha_containing + 1].min
+        ):
+            x1 = self.alpha_cuts[last_alpha_containing].min
+            x2 = self.alpha_cuts[last_alpha_containing + 1].min
+
+        else:
+            x1 = self.alpha_cuts[last_alpha_containing].max
+            x2 = self.alpha_cuts[last_alpha_containing + 1].max
+
+        k = (y2 - y1) / (x2 - x1)
+        q = y1 - (k * x1)
+
+        return FuzzyMembership((k * Decimal(value)) + q)
         y1 = self._alphas[last_alpha_containing]
         y2 = self._alphas[last_alpha_containing + 1]
 
