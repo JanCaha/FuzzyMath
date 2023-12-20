@@ -1,7 +1,45 @@
+# https://github.com/danielfrg/mkdocs-jupyter/blob/12b64c5ce9329ef69c18f005d46f9839a18c515c/pyproject.toml
 [build-system]
 # Minimum requirements for the build system to execute.
 requires = ["setuptools >= 43.0.0"] 
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "FuzzyMath"
+readme = "README.md"
+version = "0.6.1"
+description = "Small lightweight library for Python that performs basic Interval and Fuzzy Arithmetic."
+requires-python = ">=3.8"
+license = { "file" = "LICENSE" }
+authors = [{ "name" = "Jan Caha", "email" = "jan.caha@outlook.com" }]
+keywords = ["fuzzy", "fuzzy arithmetic", "fuzzy math"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+]
+urls = { "Documentation" = "https://jancaha.github.io/FuzzyMath" }
+dependencies = ["numpy"]
+
+[options.extras_require]
+test = [
+    "pytest",
+    "pytest-cov"
+]
+
+[options]
+include_package_data = true
+
+[options.package_data]
+FuzzyMath = ["src/FuzzyMath/py.typed"]
 
 [flake8]
 exclude = [
@@ -13,9 +51,11 @@ max-line-length = 160
 
 
 [tool.pytest.ini_options]
+addopts = "-v -s --cov=FuzzyMath --cov-report=term-missing:skip-covered"
 testpaths = [
     "tests"
 ]
+pythonpath = ["src"]
 
 [tool.black]
 line-length = 120
