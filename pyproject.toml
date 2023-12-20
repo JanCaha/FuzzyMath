@@ -51,9 +51,11 @@ max-line-length = 160
 
 
 [tool.pytest.ini_options]
+addopts = "-v -s --cov=FuzzyMath --cov-report=term-missing:skip-covered"
 testpaths = [
     "tests"
 ]
+pythonpath = ["src"]
 
 [tool.black]
 line-length = 120
