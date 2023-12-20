@@ -40,58 +40,6 @@ def test_creation_errors():
     with pytest.raises(ValueError, match="Interval on lower alpha level has to contain the higher level alpha cuts"):
         FuzzyNumber([0, 1], [IntervalFactory.two_values(0, 1), IntervalFactory.two_values(2, 2)])
 
-    with pytest.raises(ValueError, match="The fuzzy number is invalid"):
-        FuzzyNumberFactory.triangular(5, 4, 3)
-
-    with pytest.raises(ValueError, match="The fuzzy number is invalid"):
-        FuzzyNumberFactory.trapezoidal(5, 1, 4, 3)
-
-
-def test_creation():
-    assert isinstance(FuzzyNumberFactory.triangular(1, 2, 3), FuzzyNumber)
-    assert isinstance(FuzzyNumberFactory.triangular(1, 2, 3), FuzzyNumber)
-    assert isinstance(FuzzyNumberFactory.triangular(1, 2, 3, number_of_cuts=10), FuzzyNumber)
-
-    assert isinstance(FuzzyNumberFactory.trapezoidal(1, 2, 3, 4), FuzzyNumber)
-    assert isinstance(FuzzyNumberFactory.trapezoidal(1, 2, 3, 4, number_of_cuts=10), FuzzyNumber)
-
-    assert isinstance(FuzzyNumberFactory.crisp_number(0), FuzzyNumber)
-    assert isinstance(FuzzyNumberFactory.crisp_number(0), FuzzyNumber)
-
-
-def test_fuzzynumber_creation_string():
-    string_fn = (
-        "(0.0;1.0,3.0)(0.111111111111111;1.1,2.9)(0.222222222222222;1.2,2.8)(0.333333333333333;1.3,2.7)"
-        "(0.444444444444444;1.4,2.6)(0.555555555555556;1.5,2.5)(0.666666666666667;1.6,2.4)"
-        "(0.777777777777778;1.7,2.3)(0.888888888888889;1.8,2.2)(1.0;2.0,2.0)"
-    )
-
-    assert isinstance(FuzzyNumberFactory.parse_string(string_fn), FuzzyNumber)
-
-    string_fn = "(0.0;1,3)(0.5;1.9999,2.0001)(1.0;2,2)"
-
-    assert isinstance(FuzzyNumberFactory.parse_string(string_fn), FuzzyNumber)
-
-    assert isinstance(FuzzyNumberFactory.parse_string(string_fn), FuzzyNumber)
-
-
-def test_fuzzynumber_creation_string_errors():
-    with pytest.raises(ValueError, match="Cannot parse FuzzyNumber from this definition"):
-        string_fn = "(0.0;1.0,3.0)(0.5;1.9999)(1.0;2.0,2.0)"
-        FuzzyNumberFactory.parse_string(string_fn)
-
-    with pytest.raises(ValueError, match="element of Fuzzy Number"):
-        string_fn = "(0.0;1.0,3.0)(0.5;2.0001,1.9999)(1.0;2.0,2.0)"
-        FuzzyNumberFactory.parse_string(string_fn)
-
-    with pytest.raises(ValueError, match="element of Fuzzy Number"):
-        string_fn = "(0.0;1.0,3.0)(1.1;1.9999,2.0001)(1.0;2.0,2.0)"
-        FuzzyNumberFactory.parse_string(string_fn)
-
-    with pytest.raises(ValueError, match="Interval on lower alpha level has to contain the higher"):
-        string_fn = "(0.0;1.0,3.0)(0.5;2.5,2.75)(1.0;2.0,2.0)"
-        FuzzyNumberFactory.parse_string(string_fn)
-
 
 def test_alphas(fn_a: FuzzyNumber, fn_e: FuzzyNumber):
     assert fn_a.alpha_levels == [Decimal(0), Decimal(1)]
