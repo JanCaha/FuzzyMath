@@ -286,18 +286,18 @@ def test_complex_comparisons_2(quantize_precision):
     assert_equal_decimals(comparison.necessity, "0.0", quantize_precision)
 
 
-def test_hash(i_a: FuzzyNumber):
-    assert hash(i_a)
+def test_hash(fn_a: FuzzyNumber):
+    assert hash(fn_a)
 
-    assert isinstance(hash(i_a), int)
-
-
-def test_repr(i_a: FuzzyNumber):
-    assert isinstance(i_a.__repr__(), str)
+    assert isinstance(hash(fn_a), int)
 
 
-def test_str(i_a: FuzzyNumber):
-    assert isinstance(i_a.__str__(), str)
+def test_repr(fn_a: FuzzyNumber):
+    assert isinstance(fn_a.__repr__(), str)
+
+
+def test_str(fn_a: FuzzyNumber):
+    assert isinstance(fn_a.__str__(), str)
 
 
 def test_membership(fn_a: FuzzyNumber, fn_d: FuzzyNumber, fn_e: FuzzyNumber, quantize_precision):
@@ -325,3 +325,17 @@ def test_membership(fn_a: FuzzyNumber, fn_d: FuzzyNumber, fn_e: FuzzyNumber, qua
 
     assert_equal_decimals(fn_e.membership(1.5).membership, "0.5", quantize_precision)
     assert_equal_decimals(fn_e.membership(2.5).membership, "0.5", quantize_precision)
+
+
+def test_wrong_operations(fn_a: FuzzyNumber):
+    with pytest.raises(TypeError):
+        fn_a + "a"
+
+    with pytest.raises(TypeError):
+        fn_a - "a"
+
+    with pytest.raises(TypeError):
+        fn_a / "a"
+
+    with pytest.raises(TypeError):
+        fn_a * "a"
